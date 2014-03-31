@@ -9,5 +9,5 @@ var app = connect()
   .use('/test', connect.static('app'));
 
 http.createServer(app).listen(8080, function() {
-  console.log('Running on http://localhost:8080');
+  console.log('Running on '+$IP);
 });
