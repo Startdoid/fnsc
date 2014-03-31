@@ -1,26 +1,13 @@
-var app = require('http').createServer(handler)
-var io = require('socket.io').listen(app)
-var fs = require('fs')
+var connect = require('connect');
+var http = require('http');
 
-app.listen(process.env.PORT || 8001);
+var app = connect()
+  .use(connect.static('app'))
+  .use('/js/lib/', connect.static('node_modules/requirejs/'))
+  .use('/node_modules', connect.static('node_modules'))
+  .use('/test', connect.static('test/'))
+  .use('/test', connect.static('app'));
 
-function handler (req, res) {
-fs.readFile('index.html',
-function (err, data) {
-if (err) {
-res.writeHead(500);
-return res.end('Error loading index.html');
-}
-
-res.writeHead(200, {'Content-Type': 'text/html', "Content-Length": data.length});
-res.end(data);
-});
-}
-
-io.sockets.on('connection', function (socket) {
-// echo the message
-socket.on('message', function (data) {
-console.info(data);
-socket.send("[ECHO] "+data);
-});
+http.createServer(app).listen(8080, function() {
+  console.log('Running on http://localhost:8080');
 });
