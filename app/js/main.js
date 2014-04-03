@@ -1,6 +1,6 @@
 requirejs.config({
   baseUrl: 'js',
-  waitSeconds: 45,
+
   paths: {
     text: 'lib/text'
   },
@@ -9,17 +9,20 @@ requirejs.config({
     'lib/underscore-min': {
       exports: '_'
     },
-    'lib/backbone-min': {
+    'lib/backbone': {
       deps: ['lib/underscore-min']
     , exports: 'Backbone'
     },
     'app': {
-      deps: ['lib/underscore-min', 'lib/backbone-min']
+      deps: ['lib/underscore-min', 'lib/backbone', 'lib/jquery.sortable']
     }
   }
 });
 
-require(['app'], function(App) {
-  console.log("call: app/main.js");
+require([
+  'app'
+],
+
+function(App) {
   window.timesline = new App();
 });

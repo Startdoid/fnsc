@@ -10,52 +10,45 @@ define(['config'], function(config) {
 
   ApiManager.prototype.init = function() {
     var self = this;
-  
-    gapi.client.load('tasks', 'v1', function() {
-        // Loaded
-    });
-  
+
+    gapi.client.load('tasks', 'v1', function() { /* Loaded */ });
+
     function handleClientLoad() {
       gapi.client.setApiKey(config.apiKey);
       window.setTimeout(checkAuth, 100);
     }
-  
+
     function checkAuth() {
-      gapi.auth.authorize({
-        client_id: config.clientId,
-        scope: config.scopes,
-        immediate: true },
-        handleAuthResult
-      );
+      gapi.auth.authorize({ client_id: config.clientId, scope: config.scopes, immediate: true }, handleAuthResult);
     }
-  
+
     function handleAuthResult(authResult) {
       var authTimeout;
+
       if (authResult && !authResult.error) {
         // Schedule a check when the authentication token expires
         if (authResult.expires_in) {
           authTimeout = (authResult.expires_in - 5 * 60) * 1000;
           setTimeout(checkAuth, authTimeout);
         }
-    
+
         app.views.auth.$el.hide();
         $('#signed-in-container').show();
         self.trigger('ready');
-        //Событие ready будет означать, что аутентификация прошла успешно и Task API готово к использованию.
       } else {
         if (authResult && authResult.error) {
           // TODO: Show error
           console.error('Unable to sign in:', authResult.error);
         }
-    
+
         app.views.auth.$el.show();
       }
     }
-    
+
     this.checkAuth = function() {
       gapi.auth.authorize({ client_id: config.clientId, scope: config.scopes, immediate: false }, handleAuthResult);
     };
-    
+
     handleClientLoad();
   };
 
@@ -82,20 +75,41 @@ define(['config'], function(config) {
   };
 
   Backbone.sync = function(method, model, options) {
+    var requestContent = {}, request;
     options || (options = {});
+
+    switch (model.url) {
+      case 'tasks':
+        requestContent.task = model.get('id');
+        requestContent.tasklist = model.get('tasklist');
+      break;
+
+      case 'tasklists':
+        requestContent.tasklist = model.get('id');
+      break;
+    }
 
     switch (method) {
       case 'create':
+        requestContent['resource'] = model.toJSON();
+        request = gapi.client.tasks[model.url].insert(requestContent);
+        Backbone.gapiRequest(request, method, model, options);
       break;
 
       case 'update':
+        requestContent['resource'] = model.toJSON();
+        request = gapi.client.tasks[model.url].update(requestContent);
+        Backbone.gapiRequest(request, method, model, options);
       break;
 
       case 'delete':
+        requestContent['resource'] = model.toJSON();
+        request = gapi.client.tasks[model.url].delete(requestContent);
+        Backbone.gapiRequest(request, method, model, options);
       break;
 
       case 'read':
-        var request = gapi.client.tasks[model.url].list(options.data);
+        request = gapi.client.tasks[model.url].list(options.data);
         Backbone.gapiRequest(request, method, model, options);
       break;
     }
@@ -107,14 +121,15 @@ define(['config'], function(config) {
       if (res.error) {
         if (options.error) options.error(res);
       } else if (options.success) {
-        result = res.items;
-        options.success(result, true, request);
+        if (res.items) {
+          result = res.items;
+        } else {
+          result = res;
+        }
+        options.success(result);
       }
     });
   };
-  //Всё, что делает этот метод — это запуск request.execute, который предоставляет 
-  //Google, после чего делает полученный ответ совместимым с Backbone API, 
-  //выполняя либо success, либо error функции обратного вызова.
-  
+
   return ApiManager;
 });
