@@ -1,6 +1,6 @@
 requirejs.config({
   baseUrl: 'js',
-
+  waitSeconds: 45,
   paths: {
     text: 'lib/text'
   },
@@ -19,8 +19,7 @@ requirejs.config({
   }
 });
 
-require(['app'],
-
-function(App) {
+require(['app'], function(App) {
+  console.log("call: app/main.js");
   window.timesline = new App();
 });
