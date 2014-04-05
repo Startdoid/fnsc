@@ -1,0 +1,11 @@
+{
+  "name"         : "TimesLine",
+  "version"      : "0.0.0",
+  "description"  : "Taskmanagmen social network.",
+  "main"         : "server.js",
+  "author"       : "bruian, iceflash",
+  "dependencies" : {
+    "express"    : "~3.4.4",
+    "mongoose"   : "~3.6.2"
+  }
+}
