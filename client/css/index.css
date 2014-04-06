@@ -1,0 +1,15 @@
+HTML { 
+  overflow-y:scroll; 
+}
+
+.navbar {
+  background-color:#eee; 
+}
+
+#task-list {
+  margin-bottom:30px; 
+}
+
+#task-form { 
+  margin-bottom:50px; 
+}

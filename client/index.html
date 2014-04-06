@@ -1,0 +1,96 @@
+<!doctype html>
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
+<html ng-app="Timesline">
+<head>
+	<!-- META -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><!-- Optimize mobile viewport -->
+	
+	<title>Timesline</title>
+
+	<!-- SCROLLS -->
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"><!-- load bootstrap -->
+	<link rel="stylesheet" href="client/css/index.css"/>
+
+	<!-- SPELLS -->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script><!-- load jquery -->
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script><!-- load angular -->
+	<script src="core.js"></script>
+</head>
+
+<!-- SET THE CONTROLLER AND GET ALL TASKs WITH INITIALIZE FUNCTION -->
+<body ng-controller="mainController">
+  <div class="container">
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Timesline</a>
+        </div>
+        
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <form class="navbar-form navbar-left" role="search">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Поиск">
+            </div>
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Люди</a></li>
+            <li><a href="#">Группы</a></li>
+            <li><a href="#">Выйти</a></li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div>
+    </nav>
+  
+  		<!-- HEADER AND TODO COUNT -->
+  		<div class="jumbotron text-center">
+  			<h1>Timesline <span class="label label-info">{{ tasks.length }}</span></h1>
+  		</div>
+  
+  		<!-- TASK LIST -->
+  		<div id="task-list" class="row">
+  			<div class="col-sm-4 col-sm-offset-4">
+  
+  				<!-- LOOP OVER THE TODOS IN $scope.tasks -->
+  				<div class="checkbox" ng-repeat="task in tasks">
+  					<label>
+  						<input type="checkbox" ng-click="deleteTask(task._id)"> {{ task.text }}
+  					</label>
+  				</div>
+  
+  			</div>
+  		</div>
+  
+  		<!-- FORM TO CREATE TASKS -->
+  		<div id="task-form" class="row">
+  			<div class="col-sm-8 col-sm-offset-2 text-center">
+  				<form>
+  					<div class="form-group">
+  
+  						<!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
+  						<input type="text" class="form-control input-lg text-center" placeholder="Впишите текст задачи сюда" ng-model="formData.text">
+  					</div>
+  
+  					<!-- createToDo() WILL CREATE NEW TASKS -->
+  					<button type="submit" class="btn btn-primary btn-lg" ng-click="createTask()">Add</button>
+  				</form>
+  			</div>
+  		</div>
+  
+  		<div class="text-center text-muted">
+  			<p>Created by doids man</p>
+  		</div>
+
+
+	</div>
+</body>
+</html>
