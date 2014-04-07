@@ -7,7 +7,7 @@ var database = require('./config/database'); // load the database config
 var http     = require('http');
 var passport = require('passport');
 var path = require('path');
-//User =        require('./server/models/User.js');
+var User = require('./server/models/user.js');
 
 
 // configuration ===============================================================
@@ -19,6 +19,7 @@ app.configure(function() {
 	app.use(express.bodyParser()); 							// pull information from html in POST
 	app.use(express.methodOverride()); 						// simulate DELETE and PUT
 	app.use(express.cookieParser());
+	app.use(express.favicon(path.join(__dirname, 'client/img/favicon.ico'))); 
   app.use(express.cookieSession(
     {
       secret: process.env.COOKIE_SECRET || "Superdupersecret"
@@ -36,21 +37,21 @@ app.configure('development', 'production', function() {
 app.use(passport.initialize());
 app.use(passport.session());
 
+passport.use(User.localStrategy);
+//passport.use(User.twitterStrategy());  // Comment out this line if you don't want to enable login via Twitter
+//passport.use(User.facebookStrategy()); // Comment out this line if you don't want to enable login via Facebook
+//passport.use(User.googleStrategy());   // Comment out this line if you don't want to enable login via Google
+//passport.use(User.linkedInStrategy()); // Comment out this line if you don't want to enable login via LinkedIn
+
+passport.serializeUser(User.serializeUser);
+passport.deserializeUser(User.deserializeUser);
+
 // routes ======================================================================
 require('./server/routes.js')(app);
 
 // listen (start app with node server.js) ======================================
 app.listen(port);
 console.log("App listening on port " + port);
-
-//passport.use(User.localStrategy);
-//passport.use(User.twitterStrategy());  // Comment out this line if you don't want to enable login via Twitter
-//passport.use(User.facebookStrategy()); // Comment out this line if you don't want to enable login via Facebook
-//passport.use(User.googleStrategy());   // Comment out this line if you don't want to enable login via Google
-//passport.use(User.linkedInStrategy()); // Comment out this line if you don't want to enable login via LinkedIn
-
-//passport.serializeUser(User.serializeUser);
-//passport.deserializeUser(User.deserializeUser);
 
 //app.set('port', process.env.PORT || 8000);
 //http.createServer(app).listen(app.get('port'), function(){

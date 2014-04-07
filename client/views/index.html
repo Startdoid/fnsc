@@ -1,0 +1,86 @@
+<!doctype html>
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
+<html data-ng-app="Timesline">
+<head>
+	<!-- META -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><!-- Optimize mobile viewport -->
+	
+	<title>Timesline</title>
+
+	<!-- SCROLLS -->
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"><!-- load bootstrap -->
+	<link rel="stylesheet" href="/components/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="client/css/index.css"/>
+
+  <script type="text/javascript">
+    // This is needed because Facebook login redirects add #_=_ at the end of the URL
+    if (window.location.href.indexOf('#_=_') > 0) {
+      window.location = window.location.href.replace(/#.*/, '');
+    }
+  </script>
+
+	<!-- SPELLS переместить в конец бодий-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script><!-- load jquery -->
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script><!-- load angular -->
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-cookies.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.8/angular-ui-router.min.js"></script>
+	<script src="js/routingConfig.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/services.js"></script>
+  <script src="js/controllers.js"></script>
+  <script src="js/directives.js"></script>
+  
+
+</head>
+
+<!-- SET THE CONTROLLER AND GET ALL TASKs WITH INITIALIZE FUNCTION -->
+<body data-ng-cloak>
+  <nav data-ng-controller="NavCtrl">
+    <div class="navbar-inner">
+      <div class="container-fluid"></div>
+        <a class="navbar-brand" href="#">Timesline</a>
+        <ul class="nav nav-pills">
+          <li data-access-level='accessLevels.anon' active-nav>
+            <a href='/login'>Log in</a>
+          </li>
+          <li data-access-level='accessLevels.anon' active-nav>
+            <a href='/register'>Register</a>
+          </li>
+          <li data-access-level='accessLevels.user' active-nav>
+            <a href='/'>Home</a>
+          </li>
+          <li data-access-level='accessLevels.user' active-nav='nestedTop'>
+            <a href='/private'>Private</a>
+          </li>
+          <li data-access-level='accessLevels.admin' active-nav>
+            <a href='/admin'>Admin</a>
+          </li>
+          <li data-access-level='accessLevels.user'>
+            <a href="" data-ng-click="logout()">|Log out</a>
+          </li>
+          
+          <div id="userInfo" class="pull-right" data-access-level='accessLevels.user'>
+            Welcome&nbsp;
+            <strong>{{ user.username }}&nbsp;</strong>
+            <span class="label" data-ng-class='{"label-info": user.role.title == userRoles.user.title, "label-success": user.role.title == userRoles.admin.title}'>
+              {{ user.role.title }}
+            </span>
+          </div>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container" data-ui-view>
+    <div id="alertBox" class="alert alert-danger" data-ng-show='error'>
+      <button type="button" class="close" data-ng-click="error = null;">
+        &times;
+      </button>
+      <strong>Oh no!&nbsp;</strong>
+      <span data-ng-bind="error"></span>
+    </div>
+  </div>
+</body>
+</html>

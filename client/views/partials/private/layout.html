@@ -1,0 +1,16 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-4 col-md-push-6">
+      <div class="list-group" data-ng-controller='NavCtrl'>
+        <a href="#" class="list-group-item active">
+          strong Nested menu
+        </a>
+        <a href="/private" class="list-group-item" active-nav>Nested view</a>
+        <a href="/private/nested" class="list-group-item" active-nav>Another nested view</a>
+        <a href="/private/admin" class="list-group-item" active-nav data-access-level='accessLevels.admin'>A nested admin view</a>
+      </div>
+    </div>
+    <div class="col-md-6 col-md-pull-4" data-ui-view>
+    </div>
+  </div>
+</div>
