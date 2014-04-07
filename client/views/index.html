@@ -12,7 +12,7 @@
 	<!-- SCROLLS -->
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"><!-- load bootstrap -->
 	<link rel="stylesheet" href="/components/font-awesome/css/font-awesome.min.css">
-	<link rel="stylesheet" href="client/css/index.css"/>
+	<link rel="stylesheet" href="css/index.css"/>
 
   <script type="text/javascript">
     // This is needed because Facebook login redirects add #_=_ at the end of the URL
@@ -31,36 +31,34 @@
 	<script src="js/services.js"></script>
   <script src="js/controllers.js"></script>
   <script src="js/directives.js"></script>
-  
-
 </head>
 
 <!-- SET THE CONTROLLER AND GET ALL TASKs WITH INITIALIZE FUNCTION -->
 <body data-ng-cloak>
-  <nav data-ng-controller="NavCtrl">
-    <div class="navbar-inner">
-      <div class="container-fluid"></div>
+  <div class="container">
+    <nav data-ng-controller="NavCtrl">
+      <div class="navbar-inner">
         <a class="navbar-brand" href="#">Timesline</a>
         <ul class="nav nav-pills">
-          <li data-access-level='accessLevels.anon' active-nav>
-            <a href='/login'>Log in</a>
+          <li data-access-level='accessLevels.anon' active-nav style="padding-top: 5px">
+            <a href='/login' style="color:#5bc0de">Log in</a>
           </li>
-          <li data-access-level='accessLevels.anon' active-nav>
-            <a href='/register'>Register</a>
+          <li data-access-level='accessLevels.anon' active-nav style="padding-top: 5px">
+            <a href='/register' style="color:#5bc0de">Register</a>
           </li>
-          <li data-access-level='accessLevels.user' active-nav>
-            <a href='/'>Home</a>
+          <li data-access-level='accessLevels.user' active-nav style="padding-top: 5px">
+            <a href='/' style="color:#5bc0de">Home</a>
           </li>
-          <li data-access-level='accessLevels.user' active-nav='nestedTop'>
-            <a href='/private'>Private</a>
+          <li data-access-level='accessLevels.user' active-nav='nestedTop' style="padding-top: 5px">
+            <a href='/private' style="color:#5bc0de">Private</a>
           </li>
-          <li data-access-level='accessLevels.admin' active-nav>
-            <a href='/admin'>Admin</a>
+          <li data-access-level='accessLevels.admin' active-nav style="padding-top: 5px">
+            <a href='/admin' style="color:#5bc0de">Admin</a>
           </li>
-          <li data-access-level='accessLevels.user'>
-            <a href="" data-ng-click="logout()">|Log out</a>
+          <li data-access-level='accessLevels.user' style="padding-top: 5px">
+            <a href="" data-ng-click="logout()" style="color:#5bc0de">Log out</a>
           </li>
-          
+            
           <div id="userInfo" class="pull-right" data-access-level='accessLevels.user'>
             Welcome&nbsp;
             <strong>{{ user.username }}&nbsp;</strong>
@@ -70,10 +68,10 @@
           </div>
         </ul>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </div>
   
-  <div class="container" data-ui-view>
+  <div class="container" data-ui-view style="margin-top:10px;">
     <div id="alertBox" class="alert alert-danger" data-ng-show='error'>
       <button type="button" class="close" data-ng-click="error = null;">
         &times;

@@ -2,9 +2,23 @@ HTML {
   overflow-y:scroll; 
 }
 
-.navbar {
-  background-color:#eee; 
+body {
+  /*font-size: 11px;*/
 }
+
+.navbar-inner {
+  color:#eee;
+  background:#4E729A;
+  border-radius: 0 0 10px 10px;
+}
+.navbar-brand
+{
+  color:#eee;
+  left: 0;
+  text-align: center;
+}
+
+/*.navbar-brand {float:none;}*/
 
 #task-list {
   margin-bottom:30px; 
@@ -18,10 +32,6 @@ HTML {
   display: none;
 }
 
-body {
-  font-size: 1em;
-}
-
 #cover {
   position:absolute;
   height:100%;
@@ -30,7 +40,8 @@ body {
 }
 
 #userInfo {
-  float:right;padding:8px;
+  float:right;
+  padding:5px;
 }
 
 #alertBox {
@@ -50,7 +61,7 @@ body {
 }
 
 .fa.fa-google-plus-square {
-    color: #D74634;
+  color: #D74634;
 }
 
 .fade-hide-setup, .fade-show-setup {
