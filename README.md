@@ -5,6 +5,7 @@ node.js
 bootstrap
 express.js
 angular
+angular-translate on https://github.com/angular-translate
 
 Open your C9 project window, and go to the terminal.Set your git config username:
 git config --global user.name "Your Name Here"

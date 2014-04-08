@@ -1,10 +1,21 @@
 'use strict';
 
-var Timesline = angular.module('Timesline', []);
+//var Timesline = angular.module('Timesline', ['pascalprecht.translate']);
+//var Timesline = angular.module('Timesline', []);
 
-angular.module('Timesline', ['ngCookies', 'ui.router'])
-  .config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+angular.module('Timesline', ['ngCookies', 'ui.router', 'pascalprecht.translate'])
+  .config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', '$translateProvider', 
+          function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, $translateProvider) {
   var access = routingConfig.accessLevels;
+
+  $translateProvider.useStaticFilesLoader({
+    prefix: '/languages/',
+    suffix: '.json'
+  })
+  
+  $translateProvider.preferredLanguage('en_EN');
+  $translateProvider.fallbackLanguage(['en_EN', 'fr_FR']);
+  $translateProvider.useCookieStorage();
 
   // Public routes
   $stateProvider

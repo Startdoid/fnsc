@@ -1,0 +1,18 @@
+{
+  "tr_LOGIN": "Log in",
+  "tr_REGISTER": "Register",
+  "tr_LANGUAGE": "Language",
+  "BUTTON_TEXT_RU": "Русский",
+  "BUTTON_TEXT_EN": "English",
+  "tr_HOME": "Home",
+  "tr_PRIVATE": "Private",
+  "tr_ADMIN": "Admin",
+  "tr_LOGOUT": "Log out",
+  "tr_WELLCOME": "Wellcome",
+  "tr_LOGIN_GREETING": "Hello this is time-management social network. It is evolution in socal collaborations and management your time",
+  "tr_USERNAME": "Username",
+  "tr_PASSWORD": "Password",
+  "tr_REMEMBERME": "Rememberme",
+  "tr_LOGIN_nt1": "... or use one of them fancy social logins:"
+}
+  

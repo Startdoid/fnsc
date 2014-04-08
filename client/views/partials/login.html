@@ -1,8 +1,5 @@
-<H1>Log in</h1>
-<P> This site is an example of how one can implement role based authentication in Angular applications as outlined in
-    <A href="http://www.frederiknakstad.com/authentication-in-single-page-applications-with-angular-js/"> this blogpost
-    | . All the code can be found in</A>
-</P>
+<H1>{{ 'tr_LOGIN' | translate }}</H1>
+<P>{{ 'tr_LOGIN_GREETING' | translate }}</P>
 <UL>
     <LI>admin/123</LI>
     <LI>user/123</LI>
@@ -10,39 +7,38 @@
 <HR></HR>
 <form class="form-horizontal" ng-submit="login()" name="loginForm" role="form">
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="username">Username</label>
+    <label class="col-sm-2 control-label" for="username">{{ 'tr_USERNAME' | translate }}</label>
     <div class="col-sm-10">
-      <input type="text" class="form-control" data-ng-model="username" placeholder="Username" name="username" required autofocus/>
+      <input type="text" class="form-control" data-ng-model="username" placeholder="{{ 'tr_USERNAME' | translate }}" name="username" required autofocus/>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="password">Password</label>
+    <label class="col-sm-2 control-label" for="password">{{ 'tr_PASSWORD' | translate }}</label>
     <div class="col-sm-10">
-      <input type="password" class="form-control" data-ng-model="password" placeholder="Password" name="password" required/>
+      <input type="password" class="form-control" data-ng-model="password" placeholder="{{ 'tr_PASSWORD' | translate }}" name="password" required/>
     </div>
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <div class="checkbox">
-        <label class="checkbox" for="rememberme">rememberme</label>
+        <label class="checkbox" for="rememberme">{{ 'tr_REMEMBERME' | translate }}</label>
         <input type="checkbox" data-ng-model="rememberme" name="rememberme" required/>
-          Remember me
       </div>
     </div>
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button type="submit" class="btn btn-default" data-ng-disabled="loginForm.$invalid">Log in</button>
+      <button type="submit" class="btn btn-default" data-ng-disabled="loginForm.$invalid">{{ 'tr_LOGIN' | translate }}</button>
     </div>
   </div>
 </form>
 <HR></HR>
-<P>... or use one of them fancy social logins:</P>
+<P>{{ 'tr_LOGIN_nt1' | translate }}</P>
 <div class="btn-group">
-  <A class="btn btn-default" href="" data-ng-click="loginOauth('facebook')">
-    <i class="fa fa-facebook-square"></i> Facebook
-  </A>
-  
+  <a class="btn btn-social-icon btn-twitter" data-ng-click="loginOauth('facebook')">
+    <i class="fa fa-facebook"></i>
+  </a>
+
   <!--a.btn.btn-default(href="", data-ng-click="loginOauth('twitter')")
         i.fa.fa-twitter
         |  Twitter

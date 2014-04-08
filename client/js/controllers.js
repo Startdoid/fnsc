@@ -3,7 +3,14 @@
 /* Controllers */
 
 angular.module('Timesline')
-.controller('NavCtrl', ['$rootScope', '$scope', '$location', 'Auth', function($rootScope, $scope, $location, Auth) {
+.controller('TranslateController', function($translate, $scope) {
+  $scope.changeLanguage = function (langKey) {
+    $translate.use(langKey);
+  };
+});
+
+angular.module('Timesline')
+.controller('NavCtrl', ['$rootScope', '$scope', '$translate', '$location', 'Auth', function($rootScope, $scope, $translate, $location, Auth) {
   $scope.user = Auth.user;
   $scope.userRoles = Auth.userRoles;
   $scope.accessLevels = Auth.accessLevels;
@@ -18,7 +25,7 @@ angular.module('Timesline')
 }]);
 
 angular.module('Timesline')
-.controller('LoginCtrl', ['$rootScope', '$scope', '$location', '$window', 'Auth', function($rootScope, $scope, $location, $window, Auth) {
+.controller('LoginCtrl', ['$rootScope', '$scope', '$translate', '$location', '$window', 'Auth', function($rootScope, $scope, $translate, $location, $window, Auth) {
   $scope.rememberme = true;
   $scope.login = function() {
     console.log("login");
@@ -41,7 +48,7 @@ angular.module('Timesline')
 }]);
 
 angular.module('Timesline')
-.controller('RegisterCtrl', ['$rootScope', '$scope', '$location', 'Auth', function($rootScope, $scope, $location, Auth) {
+.controller('RegisterCtrl', ['$rootScope', '$scope', '$translate', '$location', 'Auth', function($rootScope, $scope, $translate, $location, Auth) {
   $scope.role = Auth.userRoles.user;
   $scope.userRoles = Auth.userRoles;
 
@@ -61,7 +68,7 @@ angular.module('Timesline')
 }]);
 
 angular.module('Timesline')
-.controller('AdminCtrl', ['$rootScope', '$scope', 'Users', 'Auth', function($rootScope, $scope, Users, Auth) {
+.controller('AdminCtrl', ['$rootScope', '$scope', '$translate', 'Users', 'Auth', function($rootScope, $scope, $translate, Users, Auth) {
   $scope.loading = true;
   $scope.userRoles = Auth.userRoles;
 

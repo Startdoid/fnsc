@@ -11,6 +11,7 @@
 
 	<!-- SCROLLS -->
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"><!-- load bootstrap -->
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-social/4.2.1/bootstrap-social.min.css"/>
 	<link rel="stylesheet" href="/components/font-awesome/css/font-awesome.min.css">
 	<link rel="stylesheet" href="css/index.css"/>
 
@@ -26,6 +27,10 @@
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.min.js"></script><!-- load angular -->
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-cookies.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.8/angular-ui-router.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/bower-angular-translate/2.0.1/angular-translate.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/bower-angular-translate-loader-static-files/2.0.0/angular-translate-loader-static-files.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<script src="js/angular-translate-storage-cookie.min.js"></script>
 	<script src="js/routingConfig.js"></script>
 	<script src="js/app.js"></script>
 	<script src="js/services.js"></script>
@@ -41,26 +46,38 @@
         <a class="navbar-brand" href="#">Timesline</a>
         <ul class="nav nav-pills">
           <li data-access-level='accessLevels.anon' active-nav style="padding-top: 5px">
-            <a href='/login' style="color:#5bc0de">Log in</a>
+            <a href='/login' style="color:#5bc0de">{{ 'tr_LOGIN' | translate }}</a>
           </li>
           <li data-access-level='accessLevels.anon' active-nav style="padding-top: 5px">
-            <a href='/register' style="color:#5bc0de">Register</a>
+            <a href='/register' style="color:#5bc0de">{{ 'tr_REGISTER' | translate }}</a>
           </li>
           <li data-access-level='accessLevels.user' active-nav style="padding-top: 5px">
-            <a href='/' style="color:#5bc0de">Home</a>
+            <a href='/' style="color:#5bc0de">{{ 'tr_HOME' | translate }}</a>
           </li>
           <li data-access-level='accessLevels.user' active-nav='nestedTop' style="padding-top: 5px">
-            <a href='/private' style="color:#5bc0de">Private</a>
+            <a href='/private' style="color:#5bc0de">{{ 'tr_PRIVATE' | translate }}</a>
           </li>
           <li data-access-level='accessLevels.admin' active-nav style="padding-top: 5px">
-            <a href='/admin' style="color:#5bc0de">Admin</a>
+            <a href='/admin' style="color:#5bc0de">{{ 'tr_ADMIN' | translate }}</a>
           </li>
           <li data-access-level='accessLevels.user' style="padding-top: 5px">
-            <a href="" data-ng-click="logout()" style="color:#5bc0de">Log out</a>
+            <a href="" data-ng-click="logout()" style="color:#5bc0de">{{ 'tr_LOGOUT' | translate }}</a>
           </li>
-            
+          
+          <div data-ng-controller="TranslateController">
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ 'tr_LANGUAGE' | translate }}<b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" ng-click="changeLanguage('ru_RU')">{{ 'BUTTON_TEXT_RU' | translate }}</a></li>
+                  <li><a href="#" ng-click="changeLanguage('en_EN')">{{ 'BUTTON_TEXT_EN' | translate }}</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          
           <div id="userInfo" class="pull-right" data-access-level='accessLevels.user'>
-            Welcome&nbsp;
+            {{ 'tr_WELLCOME' | translate }}&nbsp;
             <strong>{{ user.username }}&nbsp;</strong>
             <span class="label" data-ng-class='{"label-info": user.role.title == userRoles.user.title, "label-success": user.role.title == userRoles.admin.title}'>
               {{ user.role.title }}

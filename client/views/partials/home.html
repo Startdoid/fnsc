@@ -1,6 +1,6 @@
 <!-- SET THE CONTROLLER AND GET ALL TASKs WITH INITIALIZE FUNCTION -->
-<div ng-controller="mainController">
-  <div class="container">
+<div class="container">
+  <div ng-controller="mainController">
   		<!-- HEADER AND TODO COUNT -->
   		<div class="jumbotron text-center">
   			<h1>Timesline <span class="label label-info">{{ tasks.length }}</span></h1>
@@ -10,7 +10,7 @@
   		<div id="task-list" class="row">
   			<div class="col-sm-4 col-sm-offset-4">
   
-  				<!-- LOOP OVER THE TODOS IN $scope.tasks -->
+  				<!-- LOOP OVER THE TASKS IN $scope.tasks -->
   				<div class="checkbox" ng-repeat="task in tasks">
   					<label>
   						<input type="checkbox" ng-click="deleteTask(task._id)"> {{ task.text }}
@@ -25,12 +25,10 @@
   			<div class="col-sm-8 col-sm-offset-2 text-center">
   				<form>
   					<div class="form-group">
-  
-  						<!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
+    						<!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
   						<input type="text" class="form-control input-lg text-center" placeholder="Впишите текст задачи сюда" ng-model="formData.text">
   					</div>
-  
-  					<!-- createToDo() WILL CREATE NEW TASKS -->
+    					<!-- createTask() WILL CREATE NEW TASKS -->
   					<button type="submit" class="btn btn-primary btn-lg" ng-click="createTask()">Add</button>
   				</form>
   			</div>
