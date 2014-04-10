@@ -165,6 +165,14 @@ var routes = [
   },
   
   {
+    path: '/login',
+    httpMethod: 'GET',
+    middleware: [function (req, res) {
+      res.redirect('/');  
+    }]
+  },
+  
+  {
     path: '/logout',
     httpMethod: 'POST',
     middleware: [AuthCtrl.logout]

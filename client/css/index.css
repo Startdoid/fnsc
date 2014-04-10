@@ -6,11 +6,43 @@ body {
   /*font-size: 11px;*/
 }
 
+.filter-owner-bar {
+  background-color:#ff00ff;
+}
+
+.filter-time-bar {
+  background-color:#800080;
+}
+
+.task-view {
+  width: 75%;
+  background-color:#008080;
+}
+
+.general-sidebar {
+  /*padding-left: 10px;*/
+  width: 25%;
+  background-color:#808080;
+}
+
+.navigation-sidebar {
+  background-color:#ccc;
+  width: 18%;
+}
+
+.general-view {
+  width: 82%;
+  border: solid #F3F3F3;
+  border-width: 0px 2px 2px;
+  /*background-color:#eee;*/
+}
+
 .navbar-inner {
   color:#eee;
   background:#4E729A;
   border-radius: 0 0 10px 10px;
 }
+
 .navbar-brand
 {
   color:#eee;

@@ -1,41 +1,31 @@
 <!-- SET THE CONTROLLER AND GET ALL TASKs WITH INITIALIZE FUNCTION -->
 <div class="container">
-  <div ng-controller="mainController">
-  		<!-- HEADER AND TODO COUNT -->
-  		<div class="jumbotron text-center">
-  			<h1>Timesline <span class="label label-info">{{ tasks.length }}</span></h1>
-  		</div>
+  <!-- Timesline VIEW -->
+  <div class="row" style="background-color:#808000">Timesline view</div>
   
-  		<!-- TASK LIST -->
-  		<div id="task-list" class="row">
-  			<div class="col-sm-4 col-sm-offset-4">
-  
-  				<!-- LOOP OVER THE TASKS IN $scope.tasks -->
-  				<div class="checkbox" ng-repeat="task in tasks">
-  					<label>
-  						<input type="checkbox" ng-click="deleteTask(task._id)"> {{ task.text }}
-  					</label>
-  				</div>
-  
-  			</div>
-  		</div>
-  
-  		<!-- FORM TO CREATE TASKS -->
-  		<div id="task-form" class="row">
-  			<div class="col-sm-8 col-sm-offset-2 text-center">
-  				<form>
-  					<div class="form-group">
-    						<!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
-  						<input type="text" class="form-control input-lg text-center" placeholder="Впишите текст задачи сюда" ng-model="formData.text">
-  					</div>
-    					<!-- createTask() WILL CREATE NEW TASKS -->
-  					<button type="submit" class="btn btn-primary btn-lg" ng-click="createTask()">Add</button>
-  				</form>
-  			</div>
-  		</div>
-  
-  		<div class="text-center text-muted">
-  			<p>Created by doids man</p>
-  		</div>
-	</div>
+  <div class="row">
+    <!-- navigation-sidebar -->
+    <div class="col-xs-3 col-md-2 navigation-sidebar">
+      navigation-sidebar
+    </div><!-- navigation-sidebar -->
+    <!--<div id="content" style="padding: 10px 10px 10px 10px;">-->
+      <!-- general-view" -->
+      <div class="col-xs-9 col-md-10 general-view">
+        <div class="row filter-owner-bar">
+          filter-owner-bar
+        </div>
+        <div class="row filter-time-bar">
+          filter-time-bar
+        </div>
+        <div class="row">
+          <div class="col-xs-2 col-md-2 general-sidebar">
+            general-sidebar
+          </div>
+          <div class="col-xs-10 col-md-10 task-view">
+            task-view
+          </div>
+        </div>
+      </div><!-- general-view" -->
+    <!--</div>-->
+  </div>
 </div>
