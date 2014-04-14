@@ -3,7 +3,7 @@
 //var Timesline = angular.module('Timesline', ['pascalprecht.translate']);
 //var Timesline = angular.module('Timesline', []);
 
-angular.module('Timesline', ['ngCookies', 'ui.router', 'pascalprecht.translate'])
+angular.module('Timesline', ['ngCookies', 'ui.router', 'pascalprecht.translate', 'ui.bootstrap'])
   .config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', '$translateProvider', 
           function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, $translateProvider) {
   var access = routingConfig.accessLevels;
@@ -144,6 +144,16 @@ angular.module('Timesline', ['ngCookies', 'ui.router', 'pascalprecht.translate']
       }
     };
   });
+}])
+
+.run(['$templateCache', function($templateCache) {
+  $templateCache.put('template/accordion/accordion-group.html', 
+    "<div class=\"accordion-group\">\n" +
+    "  <div class=\"accordion-heading\" ><a class=\"accordion-toggle\" ng-click=\"isOpen = !isOpen\" accordion-transclude=\"heading\">{{heading}}</a></div>\n" +
+    "  <div class=\"accordion-body\" collapse=\"!isOpen\">\n" +
+    "    <div class=\"accordion-inner\" ng-transclude></div>  </div>\n" +
+    "</div>");
+  $templateCache.put('template/accordion/accordion.html', "<div class=\"accordion\" ng-transclude></div>");
 }])
 
 .run(['$rootScope', '$state', 'Auth', function ($rootScope, $state, Auth) {

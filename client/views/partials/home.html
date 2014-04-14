@@ -2,7 +2,7 @@
 <div class="container">
   <!-- Timesline VIEW -->
   <div class="row" style="background-color:#808000">Timesline view</div>
-  
+
   <div class="row">
     <!-- navigation-sidebar -->
     <div class="col-xs-3 col-md-2 navigation-sidebar">
@@ -11,18 +11,143 @@
     <!--<div id="content" style="padding: 10px 10px 10px 10px;">-->
       <!-- general-view" -->
       <div class="col-xs-9 col-md-10 general-view">
-        <div class="row filter-owner-bar">
-          filter-owner-bar
+      
+        <div class="row filter-owner-bar" style="height: 35px; border-bottom: solid 1px #597DA3">
+          <ul class="nav nav-pills" style="margin: 5px 5px 0px 5px">
+            <li class="active" style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px; background-color: #597DA3">{{ 'tr_INBOX' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_All' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_PERSONAL' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_ASSIGNED' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_RECEIVED' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_COMPLETED' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_DELETED' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+          </ul>
         </div>
-        <div class="row filter-time-bar">
-          filter-time-bar
+      
+        <div class="row filter-time-bar" style="padding: 5px 7px 5px; background: #F7F7F7; border-bottom: 1px solid #DAE1E8;">
+          <ul class="nav nav-pills">
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px"><b>+</b></a>
+            </li>
+            <li class="active" style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_TODAY' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_TOMOROW' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_OVERDUE' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_RECURRING' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_WEEK' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_MONTH' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_YEAR' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+            <li style="height: 25px; margin: 4px 5px 0px 5px">
+              <a href="#" style="height:25px; padding: 5px 10px; font-size: 12px">{{ 'tr_ALLDAY' | translate }}<span class="badge pull-right">0</span></a>
+            </li>
+          </ul>
         </div>
+      
         <div class="row">
           <div class="col-xs-2 col-md-2 general-sidebar">
-            general-sidebar
+            <accordion close-others="oneAtATime">
+              <accordion-group>
+                <accordion-heading>Groups</accordion-heading>
+                <div class="panel panel-sidebar">
+                  <!--<div class="panel-sidebar-heading"><a>Groups</a></div>-->
+                  <div class="panel-sidebar-bottom"><span class="pull-left" style="margin: 0px 2px">0</span>group</div>
+                    <ul class="list-group panel-list-sidebar">
+                      <li class="list-group-item">
+                        <div class="linecell">
+                          <div style="float: left;">
+                            <img width="32" height="32" src="img/MarioICO.png">
+                          </div>
+                          <div style="height: 32px;">
+                            <a href="#" style="padding: 4px 2px">Group 1</a>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                </div>
+              </accordion-group>
+              
+              <accordion-group>
+                <accordion-heading>Category</accordion-heading>
+                <div class="panel panel-sidebar">
+                  <!--<div class="panel-sidebar-heading"><a>Groups</a></div>-->
+                  <div class="panel-sidebar-bottom"><span class="pull-left" style="margin: 0px 2px">0</span>Category</div>
+                    <ul class="list-group panel-list-sidebar">
+                      <li class="list-group-item">
+                        <div class="linecell">
+                          <div style="float: left;">
+                            <img width="32" height="32" src="img/MarioICO.png">
+                          </div>
+                          <div style="height: 32px;">
+                            <a href="#" style="padding: 4px 2px">Category 1</a>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                </div>
+              </accordion-group>            
+            </accordion>
           </div>
+          
           <div class="col-xs-10 col-md-10 task-view">
-            task-view
+            
+              <div ng-controller="mainController">
+            		<!-- TASK LIST -->
+            		<div id="task-list" class="row">
+            			<div class="col-sm-4 col-sm-offset-4">
+            
+            				<!-- LOOP OVER THE TASKS IN $scope.tasks -->
+            				<div class="checkbox" ng-repeat="task in tasks">
+            					<label>
+            						<input type="checkbox" ng-click="deleteTask(task._id)"> {{ task.text }}
+            					</label>
+            				</div>
+            
+            			</div>
+            		</div>
+            
+            		<!-- FORM TO CREATE TASKS -->
+            		<div id="task-form" class="row">
+            			<div class="col-sm-8 col-sm-offset-2 text-center">
+            				<form>
+            					<div class="form-group">
+              						<!-- BIND THIS VALUE TO formData.text IN ANGULAR -->
+            						<input type="text" class="form-control input-lg text-center" placeholder="Впишите текст задачи сюда" ng-model="formData.text">
+            					</div>
+              					<!-- createTask() WILL CREATE NEW TASKS -->
+            					<button type="submit" class="btn btn-primary btn-lg" ng-click="createTask()">Add</button>
+            				</form>
+            			</div>
+            		</div>
+            
+          	</div>
+            
           </div>
         </div>
       </div><!-- general-view" -->

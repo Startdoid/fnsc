@@ -13,5 +13,20 @@
   "tr_USERNAME": "Имя пользователя",
   "tr_PASSWORD": "Пароль",
   "tr_REMEMBERME": "Запомнить меня",
-  "tr_LOGIN_nt1": "... или используйте одну из следующих социальных сетей:"  
+  "tr_LOGIN_nt1": "... или используйте одну из следующих социальных сетей:",
+  "tr_INBOX": "Inbox",
+  "tr_All": "Все",
+  "tr_PERSONAL": "Личные",
+  "tr_ASSIGNED": "Назначеные",
+  "tr_RECEIVED": "Принятые",
+  "tr_COMPLETED": "Завершенные",
+  "tr_DELETED": "Удаленные",
+  "tr_TODAY": "Сегодня",
+  "tr_TOMOROW": "Завтра",
+  "tr_OVERDUE": "Просрочено",
+  "tr_RECURRING": "Повторяющиеся",
+  "tr_WEEK": "Неделя",
+  "tr_MONTH": "Месяц",
+  "tr_YEAR": "Год",
+  "tr_ALLDAY": "Все дни"
 }

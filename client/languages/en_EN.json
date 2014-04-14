@@ -13,6 +13,21 @@
   "tr_USERNAME": "Username",
   "tr_PASSWORD": "Password",
   "tr_REMEMBERME": "Rememberme",
-  "tr_LOGIN_nt1": "... or use one of them fancy social logins:"
+  "tr_LOGIN_nt1": "... or use one of them fancy social logins:",
+  "tr_INBOX": "Inbox",
+  "tr_All": "All",
+  "tr_PERSONAL": "Personal",
+  "tr_ASSIGNED": "Assigned",
+  "tr_RECEIVED": "Received",
+  "tr_COMPLETED": "Completed",
+  "tr_DELETED": "Deleted",
+  "tr_TODAY": "Today",
+  "tr_TOMOROW": "Tomorow",
+  "tr_OVERDUE": "Overdue",
+  "tr_RECURRING": "Recurring",
+  "tr_WEEK": "Week",
+  "tr_MONTH": "Month",
+  "tr_YEAR": "Year",
+  "tr_ALLDAY": "All day"
 }
   

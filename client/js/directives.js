@@ -33,7 +33,8 @@ angular.module('Timesline')
     };
 }]);
 
-angular.module('Timesline').directive('activeNav', ['$location', function($location) {
+angular.module('Timesline').
+directive('activeNav', ['$location', function($location) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {

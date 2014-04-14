@@ -6,12 +6,87 @@ body {
   /*font-size: 11px;*/
 }
 
+.accordion-group {
+  margin: 5px 5px 5px 5px;
+}
+
+.accordion-heading {
+  font-size: 12px;
+  text-align: left;
+	margin: 0;
+	background: #DEE5EB;
+  overflow: hidden;
+  padding: 4px 8px;
+  font-weight: bold;
+  outline: none;
+  color: #45688E;
+}
+
+.panel-sidebar {
+  /*margin: 5px 5px 5px 5px;*/
+  border-radius: 0 0 0 0;
+  height: 200px;
+	padding: 0;
+}
+
+.panel-list-sidebar {
+  margin: 5px 2px 2px 2px;
+  height: 70%;
+	padding: 0;
+	list-style: none;
+	overflow-y: auto;  
+}
+
+/*.panel-sidebar-heading {*/
+/*  font-size: 12px;*/
+/*  text-align: left;*/
+/*	margin: 0;*/
+/*	background: #DEE5EB;*/
+/*  overflow: hidden;*/
+/*  padding: 4px 8px;*/
+/*  font-weight: bold;*/
+/*  outline: none;*/
+/*  color: #45688E;*/
+/*}*/
+
+.panel-sidebar-bottom {
+  font-size: 12px;
+  text-align: left;
+	margin: 0 0 0 0;
+	background: #f1f1f1;
+  padding: 4px 8px;
+  outline: none;
+  color: #45688E;
+}
+
+.list-group-item {
+  height: 34px;
+  font-size: 11px;
+  text-align: left;
+	margin: 0;
+	/*background: #f1f1f1;*/
+  padding: 4px 8px;
+  /*outline: none;*/
+  color: #45688E;
+  display: block;
+  border: none;
+}
+
+.list-group-item :hover {
+  color: #ffe; /* Цвет текста активного пункта */
+  background-color: #666; /* Цвет фона активного пункта */
+  text-decoration: none;
+  display: block;
+  cursor: default;
+  line-height: 170%
+}
+
 .filter-owner-bar {
-  background-color:#ff00ff;
+  /*background-color:#ff00ff;*/
 }
 
 .filter-time-bar {
-  background-color:#800080;
+  /*background-color:#800080;*/
 }
 
 .task-view {
@@ -20,7 +95,8 @@ body {
 }
 
 .general-sidebar {
-  /*padding-left: 10px;*/
+  padding-right: 5px;
+  padding-left: 5px;
   width: 25%;
   background-color:#808080;
 }
