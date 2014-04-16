@@ -1,15 +1,20 @@
 var mongoose = require('mongoose');
 
-module.exports = mongoose.model('User', {
-  id : String,
-  name : String,
-  login : String,
-  password : String
+var userSchema = mongoose.Schema({
+  id: Number,
+  username : String,
+  password : String,
+  role : { bitMask: Number, title: String }
 });
 
-var User;
+var userModel = mongoose.model('User', userSchema);
+
+module.exports = userModel;
+
+// var User;
 var _ = require('underscore');
 var passport = require('passport');
+// var Task = require('./models/task');
 var LocalStrategy = require('passport-local').Strategy
 var TwitterStrategy = require('passport-twitter').Strategy
 var FacebookStrategy = require('passport-facebook').Strategy
@@ -35,22 +40,23 @@ var users = [
 
 module.exports = {
   addUser: function(username, password, role, callback) {
-    if(this.findByUsername(username) !== undefined)  return callback("UserAlreadyExists");
-
-    // Clean up when 500 users reached ЧО за ХЕРНЯ? Походу ограничение на 500 пользователей
-    if(users.length > 500) {
-      users = users.slice(0, 2);
-    }
-
-    var user = {
-      //судя по всему неверная генерация пользовательского ид... попробовать взять из монго дб
-      id:         _.max(users, function(user) { return user.id; }).id + 1,
-      username:   username,
-      password:   password,
-      role:       role
-    };
-    users.push(user);
-    callback(null, user);
+    userModel.findOne({ username: username }, function(err, user) {
+      if (err) { console.log(err); return callback("UserCantCreate"); };
+      if (user !== null) return callback("UserAlreadyExists");
+      
+      userModel.count({ }, function (err, count) {
+        //if (err) ..
+        //добавить итератор для id id:         _.max(users, function(user) { return user.id; }).id + 1,
+        var newUser = new userModel({ id: count + 1, username: username, password: password, role: role });
+  
+        newUser.save(function (err) {
+          if (err) { console.log(err); return callback("UserCantCreate"); };
+          
+          var Cuser = newUser.toObject();
+          callback(null, Cuser);
+        });
+      });
+    });
   },
 
   findOrCreateOauthUser: function(provider, providerId) {
@@ -77,7 +83,12 @@ module.exports = {
   },
 
   findByUsername: function(username) {
-    return _.clone(_.find(users, function(user) { return user.username === username; }));
+    userModel.findOne({ username: username }, function(err, user) {
+      if (err) 
+        return undefined;
+      return user;
+    });
+    //return _.clone(_.find(users, function(user) { return user.username === username; }));
   },
 
   findByProviderId: function(provider, id) {
@@ -98,15 +109,17 @@ module.exports = {
 
   localStrategy: new LocalStrategy(
     function(username, password, done) {
-      var user = module.exports.findByUsername(username);
-      if(!user) {
-        done(null, false, { message: 'Incorrect username.' });
-      }
-      else if(user.password != password) {
-        done(null, false, { message: 'Incorrect username.' });
-      }
-      else {
-        return done(null, user);
+      userModel.findOne({ username: username }, doAuth);
+
+      function doAuth(err, newUser) {
+        if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
+        if (newUser === null) return done(null, false, { message: 'User not found'})
+
+        var Cuser = newUser.toObject();
+        if(Cuser.password != password)
+          { done(null, false, { message: 'Incorrect password.' }); }
+        else
+          { return done(null, Cuser); }
       }
     }
   ),

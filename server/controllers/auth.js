@@ -10,13 +10,14 @@ module.exports = {
       return res.send(400, err.message);
     }
 
-    User.addUser(req.body.username, req.body.password, req.body.role, function(err, user) {
+    User.addUser(req.body.username, req.body.password, req.body.role, function(err, usr) {
       if(err === 'UserAlreadyExists') return res.send(403, "User already exists");
+      else if(err === 'UserCantCreate') return res.send(402, "DB can't add user");
       else if(err)                    return res.send(500);
 
-      req.logIn(user, function(err) {
+      req.logIn(usr, function(err) {
         if(err)     { next(err); }
-        else        { res.json(200, { "role": user.role, "username": user.username }); }
+        else        { res.json(200, { "role": usr.role, "username": usr.username }); }
       });
     });
   },
