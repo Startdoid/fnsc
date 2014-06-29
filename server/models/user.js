@@ -78,19 +78,6 @@ module.exports = {
     return _.map(users, function(user) { return _.clone(user); });
   },
 
-  findById: function(id) {
-    return _.clone(_.find(users, function(user) { return user.id === id }));
-  },
-
-  findByUsername: function(username) {
-    userModel.findOne({ username: username }, function(err, user) {
-      if (err) 
-        return undefined;
-      return user;
-    });
-    //return _.clone(_.find(users, function(user) { return user.username === username; }));
-  },
-
   findByProviderId: function(provider, id) {
     return _.find(users, function(user) { return user[provider] === id; });
   },
@@ -185,9 +172,14 @@ module.exports = {
   },
 
   deserializeUser: function(id, done) {
-    var user = module.exports.findById(id);
+    userModel.findOne({ id: id }, doAuth);
 
-    if(user)    { done(null, user); }
-    else        { done(null, false); }
+    function doAuth(err, newUser) {
+      if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
+      if (newUser === null) return done(null, false, { message: 'User not found'})
+
+      var Cuser = newUser.toObject();
+      done(null, Cuser);
+    }
   }
 };
