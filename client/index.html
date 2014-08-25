@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta content="charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <title>InTask.me</title>
+    
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+		<script type="text/javascript" src="js/underscore.js"></script>
+		<script type="text/javascript" src="js/backbone.js"></script>
+    
+    <script type="text/javascript" src="codebase/webix.js" charset="utf-8"></script>
+    <link href="codebase/skins/aircompact.css" rel="stylesheet" type="text/css">
+    
+    <script type="text/javascript" src="js/main.js"></script>
+  </head>
+  
+  <body>
+		<div id="masterframe" style='width:70%; height:100%; margin-left:auto; margin-right:auto'></div>
+		<div id="headerframe"></div>
+		<div id="centralframe"></div>
+		<div id="leftframe" style='width:20%'></div>
+		<div id="rightframe" style='width:20%'></div>
+		
+		<div id="sliceframe" style='width:20%'></div>
+
+		<div id="slicegroupsframe"></div>
+		<div id="sliceusersframe"></div>
+		<div id="sliceprojectsframe"></div>
+		<div id="slicecategoryframe"></div>
+		<div id="slicetagsframe"></div>
+	
+		<div style="height:300px; width:200px" id="app1_here"></div>
+
+    <script type="text/javascript" charset="utf-8">
+	    window.App = {
+	      //user
+  	    Frame:      {},//webix cfg frame
+        Models:     {},//backbone models
+        WebixViews: {},//webix views in views dir with 
+        Views:      {},//backbone views in views dir
+        Collections:{}//backbone collections in collection dir
+       // Routes:     {} //backbone routes in main.js
+      };
+
+			webix.ready(implementFunction);
+    </script>
+    <script type="text/javascript" src='js/models/task.js'></script>
+    <script type="text/javascript" src='js/models/user.js'></script>
+    <script type="text/javascript" src='js/models/group.js'></script>
+    <script type="text/javascript" src='js/collections/groups.js'></script>
+    <script type="text/javascript" src='js/views/dview.js'></script>
+    <script type="text/javascript" src='js/views/wmasterview.js'></script>
+  </body>
+</html>
