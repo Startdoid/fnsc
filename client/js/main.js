@@ -114,8 +114,7 @@ var implementFunction = (function() {
           App.WebixViews.SliceTags.render();
 			    //console.log(masterframe.getChildViews()[1].getChildViews()23);
 			    //console.log(top.getChildViews()[1]);
-			    //console.log(top.getChildViews()[1][0]);
-          //webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
+			    //webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
           
           // top.define("rows", [App.Frame.headerframe, 
           //     {cols:[App.Frame.groupingframe, App.Frame.workframe, App.Frame.optionsframe]}
