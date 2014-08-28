@@ -12308,6 +12308,7 @@ webix.protoUI({
 	//css class to action map, for onclick event
 	on_click:{
 		webix_tree_item:function(e,id){
+			console.log('bru select'+this._settings.select);
 			if(this._settings.activeTitle){
 				var item = this.getItem(id);
 				if(item.open)

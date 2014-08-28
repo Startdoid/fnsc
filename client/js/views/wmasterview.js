@@ -217,6 +217,43 @@ App.Frame.workframe = {
 	}
 };
 
+App.Frame.grouptoolframe = {
+  view:'toolbar',
+  id:'grouptoolframe',
+  cols:[
+    { view:'button', value:'Добавить', width:100, align:"left" },
+    { view:'button', value:'Удалить', width:100, align:"left" },
+    { }
+  ]
+};
+
+App.Frame.groupframe = {
+	id:'groupframe',
+	view:'tabview',
+	animate:'true',
+	tabbar : { optionWidth : 200 },
+  cells:[
+    {
+     header:'Мои группы',
+     body:{
+        id:'mygroups_groupframe',
+        rows:[
+          App.Frame.grouptoolframe,
+          {}]
+        }
+    },
+    {
+     header:'Общественные группы',
+     body:{
+        id:'communitygroups_groupframe',
+        rows:[
+          App.Frame.grouptoolframe,
+          {}]        
+        }
+    }
+  ]
+};
+
 App.Frame.greetingframe = {
     id:'greetingframe',
     container:'centralframe',

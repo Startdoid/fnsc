@@ -35,28 +35,26 @@ var implementFunction = (function() {
 			  
 			  if(App.User.get('thisTry')) {
 			    webix.message(App.User.get('username') + " :thisTry ");
-			    webix.ui(App.Frame.workframe, $$('greetingframe'));
+			    webix.ui(App.Frame.groupframe, $$('greetingframe'));
 
         	App.WebixViews.SliceGroups = new (WebixView.extend({
             id:"slicegroupsframe",
             el: $$("slicegroups"),
+            collection: App.Collections.SliceGroups,
             config: {
-              view:'tree',
-                data: [
-                  { id:'Default', value:'Default' },
-                  { id:"root", value:"Doids develop", open:true, data:[
-                    { id:"1", open:true, value:"Разработчики", data:[
-                      { id:"1.1", value:"Клиент-сайд" },
-                      { id:"1.2", value:"Сервер-сайд" },
-                      { id:"1.3", value:"Бизнес логика" }
-                    ]},
-                    { id:"2", open:true, value:"Дизайнеры", data:[
-                      { id:"2.1", value:"Верстка" },
-                      { id:"2.2", value:"Художка" }
-                    ]}
-                  ]}
-                ]
-            }
+    					isolate:true, 
+              view:"tree",
+						  id:"inslicegroups",
+							template:'{common.icon()}{common.folder()}<span>#name#</span>',
+							select:true 
+            },
+            afterRender: function(){
+					    //this.getChild("mylist").attachEvent("onAfterSelect", _.bind(this.listSelected,this));
+					    //console.log(this.collection);
+					    //$$("inslicegroups").parse(this.collection.toJSON());
+					    //this.getChild("inslicegroups").parse( this.collection.first().toJSON());
+					    $$("inslicegroups").sync(this.collection);
+				    }
           }));
           
           App.WebixViews.SliceUsers = new (WebixView.extend({
@@ -64,6 +62,7 @@ var implementFunction = (function() {
             el: $$("sliceusers"),
             config: {
               view:'tree',
+              select:true,
                 data: [
                   { id:'viktor', value:'Виктор' },
                   { id:'lubov', value:'Любовь' },
@@ -113,7 +112,7 @@ var implementFunction = (function() {
           App.WebixViews.SliceProjects.render();
           App.WebixViews.SliceCategory.render();
           App.WebixViews.SliceTags.render();
-			    //console.log(masterframe.getChildViews()[1].getChildViews());
+			    //console.log(masterframe.getChildViews()[1].getChildViews()23);
 			    //console.log(top.getChildViews()[1]);
 			    //console.log(top.getChildViews()[1][0]);
           //webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
@@ -145,16 +144,6 @@ var implementFunction = (function() {
 		}
 	}));
 
-// 	masterView = new App.WebixViews.MasterView({ 
-// 	  el: "#masterframe",
-// 	  id: "masterframe",
-// 	  config:{
-//       rows:[App.Frame.headerframe, 
-//             {cols:[App.Frame.groupingframe, App.Frame.greetingframe, App.Frame.optionsframe]}
-//           ]
-// 	  }
-// 	});	
-	
   var masterframe = new webix.ui({
     id:"masterframe",
     container:"masterframe",
@@ -162,31 +151,6 @@ var implementFunction = (function() {
       {cols:[App.Frame.sliceframe, App.Frame.greetingframe, App.Frame.optionsframe]}
     ]
   });
-
-  // webix.ui({
-  //   id:"masterframe",
-  //   container:"masterframe",
-  //   rows:[App.Frame.headerframe, 
-  //     {cols:[App.Frame.leftframe, App.Frame.centralframe, App.Frame.rightframe]}
-  //   ]
-  // });
-
-// var ui_config ={
-// 	type:"wide", rows:[
-// 		{ template:"top", height:35 },
-// 		{ type:"wide", cols:[
-// 			{ template:"left" },
-// 			{ template:"center" },
-// 			{ template:"right" }
-// 		]},
-// 		{ template:"bottom", height:35 }
-// 	]
-// };
-
-// new WebixView({
-// 	config: ui_config,
-// 	el: top.getChildViews()[1][0]
-// }).render();
 
 	//var template = new App.Views.DView();
 	
@@ -207,11 +171,39 @@ var implementFunction = (function() {
 
   //Collections init
 	App.Collections.Groups = new collectionGroups();
-	App.Collections.UserGroups = new collectionGroups();
-	
-	App.Collections.UserGroups.fetch();
-	
-	App.Collections.UserGroups.on('change', function() {
+
+  var addDefaultGroupsModel = function() {
+    App.Collections.SliceGroups.add(new App.Models.Group({ 
+      id: 0,
+      parentId: 0,
+      name: 'Default',
+      picId: 0,
+      numUsers: 1,
+      numTask: 0
+    }));
+    
+    App.Collections.SliceGroups.add(new App.Models.Group({ 
+      id: 1,
+      parentId: 0,
+      name: 'Default try',
+      picId: 0,
+      numUsers: 1,
+      numTask: 0
+    }));
+  };
+
+	App.Collections.SliceGroups = new collectionGroups();
+	App.Collections.SliceGroups.fetch();
+	if(App.Collections.SliceGroups.length === 0) {
+    addDefaultGroupsModel();
+	} else {
+	  var defaultModels = App.Collections.SliceGroups.where({name: 'Default'});
+	  if(defaultModels.length === 0) {
+	    addDefaultGroupsModel();
+	  }
+	};
+
+	App.Collections.SliceGroups.on('change', function() {
 	  webix.message(" collection change ");
 	});
 
