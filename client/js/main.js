@@ -57,6 +57,15 @@ var implementFunction = (function() {
 				    }
           }));
           
+          App.WebixViews.GridGroups = new (WebixView.extend({
+            id:"gridgroupsframe",
+            el: $$("grid_groupframe"),
+            collection: App.Collections.SliceGroups,
+            config: App.Frame.ingrid_groupframe,
+            afterRender: function(){
+				    }
+          }));
+          
           App.WebixViews.SliceUsers = new (WebixView.extend({
             id:"sliceusersframe",
             el: $$("sliceusers"),
@@ -112,6 +121,7 @@ var implementFunction = (function() {
           App.WebixViews.SliceProjects.render();
           App.WebixViews.SliceCategory.render();
           App.WebixViews.SliceTags.render();
+          App.WebixViews.GridGroups.render();
 			    //console.log(masterframe.getChildViews()[1].getChildViews()23);
 			    //console.log(top.getChildViews()[1]);
 			    //webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
@@ -207,6 +217,6 @@ var implementFunction = (function() {
 	});
 
   webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
-  webix.event(window, "resize", function(){ masterView.adjust(); })
+  webix.event(window, "resize", function(){ masterframe.adjust(); })
 	Backbone.history.start({pushState: true, root: "/"});
 });
