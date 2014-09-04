@@ -40,20 +40,26 @@ var implementFunction = (function() {
         	App.WebixViews.SliceGroups = new (WebixView.extend({
             id:"slicegroupsframe",
             el: $$("slicegroups"),
-            collection: App.Collections.SliceGroups,
+            collection: App.Collections.Groups,
             config: {
-    					isolate:true, 
+    					isolate:false, 
               view:"tree",
 						  id:"inslicegroups",
 							template:'{common.icon()}{common.folder()}<span>#name#</span>',
 							select:true 
             },
+            initialize: function() {
+              this.listenTo(this.collection, "add", this.afterRender);
+              console.log('init render');
+            },
             afterRender: function(){
 					    //this.getChild("mylist").attachEvent("onAfterSelect", _.bind(this.listSelected,this));
-					    //console.log(this.collection);
-					    //$$("inslicegroups").parse(this.collection.toJSON());
+					    //console.log(JSON.stringify(App.Collections.Groups));
+					    $$("inslicegroups").clearAll();
+					    $$("inslicegroups").parse(JSON.stringify(this.collection));
 					    //this.getChild("inslicegroups").parse( this.collection.first().toJSON());
-					    $$("inslicegroups").sync(this.collection);
+					    //$$("inslicegroups").sync(this.collection);
+					    //console.log(JSON.stringify(App.Collections.Groups));
 				    }
           }));
           
@@ -163,6 +169,37 @@ var implementFunction = (function() {
 
 	//var template = new App.Views.DView();
 	
+	var data = {
+  "id": 1,
+  "name": "My organization",
+  "data": [
+  {
+      "id": 2,
+      "name": "Administrations",
+      "data": [
+      {
+          "id": 3,
+          "name": "CEO"
+      },
+      {
+          "id": 55,
+          "name": "Vice CEO",
+          "data": [
+          {
+              "id":425,
+              "name":"financical departament"
+          }
+          ]
+      }
+      ]
+  },
+  {
+      "id":4,
+      "name":"investors"
+  }
+  ]
+};
+	
 	//Инициализируем глобальный объект пользователя со всеми настройками приложения
 	//пробуем получить рест запросом с сервера
 	App.User = new App.Models.User();
@@ -179,7 +216,8 @@ var implementFunction = (function() {
 	});
 
   //Collections init
-	App.Collections.Groups = new collectionGroups();
+	App.Collections.Groups = new collectionGroups(new App.Models.Group(data));
+	//console.log(JSON.stringify(App.Collections.Groups));
 
   var addDefaultGroupsModel = function() {
     App.Collections.SliceGroups.add(new App.Models.Group({ 
@@ -212,8 +250,8 @@ var implementFunction = (function() {
 	  }
 	};
 
-	App.Collections.SliceGroups.on('change', function() {
-	  webix.message(" collection change ");
+	App.Collections.Groups.on('add', function() {
+	  webix.message(" collection add ");
 	});
 
   webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");

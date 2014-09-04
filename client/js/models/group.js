@@ -7,6 +7,15 @@ App.Models.Group = Backbone.Model.extend({
     numUsers: 1,
     numTask: 0
   },
-  
-  urlRoot: '/groups'
+  urlRoot: '/groups',
+  initialize: function(data) {
+    this.data = new collectionGroups();
+    this.parse(data);
+  },
+  parse: function(data) {
+    if(data.data) {
+      this.data.reset(data.data);
+    }
+    return _.omit(data, 'data');
+  }
 });

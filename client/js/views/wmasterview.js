@@ -223,24 +223,21 @@ App.Frame.grouptoolframe = {
   cols:[
     { view:'button', value:'Добавить', width:100, align:"left", 	      on:{
 		      'onItemClick':function() {
-		        $$("ingrid_groupframe").parse(datatab2);
-		        //App.User.set('thisTry', true);
+		        var fel = App.Collections.Groups.at(0);
+		        console.log(JSON.stringify(fel));
+		        fel.add(
+		          {
+		            "id":890,
+		            "name":"New departament"
+		          });
+		        console.log("add model");
+		        console.log(JSON.stringify(App.Collections.Groups));
 		      }
 	      } },
     { view:'button', value:'Удалить', width:100, align:"left" },
     { }
   ]
 };
-
-datatab = [	{ "id":"1", "name":"Default", "numUsers":"1", data:[
-					{ "id":"1.1", "name":"Defaultoid", "numUsers":"1" },
-					{ "id":"1.2", "name":"Part 2", "numUsers":"2" }
-				]}];
-				
-				datatab2 = [	{ "id":"2", "name":"Def2", "numUsers":"1", data:[
-					{ "id":"2.1", "name":"Defa2", "numUsers":"1" },
-					{ "id":"2.2", "name":"Part 2", "numUsers":"2" }
-				]}];
 
 webix.proxy.myData = {
   $proxy:true,
@@ -251,11 +248,7 @@ webix.proxy.myData = {
   load: function(view, callback) {
     console.log("here i am");
     view.clearAll();
-    view.parse(datatab);
-    // var db = new PouchDB(this.source, config);
-    // var doc = db.get(view.config.id, function(){
-    //       view.parse(doc.data); //load data in component
-    //});
+    view.parse(JSON.stringify(App.Collections.Groups));
   }
 };
 
@@ -269,8 +262,8 @@ App.Frame.ingrid_groupframe = {
 		{ id:'name',	header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 		],
-	data:	datatab
-	//url: "myData->load"
+	//data:	
+	url: "myData->load"
 };
 
 App.Frame.groupframe = {
