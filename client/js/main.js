@@ -253,6 +253,8 @@ var implementFunction = (function() {
 	//    addDefaultGroupsModel();
 	//  }
 	//};
+	//
+	//
 
 	App.Collections.Groups.on('add', function() {
 	  $$("ingrid_groupframe").clearAll();
