@@ -1,5 +1,9 @@
+//блок, который исполнит вебикс когда все загрузит
 var implementFunction = (function() {
+  //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
 	App.Router = new (Backbone.Router.extend({
+	  //слева роут, косая в скобках означает, что роут может быть как с косой чертой на конце, так и без нее
+	  //справа функция, которая вызовется для соответствующего роута
 		routes:{
 			"login(/)":"login",
 			"logout(/)":"logout",
@@ -9,9 +13,11 @@ var implementFunction = (function() {
 			'home(/)':"home",
 			'':"index"
 		},
+		//home выбрасывает в корень
 		home:function() {
 		  this.navigate('', {trigger: true});
 		},
+		//корень приложения
 		index:function() {
 			if(App.User) {
 			  webix.message(App.User.get('username') + " :index ");
@@ -49,6 +55,7 @@ var implementFunction = (function() {
 							select:true 
             },
             initialize: function() {
+              //_.bindAll(this, "render");what is it?
               this.listenTo(this.collection, "add", this.afterRender);
               console.log('init render');
             },
@@ -56,7 +63,7 @@ var implementFunction = (function() {
 					    //this.getChild("mylist").attachEvent("onAfterSelect", _.bind(this.listSelected,this));
 					    //console.log(JSON.stringify(App.Collections.Groups));
 					    $$("inslicegroups").clearAll();
-					    $$("inslicegroups").parse(JSON.stringify(this.collection));
+					    $$("inslicegroups").parse(JSON.stringify(App.Trees.GroupTree.tree));
 					    //this.getChild("inslicegroups").parse( this.collection.first().toJSON());
 					    //$$("inslicegroups").sync(this.collection);
 					    //console.log(JSON.stringify(App.Collections.Groups));
@@ -66,7 +73,6 @@ var implementFunction = (function() {
           App.WebixViews.GridGroups = new (WebixView.extend({
             id:"gridgroupsframe",
             el: $$("grid_groupframe"),
-            collection: App.Collections.SliceGroups,
             config: App.Frame.ingrid_groupframe,
             afterRender: function(){
 				    }
@@ -144,6 +150,7 @@ var implementFunction = (function() {
 				//Router.navigate("films/"+id, { trigger:true });
 		  //});
 		},
+		//раздел группы
 		groups:function() {
 		  
 		},
@@ -154,11 +161,14 @@ var implementFunction = (function() {
 		},
 		register:function() {
   	},
+  	//тестовая заглушка, закрою её нахуй, как доберуться руки
 		details:function(id) {
 			//template.render();
 		}
 	}));
 
+  //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
+  //описание внизу модуля
   var masterframe = new webix.ui({
     id:"masterframe",
     container:"masterframe",
@@ -167,90 +177,86 @@ var implementFunction = (function() {
     ]
   });
 
-	//var template = new App.Views.DView();
-	
-	var data = {
-  "id": 1,
-  "name": "My organization",
-  "data": [
-  {
-      "id": 2,
-      "name": "Administrations",
-      "data": [
-      {
-          "id": 3,
-          "name": "CEO"
-      },
-      {
-          "id": 55,
-          "name": "Vice CEO",
-          "data": [
-          {
-              "id":425,
-              "name":"financical departament"
-          }
-          ]
-      }
-      ]
-  },
-  {
-      "id":4,
-      "name":"investors"
-  }
-  ]
-};
-	
 	//Инициализируем глобальный объект пользователя со всеми настройками приложения
 	//пробуем получить рест запросом с сервера
 	App.User = new App.Models.User();
 	App.User.fetch();
-	
+	 
 	//Привязываем события которые будут обрабатываться User model
 	App.User.on('change:thisSegment', function() {
 	  webix.message(App.User.get('thisSegment') + " segment select");
 	  App.Router.navigate('groups', {trigger:true} );
 	});
+
 	App.User.on('change:thisTry', function() {
 	  webix.message(App.User.get('thisSegment') + " segment select");
 	  App.Router.navigate('home', {trigger:true} );
 	});
 
-  //Collections init
-	App.Collections.Groups = new collectionGroups(new App.Models.Group(data));
-	//console.log(JSON.stringify(App.Collections.Groups));
+  //объект организует работу с деревьями
+	var treeBuilder = function (collection) {
+	  this.tree = [];
 
-  var addDefaultGroupsModel = function() {
-    App.Collections.SliceGroups.add(new App.Models.Group({ 
-      id: 0,
-      parentId: 0,
-      name: 'Default',
-      picId: 0,
-      numUsers: 1,
-      numTask: 0
-    }));
+	  this.treeRecursively = function(branch, list) {
+      //recursively builds tree from list with parent-child dependencies
+      if (typeof branch == 'undefined') return null;
+      var tree = [];
+      for(var i=0; i<branch.length; i++)      
+      {
+          branch[i].data = this.treeRecursively( list[ branch[i].id ], list);
+          tree.push(branch[i]);
+      }
+      return tree;
+    };
+
+    this.treeBuild = function(collection) {
+      var maplist = collection.map(function(object) { return object.attributes });
+      var list = _.groupBy(maplist, 'parent_id');
+      this.tree = this.treeRecursively(list[0], list);
+    };
     
-    App.Collections.SliceGroups.add(new App.Models.Group({ 
-      id: 1,
-      parentId: 0,
-      name: 'Default try',
-      picId: 0,
-      numUsers: 1,
-      numTask: 0
-    }));
+	  if (typeof collection !== 'undefined')
+	  {
+      var maplist = collection.map(function(object) { return object.attributes });
+      var list = _.groupBy(maplist, 'parent_id');
+      this.tree = this.treeRecursively(list[0], list);
+	  };
   };
+	
+	//Это пример данных в коллекции. Бакбоновские коллекции не организуют иерархически данные
+	//поэтому выше создан объект, экземпляры которого позволяют строить дерево из бакбоновской 
+	//коллекции и хранить в себе древовидный массив
+	var collect = [
+    {id:1, parent_id:0, name: "My organization", numUsers: 5},
+    {id:2, parent_id:1, name: "Administrations", numUsers: 2},
+    {id:3, parent_id:2, name: "CEO", numUsers: 1},
+    {id:55, parent_id:2, name: "Vice CEO", numUsers: 1},
+    {id:425, parent_id:55, name: "financical departament", numUsers: 2},
+    {id:4, parent_id:0, name: "investors", numUsers: 1}
+  ];
 
-	App.Collections.SliceGroups = new collectionGroups();
-	App.Collections.SliceGroups.fetch();
-	if(App.Collections.SliceGroups.length === 0) {
-    addDefaultGroupsModel();
-	} else {
-	  var defaultModels = App.Collections.SliceGroups.where({name: 'Default'});
-	  if(defaultModels.length === 0) {
-	    addDefaultGroupsModel();
-	  }
-	};
+  //Collections init
+	App.Collections.Groups = new collectionGroups(collect);
+	
+	App.Trees.GroupTree = new treeBuilder(App.Collections.Groups.models);
+	//App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
+	
+	console.log(JSON.stringify(App.Trees.GroupTree.tree));
+
+	//App.Collections.SliceGroups = new collectionGroups();
+	//App.Collections.SliceGroups.fetch();
+	//if(App.Collections.SliceGroups.length === 0) {
+    //addDefaultGroupsModel();
+	//} else {
+	//  var defaultModels = App.Collections.SliceGroups.where({name: 'Default'});
+	//  if(defaultModels.length === 0) {
+	//    addDefaultGroupsModel();
+	//  }
+	//};
 
 	App.Collections.Groups.on('add', function() {
+	  $$("ingrid_groupframe").clearAll();
+	  $$("ingrid_groupframe").parse(JSON.stringify(App.Trees.GroupTree.tree));
 	  webix.message(" collection add ");
 	});
 
@@ -258,3 +264,40 @@ var implementFunction = (function() {
   webix.event(window, "resize", function(){ masterframe.adjust(); })
 	Backbone.history.start({pushState: true, root: "/"});
 });
+
+//(frame)(id)(view)
+//masterframe|
+//->headerframe||toolbar
+// ->btnHome|btnHome|button
+// ->lblInTask|lblInTask|label
+// ->searchMaster||search
+// ->btnChat||toggle-iconButton
+// ->btnEvents||toggle-iconButton
+// ->mnuSegments||richselect
+// ->btnSettings|btnSettings|button
+//->sliceframe|sliceframe|accordion
+// ->slicegroups
+// ->sliceusers
+// ->sliceprojects
+// ->slicecategory
+// ->slicetags
+//[ container:'centralframe' - в контейнере замещаются фреймы
+//->greetingframe|greetingframe|
+// ->||htmlform|http->greeting.html
+// ->|btnTry|button
+// ->|btnRegister|button
+// ->|btnLogin|button
+//->groupframe|groupframe|tabview
+// ->|mygroups_groupframe|
+//  ->grouptoolframe|grouptoolframe|toolbar
+//   ->||button
+//   ->||button
+//  ->|grid_groupframe|->(поиск по id и замена на)->[WebixView]GridGroups|gridgroupsframe
+//   ->ingrid_groupframe|ingrid_groupframe|treetable
+// ->|communitygroups_groupframe|
+//  ->grouptoolframe|grouptoolframe|toolbar
+//   ->||button
+//   ->||button
+//  ->
+//]
+//->optionsframe|optionsframe|accordion

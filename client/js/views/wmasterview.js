@@ -223,15 +223,14 @@ App.Frame.grouptoolframe = {
   cols:[
     { view:'button', value:'Добавить', width:100, align:"left", 	      on:{
 		      'onItemClick':function() {
-		        var fel = App.Collections.Groups.at(0);
-		        console.log(JSON.stringify(fel));
-		        fel.add(
+		        App.Collections.Groups.add(
 		          {
 		            "id":890,
-		            "name":"New departament"
+		            "parent_id":0,
+		            "name":"New departament",
+		            "numUsers": 5
 		          });
-		        console.log("add model");
-		        console.log(JSON.stringify(App.Collections.Groups));
+		        //console.log(JSON.stringify(App.Collections.Groups));
 		      }
 	      } },
     { view:'button', value:'Удалить', width:100, align:"left" },
@@ -248,7 +247,7 @@ webix.proxy.myData = {
   load: function(view, callback) {
     console.log("here i am");
     view.clearAll();
-    view.parse(JSON.stringify(App.Collections.Groups));
+    view.parse(JSON.stringify(App.Trees.GroupTree.tree));
   }
 };
 
@@ -257,6 +256,7 @@ App.Frame.ingrid_groupframe = {
 	view:'treetable', 
 	editable:true, 
 	autoheight:true, 
+	select: true,
 	columns:[
 		{ id:'id', 	header:'', width:40 },
 		{ id:'name',	header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
@@ -341,20 +341,20 @@ App.Frame.greetingframe = {
   ]
 };
 
-App.Frame.centralframe = {
-  id:'centralframe',
-  container:"centralframe"
-};
+// App.Frame.centralframe = {
+//   id:'centralframe',
+//   container:"centralframe"
+// };
 
-App.Frame.leftframe = {
-  id:'leftframe',
-  container:"leftframe"
-};
+// App.Frame.leftframe = {
+//   id:'leftframe',
+//   container:"leftframe"
+// };
 
-App.Frame.rightframe = {
-  id:'rightframe',
-  container:"rightframe"
-};
+// App.Frame.rightframe = {
+//   id:'rightframe',
+//   container:"rightframe"
+// };
 
 // App.WebixViews.MasterView = WebixView.extend({
 // 	afterRender: function() {
