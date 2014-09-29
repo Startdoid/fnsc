@@ -116,6 +116,54 @@ App.Frame.headerframe = {
 	         ]
 };
 
+App.Frame.slicegroups = {
+  id:'slicegroups',
+  view:'tree',
+  isolate:false, 
+  select:true,
+	template:'{common.icon()}{common.folder()}<span>#name#</span>',
+  url: "myData->load"
+};
+
+App.Frame.sliceusers = {
+  id:'sliceusers',
+  view:'tree',
+  select:true,
+  data: [
+    { id:'viktor', value:'Виктор' },
+    { id:'lubov', value:'Любовь' },
+    { id:'denis', value:'Денис' }
+  ]
+};
+
+App.Frame.sliceprojects = {
+  id:'sliceprojects',
+  view:'tree',
+  select:'true',
+  data: [
+    { id:'Default', value:'Default' },
+    { id:'InTaskoid', value:'InTask.me' }
+    ]
+};
+
+App.Frame.slicecategory = {
+  id:'slicecategory',
+  view:'tree',
+  select:'true',
+  data: [
+    { id:'Default', value:'Default' }
+  ]
+};
+
+App.Frame.slicetags = {
+  id:'slicetags',
+  view:'tree',
+  select:'true',
+  data: [
+    { id:'InTaskoid', value:'InTask.me' }
+  ]
+};
+
 App.Frame.sliceframe = {
   id:'sliceframe',
 	width:250,
@@ -126,11 +174,11 @@ App.Frame.sliceframe = {
 		view:'accordion',
 		type:'space',
 		rows:[{ body: 'Task pull' },
-		      { header:'Группы', body: { id:'slicegroups' } },
-		      { header:'Люди', body: { id:'sliceusers' } },
-		      { header:'Проекты', body: { id:'sliceprojects' } },
-		      { header:"Категории", body: { id:'slicecategory' } },
-		      { header:"Тэги", body: { id:'slicetags' } }
+		      { header:'Группы', body: App.Frame.slicegroups },
+		      { header:'Люди', body: App.Frame.sliceusers },
+		      { header:'Проекты', body: App.Frame.sliceprojects },
+		      { header:"Категории", body: App.Frame.slicecategory },
+		      { header:"Тэги", body: App.Frame.slicetags }
 		      ]
 	}
 };
@@ -221,19 +269,24 @@ App.Frame.grouptoolframe = {
   view:'toolbar',
   id:'grouptoolframe',
   cols:[
-    { view:'button', value:'Добавить', width:100, align:"left", 	      on:{
+    { view:'button', value:'Добавить', width:100, align:"left", on:{
 		      'onItemClick':function() {
+		        //$$("ingrid_groupframe").show();
 		        App.Collections.Groups.add(
 		          {
 		            "id":890,
-		            "parent_id":0,
+		            "parent_id":3,
 		            "name":"New departament",
 		            "numUsers": 5
 		          });
 		        //console.log(JSON.stringify(App.Collections.Groups));
 		      }
 	      } },
-    { view:'button', value:'Удалить', width:100, align:"left" },
+    { view:'button', value:'Удалить', width:100, align:"left", on:{
+      'onItemClick':function(){
+        //$$("ingrid_groupframe").hide();
+      }
+    } },
     { }
   ]
 };
@@ -242,12 +295,18 @@ webix.proxy.myData = {
   $proxy:true,
   init:function(){
     //webix.extend(this, webix.proxy.offline);
-    console.log("here i am: init");
   },
   load: function(view, callback) {
-    console.log("here i am");
-    view.clearAll();
-    view.parse(JSON.stringify(App.Trees.GroupTree.tree));
+    //Добавляем id вебиксовых вьюх для синхронизации с данными
+	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
+  
+    if(view.config.id === 'ingrid_groupframe') {
+      App.Trees.GroupTree.viewsAdd($$('ingrid_groupframe'));
+    };
+    
+    if(view.config.id === 'slicegroups') {
+      App.Trees.GroupTree.viewsAdd($$('slicegroups'));
+    };
   }
 };
 
@@ -262,7 +321,6 @@ App.Frame.ingrid_groupframe = {
 		{ id:'name',	header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 		],
-	//data:	
 	url: "myData->load"
 };
 
@@ -278,7 +336,7 @@ App.Frame.groupframe = {
         id:'mygroups_groupframe',
         rows:[
           App.Frame.grouptoolframe,
-          { id:'grid_groupframe'}]
+          App.Frame.ingrid_groupframe]
         }
     },
     {
@@ -340,39 +398,3 @@ App.Frame.greetingframe = {
     }
   ]
 };
-
-// App.Frame.centralframe = {
-//   id:'centralframe',
-//   container:"centralframe"
-// };
-
-// App.Frame.leftframe = {
-//   id:'leftframe',
-//   container:"leftframe"
-// };
-
-// App.Frame.rightframe = {
-//   id:'rightframe',
-//   container:"rightframe"
-// };
-
-// App.WebixViews.MasterView = WebixView.extend({
-// 	afterRender: function() {
-// 	  if((App.User.get('id') === 0) && (!App.User.get('thisTry')))
-// 	  {
-//   	  $$("groupingframe").define("collapsed", true);
-//   		$$("groupingframe").disable();
-//   		$$("groupingframe").refresh();
-  			  
-//   		$$("optionsframe").define("collapsed", true);
-//   		$$("optionsframe").disable();
-//   		$$("optionsframe").refresh();
-// 	  } else {
-//   		$$("groupingframe").enable();
-//   		$$("groupingframe").refresh();
-  			  
-//   		$$("optionsframe").enable();
-//   		$$("optionsframe").refresh();
-// 	  }
-// 	}
-// });
