@@ -270,21 +270,10 @@ App.Frame.grouptoolframe = {
   id:'grouptoolframe',
   cols:[
     { view:'button', value:'Добавить', width:100, align:"left", on:{
-		      'onItemClick':function() {
-		        //$$("ingrid_groupframe").show();
-		        App.Collections.Groups.add(
-		          {
-		            "id":890,
-		            "parent_id":3,
-		            "name":"New departament",
-		            "numUsers": 5
-		          });
-		        //console.log(JSON.stringify(App.Collections.Groups));
-		      }
-	      } },
+		  'onItemClick':function() { App.Collections.Groups.newGroup(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+    } },
     { view:'button', value:'Удалить', width:100, align:"left", on:{
       'onItemClick':function(){
-        //$$("ingrid_groupframe").hide();
       }
     } },
     { }
@@ -302,11 +291,11 @@ webix.proxy.myData = {
   
     if(view.config.id === 'ingrid_groupframe') {
       App.Trees.GroupTree.viewsAdd($$('ingrid_groupframe'));
-    };
+    }
     
     if(view.config.id === 'slicegroups') {
       App.Trees.GroupTree.viewsAdd($$('slicegroups'));
-    };
+    }
   }
 };
 
@@ -321,6 +310,11 @@ App.Frame.ingrid_groupframe = {
 		{ id:'name',	header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 		],
+	on: {
+	  'onItemClick':function() {
+	    App.User.set('this_ingrid_groupframe_ItemSelected', this.getSelectedId().id);
+	  }
+	},
 	url: "myData->load"
 };
 

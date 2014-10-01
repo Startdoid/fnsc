@@ -89,7 +89,7 @@ var implementFunction = (function() {
 	//пробуем получить рест запросом с сервера
 	App.User = new App.Models.User();
 	App.User.fetch();
-	 
+	
 	//Привязываем события которые будут обрабатываться User model
 	App.User.on('change:thisSegment', function() {
 	  webix.message(App.User.get('thisSegment') + " segment select");
@@ -99,6 +99,10 @@ var implementFunction = (function() {
 	App.User.on('change:thisTry', function() {
 	  webix.message(App.User.get('thisSegment') + " segment select");
 	  App.Router.navigate('home', {trigger:true} );
+	});
+	
+	App.User.on('change:this_ingrid_groupframe_ItemSelected', function() {
+	  console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
 	});
 
   //объект организует работу с деревьями, для того что бы линейную бэкбоновскую коллекцию
@@ -120,28 +124,18 @@ var implementFunction = (function() {
       return tr;
     };
 
-    var someFunct = function(element, index, array) {
-      if(element.parent_id === this.parent_id) {
-        element.data.push(this);
-        return true;
-      } else {
-        if(typeof element.data === 'object') {
-          if(Array.isArray(element.data)) {
-            element.data.some(someFunct, this);
-          }
-        }
-      }
-  	  //var hatiko = $$("ingrid_groupframe");
-  	  //hatiko.add(grp.attributes);
-    };
-    
     var addRecursively = function(branch, element) {
-      if (typeof branch == 'undefined') return null;
-      if (element.parent_id === branch.parent_id) {
-        
-      } else {
-        for (var data in branch) {
-          Things[data]
+      if (typeof branch === 'undefined') return false;
+      if (branch === null) return false;
+      for (var i = 0; i<branch.length; i++) {
+        if (element.parent_id === branch[i].id) {
+          if ((branch[i].data === null) || (typeof branch[i].data === 'undefined')) {
+            branch[i].data = [];
+          }
+          branch[i].data.push(element);
+          return true;
+        } else {
+          if(addRecursively(branch[i].data, element)) { return true }
         }
       }
     };
@@ -157,11 +151,16 @@ var implementFunction = (function() {
     
     //добавление элемента в дерево, автоматическое обновление элементов во вьюхах из массива views
     this.treeAdd = function(element) {
-      //tree.some(someFunct, element.attributes);
-      addRecursively(tree, element.attributes);
-      console.log(JSON.stringify(tree));
+      var result = addRecursively(tree, element.attributes);
+      if(result) {
+        //var currentItem = views[0].getItem(element.attributes.parent_id);
+        //views[0].data.sync(tree);
+        for (var i = views.length; i--; ) {
+          views[i].add(element.attributes, 0, element.attributes.parent_id);
+        }
+      }
     };
-    
+
     //добавление вьюхи в массив для датабиндинга
     this.viewsAdd = function(view) {
       console.log('view add');
@@ -207,7 +206,6 @@ var implementFunction = (function() {
   //Обработка события добавления в коллекцию групп
 	App.Collections.Groups.on('add', function(grp) {
 	  App.Trees.GroupTree.treeAdd(grp);
-	  webix.message(" collection add " + grp.get("name"));
 	});
 
 	//Создаем на основе коллекции менеджер дерева групп
@@ -224,7 +222,7 @@ var implementFunction = (function() {
     ]
   });
 
-	 webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
+	webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
   webix.event(window, "resize", function(){ masterframe.adjust(); })
 	Backbone.history.start({pushState: true, root: "/"});
 });
