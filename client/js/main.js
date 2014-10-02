@@ -127,6 +127,13 @@ var implementFunction = (function() {
     var addRecursively = function(branch, element) {
       if (typeof branch === 'undefined') return false;
       if (branch === null) return false;
+      
+      if (element.parent_id === 0)
+      {
+        branch.push(element);
+        return true;        
+      }
+      
       for (var i = 0; i<branch.length; i++) {
         if (element.parent_id === branch[i].id) {
           if ((branch[i].data === null) || (typeof branch[i].data === 'undefined')) {
@@ -158,6 +165,15 @@ var implementFunction = (function() {
         for (var i = views.length; i--; ) {
           views[i].add(element.attributes, 0, element.attributes.parent_id);
         }
+      }
+    };
+    
+    this.treeRemove = function(element) {
+      //!!!!!!необходимо сделать корректное удаление элемента из дерева массива!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      var currentItem = tree.indexOf(element.attributes);
+      tree = _.without(tree, element.attributes);
+      for (var i = views.length; i--; ) {
+        views[i].remove(element.attributes.id);
       }
     };
 
@@ -206,6 +222,11 @@ var implementFunction = (function() {
   //Обработка события добавления в коллекцию групп
 	App.Collections.Groups.on('add', function(grp) {
 	  App.Trees.GroupTree.treeAdd(grp);
+	});
+	
+	App.Collections.Groups.on('remove', function(ind) {
+	  App.Trees.GroupTree.treeRemove(ind);
+	  
 	});
 
 	//Создаем на основе коллекции менеджер дерева групп

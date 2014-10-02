@@ -13,5 +13,21 @@ collectionGroups = Backbone.Collection.extend({
       id:newId, 
       parent_id:selectedId,
       name:'New group'} );
+  },
+  removeGroup: function(selectedId) {
+    //var maplist = collection.map(function(object) { return object.attributes });
+    //var list = _.groupBy(maplist, 'parent_id');
+    var listGroup = [this.get(selectedId)];
+    for (var i = 0; i < this.models.length; i++) {
+      for (var c = 0; c < listGroup.length; c++){
+        if (this.models[i].get('parent_id') === listGroup[c].id) {
+          listGroup.push(this.models[i]);
+        }
+      }
+    }
+    
+    for (var i = listGroup.length - 1; i >= 0; i--) {
+      this.remove(listGroup[i]);
+    }
   }
 });

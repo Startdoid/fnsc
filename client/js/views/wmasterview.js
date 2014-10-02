@@ -269,11 +269,36 @@ App.Frame.grouptoolframe = {
   view:'toolbar',
   id:'grouptoolframe',
   cols:[
+    { view:'button', value:'Добавить основную', width:140, align:'left', on:{
+      'onItemClick':function() { App.Collections.Groups.newGroup(0); }
+    } },
     { view:'button', value:'Добавить', width:100, align:"left", on:{
 		  'onItemClick':function() { App.Collections.Groups.newGroup(App.User.get('this_ingrid_groupframe_ItemSelected')); }
     } },
     { view:'button', value:'Удалить', width:100, align:"left", on:{
-      'onItemClick':function(){
+      'onItemClick':function() {
+        var selectedId = App.User.get('this_ingrid_groupframe_ItemSelected');
+        if (selectedId != 0) {
+          var firstModels = App.Collections.Groups.findWhere( { parent_id: selectedId } );
+          var text = '';
+          if (typeof firstModels === 'undefined') {
+            text = 'Вы пожелали удалить выбранную группу?';
+          } else {
+            text = 'Группа содержит другие группы, вы желаете удалить корневую группу вместе с потомками?';
+          }
+
+          webix.confirm({
+            title:'Запрос на удаление группы',
+            ok:'Да', 
+            cancel:'Нет',
+            type:'confirm-warning',
+            text:text,
+            callback: function(result) { 
+              if (result) { App.Collections.Groups.removeGroup(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+              //App.Collections.Groups.get(selectedId)
+              }
+          });
+        }
       }
     } },
     { }
