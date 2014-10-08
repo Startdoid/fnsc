@@ -45,6 +45,15 @@ var implementFunction = (function() {
 			    //Меняем окно приветствия, на окно конфигурации групп
 			    webix.ui(App.Frame.groupframe, $$('greetingframe'));
 
+          $$('ingrid_groupframe').attachEvent("onAfterEditStop", function(state, editor, ignoreUpdate) {
+            if (editor.column === 'name') {
+              var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemSelected'));
+              selectGroup.set({ 'name': state.value });
+              ignoreUpdate = false;
+              console.log('ikzgbrc');
+            }
+          });
+
 			    //console.log(masterframe.getChildViews()[1].getChildViews()23);
 			    //console.log(top.getChildViews()[1]);
 			    //webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
@@ -74,7 +83,7 @@ var implementFunction = (function() {
 	}));
 	
 	//Это пример данных в коллекции. Бакбоновские коллекции не организуют иерархически данные
-	//поэтому выше создан объект, экземпляры которого позволяют строить дерево из бакбоновской 
+	//поэтому создан объект treeManager, экземпляры которого позволяют строить дерево из бакбоновской 
 	//коллекции и хранить в себе древовидный массив
 	var collect = [
     {id:1, parent_id:0, name: "My organization", numUsers: 5},
@@ -124,25 +133,42 @@ var implementFunction = (function() {
       return tr;
     };
 
-    var addRecursively = function(branch, element) {
+    //функция рекурсивного обхода дерева, корень дерева представлен, как branch
+    //ветка дерева содержится в массиве data корня branch т.е. branch->data[branch->data[branch->data]] и т.д.
+    var recursively = function(branch, element, oper) {
+      //проверка на то что корень является данными типа - объект
       if (typeof branch === 'undefined') return false;
+      //проверка на то что корень не обнулен
       if (branch === null) return false;
       
-      if (element.parent_id === 0)
-      {
+      //Если родитель корневой элемент, то добавим в корень
+      if ((oper === 'add') && (element.parent_id === 0)) {
         branch.push(element);
         return true;        
-      }
-      
+      } 
+
       for (var i = 0; i<branch.length; i++) {
-        if (element.parent_id === branch[i].id) {
-          if ((branch[i].data === null) || (typeof branch[i].data === 'undefined')) {
-            branch[i].data = [];
+        if (branch[i] === null) continue;
+        
+        if (oper === 'add') {
+          if (element.parent_id === branch[i].id) {
+            if ((branch[i].data === null) || (typeof branch[i].data === 'undefined')) {
+              branch[i].data = [];
+            }
+            branch[i].data.push(element);
+            return true;
+          } else {
+            if(recursively(branch[i].data, element, oper)) { return true }
           }
-          branch[i].data.push(element);
-          return true;
         } else {
-          if(addRecursively(branch[i].data, element)) { return true }
+          if (element.id === branch[i].id) {
+            branch[i] = null;
+            return true;
+          }
+          else
+          {
+            if(recursively(branch[i].data, element, oper)) { return true }
+          }
         }
       }
     };
@@ -158,22 +184,35 @@ var implementFunction = (function() {
     
     //добавление элемента в дерево, автоматическое обновление элементов во вьюхах из массива views
     this.treeAdd = function(element) {
-      var result = addRecursively(tree, element.attributes);
+      var result = recursively(tree, element.attributes, 'add');
       if(result) {
         //var currentItem = views[0].getItem(element.attributes.parent_id);
         //views[0].data.sync(tree);
         for (var i = views.length; i--; ) {
           views[i].add(element.attributes, 0, element.attributes.parent_id);
+          views[i].refresh();
         }
       }
     };
     
     this.treeRemove = function(element) {
-      //!!!!!!необходимо сделать корректное удаление элемента из дерева массива!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      var currentItem = tree.indexOf(element.attributes);
-      tree = _.without(tree, element.attributes);
+      var result = recursively(tree, element.attributes, 'delete');
       for (var i = views.length; i--; ) {
         views[i].remove(element.attributes.id);
+        views[i].refresh();
+      }
+    };
+    
+    this.treeChange = function(element) {
+      for (var i = views.length; i--; ) {
+        var record = views[i].getItem(element.get('id'));
+        var chgAtr = element.changedAttributes();
+        var keysArr = _.keys(chgAtr);
+        var valuesArr = _.values(chgAtr);
+        for (var j = keysArr.length; j--; ) {
+          record[keysArr[j]] = valuesArr[j];
+        }
+        views[i].refresh();
       }
     };
 
@@ -226,9 +265,12 @@ var implementFunction = (function() {
 	
 	App.Collections.Groups.on('remove', function(ind) {
 	  App.Trees.GroupTree.treeRemove(ind);
-	  
 	});
 
+  App.Collections.Groups.on('change', function(model, options) {
+    App.Trees.GroupTree.treeChange(model);
+  });
+  
 	//Создаем на основе коллекции менеджер дерева групп
 	App.Trees.GroupTree = new treeManager(App.Collections.Groups.models);
 	console.log(JSON.stringify(App.Trees.GroupTree.tree));
@@ -242,7 +284,7 @@ var implementFunction = (function() {
       {cols:[App.Frame.sliceframe, App.Frame.greetingframe, App.Frame.optionsframe]}
     ]
   });
-
+  
 	webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
   webix.event(window, "resize", function(){ masterframe.adjust(); })
 	Backbone.history.start({pushState: true, root: "/"});

@@ -324,6 +324,8 @@ webix.proxy.myData = {
   }
 };
 
+//webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
+
 App.Frame.ingrid_groupframe = {
   id:'ingrid_groupframe',
 	view:'treetable', 
@@ -331,8 +333,8 @@ App.Frame.ingrid_groupframe = {
 	autoheight:true, 
 	select: true,
 	columns:[
-		{ id:'id', 	header:'', width:40 },
-		{ id:'name',	header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
+		{ id:'id', header:'', css:{"text-align":"center"}, width:40 },
+		{ id:'name', editor:"text", header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 		],
 	on: {
