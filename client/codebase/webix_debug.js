@@ -1,4 +1,6 @@
 /*
+@license
+webix UI v.2.0.0
 This software is allowed to use under GPL or you need to obtain Commercial License 
  to use it in non-GPL project. Please contact sales@webix.com for details
 */
@@ -49,7 +51,7 @@ webix.assert_level_out = function(){
 /*
 	Common helpers
 */
-webix.version="1.10.0";
+webix.version="2.0.0";
 webix.codebase="./";
 webix.name = "core";
 
@@ -395,7 +397,7 @@ webix.event=function(node,event,handler,master){
 		
 	//use IE's of FF's way of event's attaching
 	if (node.addEventListener)
-		node.addEventListener(event, handler, false);
+		node.addEventListener(event, handler, arguments[4]);
 	else if (node.attachEvent)
 		node.attachEvent("on"+event, webix._events[id][2] = function(){
 			return handler.apply(node, arguments);	//IE8 fix
@@ -975,15 +977,13 @@ webix.debug_blacklist={
     self.state = type
 
     if (self.state === 'resolved') {
-      self.next.map(function (p) {
-        p.resolve(self.val)
-      })
+      for (var i = 0; i < self.next.length; i++)
+        self.next[i].resolve(self.val);
     }
 
     if (self.state === 'rejected') {
-      self.next.map(function (p) {
-        p.reject(self.val)
-      })
+      for (var i = 0; i < self.next.length; i++)
+        self.next[i].reject(self.val);
     }
   }
 
@@ -1158,6 +1158,11 @@ webix.debug_blacklist={
   // self object gets globalalized/exported
   var promiz = {
 
+    all:function(list){
+      var p = new promise(null, null);
+      p.resolve(list);
+      return p.all();
+    },
     // promise factory
     defer: function () {
       return new promise(null, null)
@@ -1212,36 +1217,85 @@ webix.debug_blacklist={
 
 (function(){
 
+	var token = "";
 	var config = {
 		timeout:30,
-		parseDates:true
+		parseDates:true,
+		multicall:true
 	};
 
+	var queue = [];
+	var nexttimer;
+
 	function call_remote(url, name, args){
-		var pack = { name: name, data:args };
+		var pack = { name: name, data:args, key:token };
 		var defer = webix.promise.defer();
 
-		defer._syncid = setTimeout(function(){
-			call_remote_async(url, pack, defer);
-		},1);
+		queue.push([url, pack, defer]);
+
+		if (!nexttimer)
+			nexttimer = setTimeout(next_timer_call,1);
 
 		defer.sync = function(){
-			clearTimeout(this._syncid);
+			pack.sync = true;
 			return call_remote_sync(url, pack);
 		};
 
 		return defer;
 	}
 
+	function next_timer_call(){
+		var megapack = [];
+		var megaurl = "";
+		var megaqueue = queue;
+
+		for (var i=0; i<queue.length; i++){
+			var pack = queue[i];
+			if (!pack.sync){
+				if (config.multicall){
+					megaurl = pack[0];
+					megapack.push(pack[1]);
+				} else 
+					call_remote_async.apply(this, pack);
+			}
+		}
+
+		queue = [];
+		nexttimer = false;
+
+		if (config.multicall && megapack.length)
+			call_remote_async(megaurl,	
+				{ data:megapack, key:token, multicall:true },
+				megaqueue
+			);
+	}
+
+	function resolve(defer, data){
+		if (config.multicall)
+			for (var i = 0; i < defer.length; i++)
+				defer[i][2].resolve(data[i]);
+		else
+			defer.resolve(data);
+	}
+
+	function reject(defer, data){
+		if (config.multicall)
+			for (var i = 0; i < defer.length; i++)
+				defer[i][2].reject(data);
+		else
+			defer.reject(data);
+	}
+
 	function call_remote_async(url, pack, defer){
+		pack.data = JSON.stringify(pack.data);
 		webix.ajax().post(url, pack).then(function(text){
 			var data = parse_responce(text.text());
 			if (!data)
-				defer.reject();
+				reject(defer);
 			else
-				defer.resolve(data.data);
+				resolve(defer, data.data);
 		}, function(x){
-			defer.reject(x);
+			reject(defer, x);
 		});
 
 		webix.callEvent("onRemoteCall", [defer, pack]);
@@ -1249,27 +1303,12 @@ webix.debug_blacklist={
 
 	function call_remote_sync(url, pack, args){
 		webix.callEvent("onRemoteCall", [null, pack]);
+		pack.data = JSON.stringify(pack.data);
 		return parse_responce( webix.ajax().sync().post(url, pack).responseText ).data;
 	}
 
-	var isodate = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/;
-	function fix_dates(key, value){
-		if (typeof value == "string"){
-			if (isodate.test(value))
-				return new Date(value);
-		}
-		return value;
-	}
 	function parse_responce(text){
-		try{
-			if (config.parseDates)
-				return JSON.parse(text, fix_dates);
-			else
-				return JSON.parse(text);
-		} catch(e){
-			webix.assert(false, e.toString());
-			return null;
-		}
+		return webix.DataDriver.json.toObject.call(config, text);
 	}
 
 	var t = webix.remote = function(api, url, obj, prefix){
@@ -1282,7 +1321,9 @@ webix.debug_blacklist={
 		prefix = prefix || "";
 
 		for (var key in api){
-			if (typeof api[key] == "object"){
+			if (key == "$key")
+				token = api.$key;
+			else if (typeof api[key] == "object"){
 				var sub = obj[key] = {};
 				t(api[key], url, sub, key+".");
 			} else
@@ -1292,11 +1333,12 @@ webix.debug_blacklist={
 
 	var api_helper = function(url, key){
 		return function(){
-			return call_remote(url, key, JSON.stringify([].splice.call(arguments,0)));
+			return call_remote(url, key, [].splice.call(arguments,0));
 		};
 	};
 
 	t.config = config;
+	t.flush = next_timer_call;
 
 
 })();
@@ -1433,7 +1475,7 @@ webix.skin.terrace = {
 	tabOffset:0,
 
 
-	calendar:{height: 70},
+	calendarHeight: 70,
 	//space between tabs in tabbar
 	padding:17
 };
@@ -1664,11 +1706,6 @@ webix.Destruction = {
 		//html collection
 		this._htmlmap  = null;
 		this._htmlrows = null;
-
-		//temp html element, used by toHTML
-		if (this._html)
-			document.body.appendChild(this._html);	//need to attach, for IE's GC
-
 		this._html = null;
 
 
@@ -1742,7 +1779,8 @@ webix.event(window,"unload",function(){
 
 var _cache = {};
 var newlines = new RegExp("(\\r\\n|\\n)","g");
-var quotes = new RegExp("(\\\")","g");
+var quotes   = new RegExp("(\\\")","g");
+var slashes  = new RegExp("(\\\\)","g");
 var escape = {
   "&": "&amp;",
   "<": "&lt;",
@@ -1781,6 +1819,7 @@ webix.template = function(str){
 	//supported idioms
 	// {obj.attr} => named attribute or value of sub-tag in case of xml
 	str=(str||"").toString();		
+	str=str.replace(slashes,"\\\\");
 	str=str.replace(newlines,"\\n");
 	str=str.replace(quotes,"\\\"");
 
@@ -2328,6 +2367,8 @@ webix.ajax.prototype={
 };
 webix.ajax.$callback = function(owner, call, text, data, x, is_error){
 	if (owner.$destructed) return;
+	if (x == -1 && data && typeof data.json == "function")
+		data = data.json();
 
 	if (is_error)
 		webix.callEvent("onAjaxError", [x]);
@@ -2376,6 +2417,8 @@ webix.AtomDataLoader={
 	$init:function(config){
 		//prepare data store
 		this.data = {}; 
+		this.waitData = webix.promise.defer();
+
 		if (config){
 			this._settings.datatype = config.datatype||"json";
 			this.$ready.push(this._load_when_ready);
@@ -2456,8 +2499,17 @@ webix.AtomDataLoader={
 	//loads data from object
 	parse:function(data,type){
 		//[webix.remote]
-		if (data && data.then && typeof data.then == "function")
-			return data.then(webix.bind(function(data){ this.parse(data, type); }, this));
+		if (data && data.then && typeof data.then == "function"){
+			return data.then(webix.bind(function(data){ 
+				if (data && typeof data.json == "function")
+					data = data.json();
+				this.parse(data, type); 
+			}, this));
+		}
+
+		//loading data from other component
+		if (data && data.sync && this.sync)
+			return this.sync(data);
 
 		this.callEvent("onBeforeLoad",[]);
 		this.data.driver = webix.DataDriver[type||"json"];
@@ -2473,11 +2525,12 @@ webix.AtomDataLoader={
 			data = driver.toObject(text, response);
 
 		if (data)
-			this.data = data;
+			this.data = driver.getDetails(driver.getRecords(data)[0]);
 		else 
 			this._onLoadError(text,response,loader);
 
 		this.callEvent("onAfterLoad",[]);
+		this.waitData.resolve();
 	},
 	_onLoadError:function(text, xml, xhttp){
 		this.callEvent("onAfterLoad",[]);
@@ -2517,36 +2570,40 @@ webix.DataDriver.json={
 		if (!data) return null;
 		if (typeof data == "string"){
 			try{
-				eval("webix.temp="+data);
-				data = webix.temp;
+				if (this.parseDates){
+					var isodate = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/;
+					data = JSON.parse(data, function(key, value){
+						if (typeof value == "string"){
+							if (isodate.test(value))
+								return new Date(value);
+						}
+						return value;
+					});
+				} else {
+					eval("webix.temp="+data);
+					data = webix.temp;
+				}
 			} catch(e){
 				webix.assert_error(e);
 				return null;
 			}
 		}
 
-		if (data.data){ 
-			var t = data.data.config = {};
-			data.data.collections = data.collections;
-
-			for (var key in data)
-				if (key!="data")
-					t[key] = data[key];
-			data = data.data;
-		}
-			
 		return data;
 	},
 	//get array of records
 	getRecords:function(data){
+		if (data && data.data)
+			data = data.data;
+
 		if (data && !webix.isArray(data))
-		 return [data];
+			return [data];
 		return data;
 	},
 	//get hash of properties for single record
 	getDetails:function(data){
 		if (typeof data == "string")
-			return { id:webix.uid(), value:data };
+			return { id:(data||webix.uid()), value:data };
 		return data;
 	},
 	getOptions:function(data){
@@ -2554,18 +2611,16 @@ webix.DataDriver.json={
 	},
 	//get count of data and position at which new data need to be inserted
 	getInfo:function(data){
-		var cfg = data.config;
-		if (!cfg) return {};
-
 		return { 
-		 _size:(cfg.total_count||0),
-		 _from:(cfg.pos||0),
-		 _parent:(cfg.parent||0),
-		 _config:(cfg.config),
-		 _key:(cfg.webix_security)
+		 _size:(data.total_count||0),
+		 _from:(data.pos||0),
+		 _parent:(data.parent||0),
+		 _config:(data.config),
+		 _key:(data.webix_security)
 		};
 	},
-	child:"data"
+	child:"data",
+	parseDates:false
 };
 
 webix.DataDriver.html={
@@ -3125,8 +3180,8 @@ webix.DataRecord = webix.proto({
 	getValues:function(){
 		return this.data;
 	},
-	setValues:function(data){
-		this.data = data;
+	setValues:function(data, update){
+		this.data = update?webix.extend(this.data, data, true):data;
 		this.callEvent("onChange", [data]);
 	},
 	refresh:function(){ this.callEvent("onBindRequest"); }
@@ -3191,8 +3246,10 @@ webix.CollectionBind={
 			this._cursor = null;
 		},this));
 		this.data.attachEvent("onIdChange", webix.bind(function(oldid, newid){
-			if (this._cursor == oldid)
+			if (this._cursor == oldid){
 				this._cursor = newid;
+				this._update_binds();
+			}
 		},this));
 	},
 	setCursor:function(id){
@@ -3618,47 +3675,6 @@ webix.UIManager = {
 			meta: meta,
 			debug:keys
 		};
-	},
-
-	getState: function(node, children) {
-		children = (children||false);
-		node = webix.$$(node);
-		var state = {
-			id: node.config.id,
-			width: node.config.width,
-			height: node.config.height,
-			gravity: node.config.gravity
-		};
-		if (!webix.isUndefined(node.config.collapsed)) state.collapsed = node.config.collapsed;
-		if (node.name === 'tabs' || node.name === 'tabbar') state.activeCell = node.getValue();
-		
-		if (children) {
-			state = [state];
-			if (node._cells) {
-				for (var i = 0; i < node._cells.length; i++)
-					state = state.concat(this.getState(node._cells[i], children));
-			}
-		}
-		return state;
-	},
-
-	setState: function(states) {
-		if (!webix.isArray(states)) states = [states];
-
-		for (var i = 0; i < states.length; i++) {
-			var state = states[i];
-			var node = webix.$$(state.id);
-			if (!node) continue;
-
-			if (!webix.isUndefined(state.collapsed)) node.define('collapsed', state.collapsed);
-			if (!webix.isUndefined(state.activeCell)) node.setValue(state.activeCell);
-
-			node.define('width', state.width);
-			node.define('height', state.height);
-			node.define('gravity', state.gravity);
-		}
-		var top = webix.$$(states[0].id);
-		if (top) top.resize();
 	}
 };
 
@@ -3793,7 +3809,7 @@ if (!webix.ui){
 					top_node.adjust();
 			} else if (node.destructor){
 				if (!id && id!==0 && !webix.isArray(top_node)){
-					id = node.config.id;
+					id = node;
 					node = node.getParentView();
 				}
 				if (node && node._replace){
@@ -3818,7 +3834,7 @@ webix.ui._detectScrollSize = function(){
 
 	document.body.appendChild(div);
 	var width = div.offsetWidth-div.clientWidth;
-	var skin = { 110:"air", 120:"aircompact", 130:"clouds", 140:"web", 150:"terrace", 160:"metro", 170:"light", 180:"glamour", 190:"touch", 200:"flat" , 210:"compact"}[div.offsetHeight];
+	var skin = { 110:"air", 120:"aircompact", 130:"clouds", 140:"web", 150:"terrace", 160:"metro", 170:"light", 180:"glamour", 190:"touch", 200:"flat" , 210:"compact"}[Math.floor(div.offsetHeight/10)*10];
 	document.body.removeChild(div);
 
 	if (skin){
@@ -3847,7 +3863,7 @@ webix.ui._fixHeight = function (){
 	webix.ui._fixHeight = function(){};
 };
 webix.ui.resize = function(){
-	if (!webix.ui._freeze)
+	if (!webix.ui.$freeze)
 		for (var i=resize.length - 1; i>=0; i--){
 			//remove destroyed views from resize list
 			if (resize[i].$destructed)
@@ -4862,7 +4878,7 @@ webix.protoUI({
 		webix.ui.baselayout.prototype.resizeChildren.call(this);
 	},
 	_beforeResetBorders:function(collection){
-		if (this._padding && this._margin){
+		if (this._padding && this._margin && !this._settings.borderless){
 			for (var i=0; i < collection.length; i++){
 				if (!collection[i]._inner || !collection[i].borderless)
 					collection[i]._inner={ top:false, left:false, right:false, bottom:false};
@@ -5194,7 +5210,7 @@ webix.MouseEvents={
 		//attach dom events if related collection is defined
 		if (this.on_click){
 			webix.event(this._contentobj,"click",this._onClick,this);
-			if (webix.env.isIE8)
+			if (webix.env.isIE8 && this.on_dblclick)
 				webix.event(this._contentobj, "dblclick", this._onDblClick, this);
 		}
 		if (this.on_context)
@@ -6037,7 +6053,11 @@ webix.Movable = {
 			}
 
 			webix.DragControl.top = webix.DragControl.left = 5;
+			this.master.callEvent("onViewMoveEnd", []);
 			return;
+		},
+		$dragPos:function(pos, e){
+			this.master.callEvent("onViewMove", [pos, e]);
 		}
 	}
 };
@@ -6482,7 +6502,7 @@ webix.protoUI({
 	$init:function(){
 		this._settings.head = false;
 		this.$view.className += " webix_popup";
-		webix.event(this._contentobj,"click", webix.bind(this._clever_block, this));
+		webix.event(this._contentobj,"click", this._clever_block, this, true);
 		webix.attachEvent("onClick", webix.bind(this._hide, this));
 		this.attachEvent("onHide", this._hide_point);
 	},
@@ -6543,7 +6563,8 @@ webix.protoUI({
 			autoheight:true,
 			body:true,
 			select:true,
-			borderless:true
+			borderless:true,
+			navigation:true
 		},
 		filter:function(item,value){
 			if (item.value.toString().toLowerCase().indexOf(value.toLowerCase())===0) return true;
@@ -6559,21 +6580,25 @@ webix.protoUI({
 		webix.extend(temp, this.defaults.body);
 		temp.view = obj.type || this.defaults.type;
 
+		var etemp = this._get_extendable_cell(temp);
 		if (obj.body)
-			webix.extend(temp, obj.body, true);
+			webix.extend(etemp, obj.body, true);
 
 		if (obj.data)
-			temp.data = obj.data;
+			etemp.data = obj.data;
 		if (obj.url)
-			temp.url = obj.url;
+			etemp.url = obj.url;
 		if (obj.datatype)
-			temp.datatype = obj.datatype;
+			etemp.datatype = obj.datatype;
 
 		if (obj.id)
 			temp.id = temp.id || (obj.id+"_"+temp.view);
 
 		obj.body = temp;
 		this.$ready.push(this._set_on_popup_click);
+	},
+	_get_extendable_cell:function(obj){
+		return obj;
 	},
 	_preselectMasterOption: function(data){
 		var master, node, text;
@@ -6608,6 +6633,9 @@ webix.protoUI({
 				this._last_input_target.focus();
 		}
 		this.callEvent("onValueSuggest", [data]);
+		webix.delay(function(){
+			 webix.callEvent("onEditEnd",[]);
+		});
 	},
 	getMasterValue:function(){
 		if (this._settings.master)
@@ -6850,6 +6878,24 @@ webix.protoUI({
 			}
 		}	
 		return false;
+	},
+	getValue:function(){
+		var value = this.getList().getSelectedId() || "";
+		return value.id || value;
+
+	},
+	setValue:function(value){
+		var list = this.getList();
+		if(value){
+       	    webix.assert(list.exists(value), "Option with ID "+value+" doesn't exist");
+            if(list.exists(value)){
+                list.select(value);
+                list.showItem(value);
+            }
+        }else{
+            list.unselect();
+            list.showItem(list.getFirstId());
+        }
 	}
 }, webix.ui.popup);
 
@@ -6896,8 +6942,12 @@ webix.attachEvent("onClick", function(e){
 
 
 
+		var popup = element._settings.popup;
 		if (element._settings.popup){
-			var popup = webix.$$(element._settings.popup);
+			if (typeof popup == "object" && !popup.name)
+				popup = element._settings.popup = webix.ui(popup)._settings.id;
+
+			var popup = webix.$$(popup);
 			webix.assert(popup, "Unknown popup");
 			popup._settings.master = element._settings.id;
 			popup.show((element.getInputNode()||element.getNode()),null,true);
@@ -7219,6 +7269,10 @@ webix.protoUI({
 		webix_tab_more_icon: function(ev,obj, node){
 			this.getPopup().resize();
 			this.getPopup().show(node,null,true);
+		},
+		webix_tab_close:function(ev, obj, node){
+			var id = webix.html.locate(ev, "button_id");
+			this.removeOption(id);
 		}
 	},
 
@@ -7421,17 +7475,21 @@ webix.protoUI({
 				html += prop+"='"+attrs[prop]+"' ";
 		return html;
 	},
-	$renderInput: function(config, div_start, id) {
-		var inputAlign = (config.inputAlign||"left");
+	$renderLabel: function(config, id){
 		var labelAlign = (config.labelAlign||"left");
 		var top = this._settings.labelPosition == "top";
 		var labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
-		id = id || config.name || webix.uid();
-
 		var label = "";
 		var labelHeight = top?this._labelTopHeight-2:( this._settings.aheight - 2*this._settings.inputPadding);
 		if (config.label)
 			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";line-height:"+labelHeight+"px' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
+		return label;
+	},
+	$renderInput: function(config, div_start, id) {
+		var inputAlign = (config.inputAlign||"left");
+		id = id || config.name || webix.uid();
+
+		var label = this.$renderLabel(config,id);
 
 		var html = "";
 		if(div_start){
@@ -7686,6 +7744,16 @@ webix.protoUI({
 		minHeight:60
 	},
 	_skipSubmit: true,
+	$renderLabel: function(config, id){
+		var labelAlign = (config.labelAlign||"left");
+		var top = this._settings.labelPosition == "top";
+		var labelTop =  top?"display:block;":("width: " + this._settings.labelWidth + "px;");
+		var label = "";
+		var labelHeight = top?this._labelTopHeight-2:( (webix.skin.$active.inputHeight||this._settings.aheight) - 2*this._settings.inputPadding);
+		if (config.label)
+			label = "<label style='"+labelTop+"text-align: " + labelAlign + ";line-height:"+labelHeight+"px' onclick='' for='"+id+"' class='webix_inp_"+(top?"top_":"")+"label "+(config.required?"webix_required":"")+"'>" + (config.label||"") + "</label>";
+		return label;
+	},
 	//get input element
 	getInputNode: function() {
 		return this._dataobj.getElementsByTagName('textarea')[0];
@@ -7867,6 +7935,7 @@ webix.protoUI({
 		return this.options_setter(value);
 	},
 	options_setter:function(value){
+		value = this._suggest_config ? this._suggest_config(value) : value;
 		var suggest = (this._settings.popup = this._settings.suggest = webix.ui.text.prototype.suggest_setter.call(this, value));
 		var list = webix.$$(suggest).getList();
 		if (list)
@@ -7907,7 +7976,6 @@ webix.protoUI({
 		if (popup)
 			var text = this.getPopup().getItemText(value);
 
-		this._settings.value = value;
 		this._settings.text = text;
 		var node = this.getInputNode();
 		if (webix.isUndefined(node.value))
@@ -8041,13 +8109,8 @@ webix.protoUI({
 		this.$setValue(obj.value);
 	},
 	$setValue:function(value){ 
-		var popup =  webix.$$(this._settings.popup.toString());
-		var colorboard = popup._body_cell;
-		colorboard.setValue(value);
-		this._settings.value = value;
-
-		var fin_value = this._settings.value;
-		var text = this._settings.icon?"":("<div style='background-color:"+fin_value+";'>&nbsp;</div>"+fin_value);
+		var popup =  webix.$$(this._settings.popup)._body_cell.setValue(value);
+		var text = this._settings.icon?"":("<div style='background-color:"+value+";'>&nbsp;</div>"+value);
 		this.getInputNode().innerHTML = text;
 	}
 }, webix.ui.datepicker);
@@ -8551,6 +8614,7 @@ webix.DataLoader=webix.proto({
 		this._call_onready();
 
 		this.callEvent("onAfterLoad",[]);
+		this.waitData.resolve();
 	},
 	removeMissed_setter:function(value){
 		return (this.data._removeMissed = value);
@@ -8633,6 +8697,7 @@ webix.DataLoader=webix.proto({
 			this._ajax_queue[i].abort();
 
 		this._ajax_queue = webix.toArray();
+		this.waitData = webix.promise.defer();
 	},
 	_call_on_config:function(config){
 		this._parseSeetingColl(config);
@@ -10110,6 +10175,7 @@ webix.Values = {
 		} else
 			this._onLoadError(text,xml,loader);
 		this.callEvent("onAfterLoad",[]);
+		this.waitData.resolve();
 	},
 	_mark_invalid:function(id,obj){
 		if (id && this.elements[id]){
@@ -10233,8 +10299,8 @@ webix.protoUI({
 		this.attachEvent("onAfterLoad",this._render_me);
 		this.attachEvent("onAfterRender", this._correct_width_scroll);
 	},
-	setValues:function(obj){
-		this.data = obj;
+	setValues:function(obj, update){
+		this.data = update?webix.extend(this.data, obj, true):obj;
 		this.render();
 	},
 	$skin:function(){
@@ -10315,10 +10381,6 @@ webix.protoUI({
 		this._dataobj.innerHTML = "";
 		this.content_setter(content);
 	},
-	waitMessage_setter:function(value){
-		webix.extend(this, webix.OverlayBox);
-		return value;
-	},
 	$setSize:function(x,y){
 		if (webix.ui.view.prototype.$setSize.call(this,x,y)){
 			this._probably_render_me();
@@ -10378,28 +10440,17 @@ webix.protoUI({
 	},
 	getWindow:function(){
 		return this.getIframe().contentWindow;
-	},
-	waitMessage_setter:function(value){
-		if (value)
-			webix.extend(this, webix.OverlayBox);
-		return value;
 	}
 }, webix.ui.view, webix.EventSystem);
 
 webix.OverlayBox = {
-	$init:function(){
-		if (webix.isUndefined(this._overlay) && this.attachEvent){
-			this.attachEvent("onBeforeLoad", this.showOverlay);
-			this.attachEvent("onAfterLoad", this.hideOverlay);
-			this._overlay = null;
-		}
-	},
 	showOverlay:function(message){
 		if (!this._overlay){
-			this._overlay = webix.html.create("DIV",{ "class":"webix_loading_overlay" },(message||""));
+			this._overlay = webix.html.create("DIV",{ "class":"webix_overlay" },(message||""));
 			webix.html.insertBefore(this._overlay, this._viewobj.firstChild, this._viewobj);
 			this._viewobj.style.position = "relative";
-		}
+		} else 
+			this._overlay.innerHTML = message;
 	},
 	hideOverlay:function(){
 		if (this._overlay){
@@ -10853,6 +10904,16 @@ webix.TreeDataMove={
 			return new_index+(source == this && source.getBranchIndex(next)<new_index?0:1);
 		}
 	},
+	_check_branch_child:function(parent, child){
+		var t = this.data.branch[parent];
+		if (t && t.length){
+			for (var i=0; i < t.length; i++) {
+				if (t[i] == child) return true;
+				if (this._check_branch_child(t[i], child)) return true;
+			}
+		}
+		return false;
+	},
 	//move item to the new position
 	move:function(sid,tindex,tobj, details){
 		details = details || {};
@@ -10892,7 +10953,7 @@ webix.TreeDataMove={
 				this.data.remove(sid);
 		} else {
 			//move in self
-			if (sid == target_parent || this.isBranch(sid,target_parent)) return;
+			if (sid == target_parent || this._check_branch_child(sid,target_parent)) return;
 
 			var source = this.getItem(sid);
 			var tbranch = this.data.branch[target_parent];
@@ -10943,7 +11004,7 @@ webix.TreeDataMove={
 	$dropAllow:function(context){
 		if (context.from != context.to) return true;
 		for (var i=0; i<context.source.length; i++)
-			if (context.source ==  context.target || this.isBranch(context.source, context.target)) return false;
+			if (context.source ==  context.target || this._check_branch_child(context.source, context.target)) return false;
 
 		return true;
 	},
@@ -11007,6 +11068,9 @@ webix.TreeStore = {
 			this._set_child_scheme(driver.child);
 			var parent = driver.getInfo(data)._parent;
 		});
+		this.attachEvent("onClearAll", webix.bind(function(){
+			this._filter_branch = null;
+		},this));
 	},
 	filterMode_setter:function(mode){
 		return webix.extend(this._filterMode, mode, true);
@@ -11130,15 +11194,8 @@ webix.TreeStore = {
 			return order[0];
 		return null;
 	},
-	isBranch:function(parent, child){
-		var t = this.branch[parent];
-		if (t && t.length){
-			for (var i=0; i < t.length; i++) {
-				if (t[i] == child) return true;
-				if (this.isBranch(t[i], child)) return true;
-			}
-		}
-		return false;
+	isBranch:function(parent){
+		return !!this.branch[parent];
 	},
 	getBranchIndex:function(child){
 		var t = this.branch[this.pull[child].$parent];
@@ -12241,10 +12298,15 @@ webix.KeysNavigation = {
     },
     moveSelection:function(mode){
         //get existing selection
-        var selected = this.getSelectedId();
-        if (selected){  //if we have a selection
+        var selected = this.getSelectedId(true);
+        if (selected.length == 1){  //if we have a selection
+            selected = selected[0];
 
-            if (mode == "top") {
+            if (mode == "left" && this.close)
+                return this.close(selected);
+            if (mode == "right" && this.open)
+                return this.open(selected);
+            else if (mode == "top") {
                 selected = this.getFirstId();
             } else if (mode == "bottom") {
                 selected = this.getLastId();
@@ -12273,12 +12335,12 @@ webix.KeysNavigation = {
             //hotkeys will react on any component but will not work in edit mode
             //you can define moveSelection method to handle navigation keys
             webix.UIManager.addHotKey("up", 		this._navigation_helper("up"));
-            webix.UIManager.addHotKey("down", 	this._navigation_helper("down"));
+            webix.UIManager.addHotKey("down", 	    this._navigation_helper("down"));
             webix.UIManager.addHotKey("pageup", 	this._navigation_helper("pgup"));
-            webix.UIManager.addHotKey("pagedown", this._navigation_helper("pgdown"));
-            webix.UIManager.addHotKey("home", 	this._navigation_helper("top"));
+            webix.UIManager.addHotKey("pagedown",   this._navigation_helper("pgdown"));
+            webix.UIManager.addHotKey("home", 	    this._navigation_helper("top"));
             webix.UIManager.addHotKey("end", 		this._navigation_helper("bottom"));
-            webix.UIManager.addHotKey("right", 	this._navigation_helper("right"));
+            webix.UIManager.addHotKey("right", 	    this._navigation_helper("right"));
             webix.UIManager.addHotKey("left",		this._navigation_helper("left"));
 
         }
@@ -12308,7 +12370,6 @@ webix.protoUI({
 	//css class to action map, for onclick event
 	on_click:{
 		webix_tree_item:function(e,id){
-			console.log('bru select'+this._settings.select);
 			if(this._settings.activeTitle){
 				var item = this.getItem(id);
 				if(item.open)
@@ -12372,36 +12433,7 @@ webix.protoUI({
 		templateStart:webix.template('<div webix_tm_id="#id#" class="{common.classname()}">'),
 		templateEnd:webix.template("</div>"),
 		templateCopy: webix.template("#value#")
-	}, webix.TreeType),
-
-    moveSelection: function(mode) {
-        //get existing selection as array
-        var selected = this.getSelectedId(true);
-        if (selected.length == 1){	//if we have a single selection
-            selected = selected[0];
-
-            if (mode == "top") {
-                selected = this.getFirstId();
-            } else if (mode == "bottom") {
-                selected = this.getLastId();
-            } else if (mode == "up" || mode == "left" || mode == "pgup") {
-                var index = this.getIndexById(selected);
-                var step = mode == "pgup" ? 10 : 1;
-                selected = this.getIdByIndex(Math.max(0, index-step));
-            } else if (mode == "down" || mode == "right" || mode == "pgdown") {
-                var index = this.getIndexById(selected);
-                var step = mode == "pgdown" ? 10 : 1;
-                selected = this.getIdByIndex(Math.min(this.count()-1, index+step));
-            } else {
-                webix.assert(false, "Not supported selection moving mode");
-                return;
-            }
-
-            this.showItem(selected);
-            this.select(selected);
-        }
-        return false;
-    }
+	}, webix.TreeType)
 }, webix.AutoTooltip, webix.Group, webix.TreeAPI, webix.DragItem, webix.TreeDataMove, webix.SelectionModel, webix.KeysNavigation, webix.MouseEvents, webix.Scrollable, webix.TreeDataLoader, webix.ui.proto, webix.TreeRenderStack, webix.CopyPaste, webix.EventSystem);
 
 webix.TreeStateCheckbox = {
@@ -12827,6 +12859,12 @@ webix.NavigationButtons = {
 };
 
 
+
+
+
+
+
+
 webix.protoUI({
 	name:"list",
 	_listClassName : "webix_list",
@@ -13181,6 +13219,7 @@ webix.protoUI({
 }, webix.Group, webix.ui.list );
 webix.type(webix.ui.grouplist,{});
 
+
 webix.protoUI({
 	name:"unitlist",
 	_id:"webix_item_id",
@@ -13287,7 +13326,7 @@ webix.protoUI({
 		templateStart:function(obj,type,marks){
 		 	if(obj.$unit)
 				return type.templateStartHeader.apply(this,arguments);
-			var className = "webix_list_item webix_list_"+(type.css)+"_item"+((marks&&marks.webix_selected)?" webix_selected":"");
+			var className = "webix_list_item webix_list_"+(type.css)+"_item"+((marks&&marks.webix_selected)?" webix_selected":"")+type.classname(obj,type,marks);
 			var style = "width:"+type.width+"px; height:"+type.height+"px; padding:"+type.padding+"px; margin:"+type.margin+"px; overflow:hidden;"+(type.layout&&type.layout=="x"?"float:left;":"");
 			return '<div webix_item_id="'+obj.id+'" class="'+className+'" style="'+style+'">';
 		},
@@ -13616,6 +13655,10 @@ webix.EditAbility={
 			else
 				webix.html.remove(editor.node);
 
+			var popup = editor.config.suggest;
+			if (popup && typeof popup == "string")
+				webix.$$(popup).hide();
+
 			this._removeEditor(editor);
 			if (this._live_edits_handler)
 				this.detachEvent(this._live_edits_handler);
@@ -13712,6 +13755,33 @@ webix.EditAbility={
 };
 
 
+(function(){
+
+function init_suggest(editor, input){
+	var suggest = editor.config.suggest;
+	if (suggest){
+		var box = editor.config.suggest = create_suggest(suggest);
+		var boxobj = webix.$$(box);
+		if (boxobj && input)
+			boxobj.linkInput(input);
+	}
+}
+
+function create_suggest(config){
+	if (typeof config == "string") return config;
+	if (config.linkInput) return config._settings.id;
+
+	
+	if (typeof config == "object"){
+		if (webix.isArray(config))
+			config = { data: config };
+		config.view = config.view || "suggest";
+	} else if (config === true)
+		config = { view:"suggest" };
+
+	var obj = webix.ui(config);
+	return obj.config.id;
+}
 
 
 /*
@@ -13730,7 +13800,10 @@ webix.editors = {
 			return this.getInputNode(this.node).value;
 		},
 		setValue:function(value){
-			this.getInputNode(this.node).value = value;
+			var input = this.getInputNode(this.node);
+			input.value = value;
+
+			init_suggest(this, input);
 		},
 		getInputNode:function(){
 			return this.node.firstChild;
@@ -13845,9 +13918,20 @@ webix.editors = {
 			return webix.$$(this.config.popup);
 		},
 		createPopup:function(){
-			if (this.config.popup)
-				return webix.$$(this.config.popup);
+			var popup = this.config.popup || this.config.suggest;
+			if (popup){
+				var pobj;
+				if (typeof popup == "object" && !popup.name){
+					popup.view = popup.view || "suggest";
+					pobj = webix.ui(popup);
+				} else
+					pobj = webix.$$(popup);
 
+				if (pobj.linkInput)
+					pobj.linkInput(document.body);
+				return pobj;
+			}
+			
 			var type = webix.editors.$popup[this.popupType];
 			if (typeof type != "string"){
 				type = webix.editors.$popup[this.popupType] = webix.ui(type);
@@ -13880,7 +13964,7 @@ webix.editors.date = webix.extend({
 	focus	:function(){},
 	popupType:"date",
 	setValue:function(value){
-		this._is_string = typeof value == "string";
+		this._is_string = value && typeof value == "string";
 		webix.editors.popup.setValue.call(this, value);
 	},
 	getValue:function(){
@@ -13899,14 +13983,7 @@ webix.editors.combo = webix.extend({
             return this.config.popup.config.id;
         }
 		else if (config){
-			if (typeof config == "string") return config;
-			if (config.linkInput) return config._settings.id;
-
-			var suggest =  { view:"suggest", type:"list" };
-			if (typeof config == "object")
-				webix.extend(suggest, config, true);
-			var obj = webix.ui(suggest);
-			return obj.config.id;
+			return create_suggest(config);
 		} else
 			return this._shared_suggest(config);
 	},
@@ -13977,7 +14054,7 @@ webix.editors.combo = webix.extend({
 webix.editors.richselect = webix.extend({
 	focus:function(){},
 	getValue:function(){
-		return this.getInputNode().getSelectedId().id||this.getInputNode().getSelectedId()||"";
+		return this.getPopup().getValue();
 	},
 	setValue:function(value){
 		var suggest =  this.config.collection || this.config.options;
@@ -13986,30 +14063,24 @@ webix.editors.richselect = webix.extend({
 			this.getPopup().getList().data.importData(suggest);
 
         this.getPopup().show(this.node);
-        if(value){
-            webix.assert(list.exists(value), "Option with ID "+value+" doesn't exist");
-            if(list.exists(value)){
-                list.select(value);
-                list.showItem(value);
-            }
-        }else{
-            list.unselect();
-            list.showItem(list.getFirstId());
-        }
+        this.getPopup().setValue(value);
 	},
 	getInputNode:function(){
 		return this.getPopup().getList();
 	},
 	popupInit:function(popup){
-		popup.attachEvent("onValueSuggest", function(data){
-			webix.delay(function(){
-				webix.callEvent("onEditEnd",[data.id]);
-			});
-		});
 		popup.linkInput(document.body);
 	},
 	popupType:"richselect"	
 }, webix.editors.popup);
+
+webix.editors.password = webix.extend({
+	render:function(){
+		return webix.html.create("div", {
+			"class":"webix_dt_editor"
+		}, "<input type='password'>");
+	}	
+}, webix.editors.text);
 
 webix.editors.$popup = {
 	text:{
@@ -14028,7 +14099,9 @@ webix.editors.$popup = {
 		view:"suggest",
 		body:{ view:"list", select:true }
 	}
-}; 
+};
+
+})(); 
  
 
 
@@ -14627,7 +14700,7 @@ webix.Number={
 			int_value = str[0];
 
 		if (config.decimalSize)
-			return sign + int_value + config.decimalDelimeter + str[1];
+			return sign + int_value + config.decimalDelimiter + str[1];
 		else
 			return sign + int_value;
 	},
@@ -14848,7 +14921,7 @@ webix.i18n.locales={};
 webix.i18n.locales["en-US"]={
 	groupDelimiter:",",
 	groupSize:3,
-	decimalDelimeter:".",
+	decimalDelimiter:".",
 	decimalSize:2,
 
 	dateFormat:"%m/%d/%Y",
@@ -14860,7 +14933,7 @@ webix.i18n.locales["en-US"]={
 	priceSettings:{
         groupDelimiter:",",
         groupSize:3,
-        decimalDelimeter:".",
+        decimalDelimiter:".",
         decimalSize:2
     },
 	fileSize: ["b","Kb","Mb","Gb","Tb","Pb","Eb"],
@@ -14873,6 +14946,10 @@ webix.i18n.locales["en-US"]={
 		hours: "Hours",
 		minutes: "Minutes",
 		done:"Done"
+    },
+
+    controls:{
+    	select:"Select"
     }
 };
 webix.i18n.setLocale("en-US");
@@ -14953,7 +15030,7 @@ webix.MapCollection = {
                         for (var ij=0; ij<options.length; ij++) data[options[ij]] = options[ij];
                         element.options = options = data;
                     }
-                    element.template = element.template || this._collection_accesser(options, element.id);
+                    element.template = element.template || this._collection_accesser(options, element.id, element.optionslist);
                 }
             } else {
                 //data collection or view
@@ -14965,21 +15042,49 @@ webix.MapCollection = {
         if (element){
             delete element.options;
             element.collection = options;
-            element.template = element.template || this._bind_accesser(options, element.id);
+            element.template = element.template || this._bind_accesser(options, element.id, element.optionslist);
             options.data.attachEvent("onStoreUpdated", webix.bind(this.refresh, this));
         }
     },
-    _collection_accesser:function(options, id){
-        return function(obj, common){
-            return options[obj[id]]||obj.value||"";
-        };
+    _collection_accesser:function(options, id, multi){
+        if (multi){
+            return function(obj, common){
+                var value = obj[id] || obj.value;
+                if (!value) return "";
+
+                var ids = value.split(",");
+                for (var i = 0; i < ids.length; i++)
+                    ids[i] = options[ids[i]] || "";
+                
+                return ids.join(", ");
+            };
+        } else {
+            return function(obj, common){
+                return options[obj[id]]||obj.value||"";
+            };
+        }
     },
-    _bind_accesser:function(col, id){
-        return function(obj, common){
-            var prop = obj[id]||obj.value,
-                data = col.data.pull[prop];
-            return data?(data.value||""):"";
-        };
+    _bind_accesser:function(col, id, multi){
+        if (multi) {
+            return function(obj, common){
+                var value = obj[id] || obj.value;
+                if (!value) return "";
+
+                var ids = value.split(",");
+                for (var i = 0; i < ids.length; i++){
+                    var data = col.data.pull[ids[i]];
+                    ids[i] = data ? (data.value  || "") : "";
+                }
+                
+                return ids.join(", ");
+            };
+        } else {
+            return function(obj, common){
+                var prop = obj[id]||obj.value,
+                    data = col.data.pull[prop];
+                return data?(data.value||""):"";
+            };
+        }
     }
 };
 
@@ -15009,6 +15114,7 @@ webix.protoUI({
 	on_click:{
 		webix_table_checkbox:function(e, id){
 			id = this.locate(e);
+			
 			var item = this.getItem(id.row);
 			var col = this.getColumnConfig(id.column);
 
@@ -15021,6 +15127,7 @@ webix.protoUI({
 		},
 		webix_table_radio:function(e){
 			var id = this.locate(e);
+			
 			var item = this.getItem(id.row);
 			var col = this.getColumnConfig(id.column);
 
@@ -15063,6 +15170,8 @@ webix.protoUI({
 		this.$ready.push(this._first_render);
 
 		this._columns = [];
+		this._headers = [];
+		this._footers = [];
 		this._rows_cache = [];
 		this._active_headers = {};
 		this._filter_elements = {};
@@ -15080,7 +15189,7 @@ webix.protoUI({
 		this._scrollSizeX = this._scrollSizeY = webix.ui.scrollSize;
 
 		webix.html.addStyle("#"+this._top_id +" .webix_cell { height:"+this._settings.rowHeight+"px; line-height:"+(this._settings.rowLineHeight || this._settings.rowHeight)+"px;" +(this._settings.fixedRowHeight?"":"white-space:normal;")+" }");
-		webix.html.addStyle("#"+this._top_id +" .webix_hcell { max-height:"+this._settings.headerRowHeight+"px; line-height:"+this._settings.headerRowHeight+"px;}");
+		webix.html.addStyle("#"+this._top_id +" .webix_hcell { height:"+this._settings.headerRowHeight+"px; line-height:"+this._settings.headerRowHeight+"px;}");
 		this._render_initial = function(){};
 	},
 	_first_render:function(){
@@ -15200,10 +15309,17 @@ webix.protoUI({
 				
 				if (col.css && typeof col.css == "object")
 					col.css = webix.html.createCss(col.css);
+
+				var template = col.template;
+				if (template){
+					if (typeof template == "string")
+						template = template.replace(/#value#/g,"#"+col.id+"#");
+					col.template = webix.template(template);
+				}
 			}
 
-			this._normalize_headers("header");
-			this._normalize_headers("footer");
+			this._normalize_headers("header", this._headers);
+			this._normalize_headers("footer", this._footers);
 		}
 
 		this.callEvent("onStructureLoad",[]);
@@ -15224,12 +15340,6 @@ webix.protoUI({
 			}
 			if (i>=this._settings.leftSplit && i<this._rightSplit)
 				this._dtable_width += this._columns[i].width;
-			var template = this._columns[i].template;
-			if (template){
-				if (typeof template == "string")
-					template = template.replace(/#value#/g,"#"+this._columns[i].id+"#");
-				this._columns[i].template = webix.template(template);
-			}
 		}
 
 		var marks = [];
@@ -15285,19 +15395,21 @@ webix.protoUI({
 			this._header_fix_width = 0;
 		if (this._settings.header) {
 			this._refreshHeaderContent(this._header, 0, 1);
-			this._header_height = (this._settings.headerRowHeight+1)*this._normalize_headers("header");
-			this._render_header_section(this._header, "header");
+			this._normalize_headers("header", this._headers);
+			this._header_height = this._headers._summ;
+			this._render_header_section(this._header, "header", this._headers);
 		}
 		if (this._settings.footer){
 			this._refreshHeaderContent(this._footer, 0, 1);
-			this._footer_height = (this._settings.headerRowHeight+1)*this._normalize_headers("footer");
-			this._render_header_section(this._footer, "footer");
+			this._normalize_headers("footer", this._footers);
+			this._footer_height = this._footers._summ;
+			this._render_header_section(this._footer, "footer", this._footers);
 		}	
 
 		this.refreshHeaderContent();
 		this._size_header_footer_fix();
 	},
-	_normalize_headers:function(collection){
+	_normalize_headers:function(collection, heights){
 		var rows = 0;
 		
 		for (var i=0; i<this._columns.length; i++){
@@ -15314,11 +15426,18 @@ webix.protoUI({
 			for (var j = 0; j < data.length; j++){
 				if (typeof data[j] != "object")
 					data[j] = { text:data[j] };
+				if (data[j] && data[j].height) heights[j] = data[j].height;
 			}
 			rows = Math.max(rows, data.length);
 			this._columns[i][collection] = data;
 		}
 
+
+		heights._summ = rows;
+		for (var i = rows-1; i >= 0; i--){
+			heights[i] = heights[i] || this._settings.headerRowHeight;
+			heights._summ += heights[i]*1;
+		}
 
 		//set null to cells included in col|row spans
 		for (var i=0; i<this._columns.length; i++){
@@ -15367,7 +15486,16 @@ webix.protoUI({
 			};
 		}
 	},
-	_render_subheader:function(start, end, width, name){
+	_summ_next:function(heights, start, i){
+		var summ = i ? -1 : 0;
+
+		i += start;
+		for (start; start<i; start++) 
+			summ+=heights[start] + 1;
+
+		return summ;
+	},
+	_render_subheader:function(start, end, width, name, heights){
 		if (start == end) return "";
 
 		var html = "<table style='width:"+width+"px' cellspacing='0' cellpadding='0'>";
@@ -15411,6 +15539,7 @@ webix.protoUI({
 				if (hcss)
 					html+=' class="'+hcss+'"';
 				
+				var cell_height = heights[j];
 				var sheight="";
 				if (header.contentId)
 					html+=" active_id='"+header.contentId+"'";
@@ -15418,10 +15547,11 @@ webix.protoUI({
 					html+=" colspan='"+header.colspan+"'";
 				if (header.rowspan){
 					html+=" rowspan='"+header.rowspan+"'";
-					var cell_height = ((this._settings.headerRowHeight+1)*header.rowspan);
-					sheight=" style='max-height:"+(cell_height-1)+"px;'";
-					html+=" style='height:"+cell_height+"px;'";
+					cell_height = this._summ_next(this._headers, j, header.rowspan);
 				}
+
+				if (cell_height != this._settings.headerRowHeight)
+					sheight =" style='line-height:"+cell_height+"px; height:"+cell_height+"px;'";
 
 				var css ="webix_hcell";
 				var header_css = header.css;
@@ -15435,7 +15565,11 @@ webix.protoUI({
 				
 				html+="><div class='"+css+"'"+sheight+">";
 				
-				html+=(header.text===""?"&nbsp;":header.text)+"</div></td>";
+				var text = (header.text===""?"&nbsp;":header.text);
+				if (header.rotate)
+					text = "<div class='webix_hcell_rotate' style='width:"+(cell_height-10)+"px; transform-origin:center "+(cell_height-15)/2+"px;-webkit-transform-origin:center "+(cell_height-15)/2+"px;'>"+text+"</div>";
+
+				html += text + "</div></td>";
 			}
 			html += "</tr>";
 		}
@@ -15531,11 +15665,11 @@ webix.protoUI({
 	showItem:function(id){
 		this.showItemByIndex(this.getIndexById(id), -1);
 	},
-	_render_header_section:function(sec, name){
-		sec.childNodes[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name);
-		sec.childNodes[1].innerHTML = this._render_subheader(this._settings.leftSplit, this._rightSplit, this._dtable_width, name);
+	_render_header_section:function(sec, name, heights){
+		sec.childNodes[0].innerHTML = this._render_subheader(0, this._settings.leftSplit, this._left_width, name, heights);
+		sec.childNodes[1].innerHTML = this._render_subheader(this._settings.leftSplit, this._rightSplit, this._dtable_width, name, heights);
 		sec.childNodes[1].onscroll = webix.bind(this._scroll_with_header, this);
-		sec.childNodes[2].innerHTML = this._render_subheader(this._rightSplit, this._columns.length, this._right_width, name);
+		sec.childNodes[2].innerHTML = this._render_subheader(this._rightSplit, this._columns.length, this._right_width, name, heights);
 	},
 	_scroll_with_header:function(){
 		var active = this.getScrollState().x;
@@ -15588,7 +15722,7 @@ webix.protoUI({
 		if (this._scrollSizeY){
 
 			obj.style.height = Math.max(height,1)-1+"px";
-			obj.style.width = hdx+this._scrollSizeY-1+"px";
+			obj.style.width = (this._rightSplit?0:hdx)+this._scrollSizeY-1+"px";
 		} else 
 			obj.style.display = "none";
 	},
@@ -15647,7 +15781,7 @@ webix.protoUI({
 			this.callEvent("onResize",[this._content_width, this._content_height]);
 
 		if (webix.env.$customScroll)
-			webix.CustomScroll._enable_datatable(this);
+			webix.CustomScroll.enable(this);
 
 		this._create_scrolls = function(){};
 	},
@@ -15714,12 +15848,13 @@ webix.protoUI({
 	_locate:function(node){
 		var cdiv = node.parentNode;
 		if (!cdiv) return null;
-		var column = cdiv.getAttribute("column")*1;
-		var row = 0;
-		for (var i = 0; i < cdiv.childNodes.length; i++){
-			if (cdiv.childNodes[i] == node) 
-				row = i+this._columns[column]._yr0;
-		}
+		var column = (node.getAttribute("column") || cdiv.getAttribute("column"))*1;
+		var row = node.getAttribute("row") || 0;
+		if (!row)
+			for (var i = 0; i < cdiv.childNodes.length; i++)
+				if (cdiv.childNodes[i] == node) 
+					row = i+this._columns[column]._yr0;
+
 		return { rind:row, cind:column };
 	},
 	_updateColsSizeSettings:function(silent){
@@ -15729,15 +15864,18 @@ webix.protoUI({
 		this._set_split_sizes_x();
 		this._render_header_and_footer();
 
+		if (this._last_sorted)
+			this.markSorting(this._last_sorted, this._last_order);
+
 		if (!silent)
 			this._check_rendered_cols(false, false);
 	},
 	setColumnWidth:function(col, width, skip_update){
-		return this._setColumnWidth( this.getColumnConfig(col), width, skip_update);
+		return this._setColumnWidth( this.getColumnIndex(col), width, skip_update);
 	},
 	_setColumnWidth:function(col, width, skip_update){
 		if (isNaN(width)) return;
-		var column = this._columns[col] || col;
+		var column = this._columns[col];
 
 		if (column.minWidth && width < column.minWidth)
 			width = column.minWidth;
@@ -15833,6 +15971,7 @@ webix.protoUI({
 
 		if (old_height != height){
 			item.$height = height;
+			this.config.fixedRowHeight = false;
 			this.render();
 			this.callEvent("onRowResize", [rowId]);
 		}
@@ -16432,7 +16571,7 @@ webix.protoUI({
 					var  isBody = trg.parentNode.tagName == "DIV";
 					found = true;
 					if (isBody){
-						var index = trg.parentNode.getAttribute("row") || ( webix.html.index(trg) + this._columns[column]._yr0 );
+						var index = trg.parentNode.getAttribute("row") || trg.getAttribute("row") || ( webix.html.index(trg) + this._columns[column]._yr0 );
 						this._item_clicked = id = { row:this.data.order[index], column:this._columns[column].id};
 						id.toString = this._id_to_string;
 					} else 
@@ -16468,7 +16607,7 @@ webix.protoUI({
 
 	showOverlay:function(message){
 		if (!this._datatable_overlay){
-			var t = webix.html.create("DIV", { "class":"webix_datatable_overlay" }, "");
+			var t = webix.html.create("DIV", { "class":"webix_overlay" }, "");
 			this._body.appendChild(t);
 			this._datatable_overlay = t;
 		}
@@ -16826,6 +16965,9 @@ webix.extend(webix.ui.datatable, {
 	},
 	getSelectedId:function(mode){
 		return  mode?[]:""; //dummy placeholder
+	},
+	getSelectedItem:function(mode){
+		return webix.SelectionModel.getSelectedItem.call(this, mode);
 	},
 	_selections:{
 		//shared methods for all selection models
@@ -17803,6 +17945,9 @@ webix.storage.local = {
 		if(name && window.JSON && window.localStorage){
 			window.localStorage.removeItem(name);
 		}
+	},
+	clear:function(){
+		window.localStorage.clear();
 	}
 };
 
@@ -17825,6 +17970,9 @@ webix.storage.session = {
 		if(name && window.JSON && window.sessionStorage){
 			window.sessionStorage.removeItem(name);
 		}
+	},
+	clear:function(){
+		window.sessionStorage.clear();
 	}
 };
 
@@ -17882,6 +18030,11 @@ webix.storage.cookie = {
 	remove:function(name, domain){
 		if(name && this._get_cookie(name)) 
 			document.cookie = name + "=" + (( domain ) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
+	},
+	clear:function(domain){
+		var cookies = document.cookie.split(";");
+		for (var i = 0; i < cookies.length; i++)
+			document.cookie = /^[^=]+/.exec(cookies[i])[0] + "=" + (( domain ) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";		
 	}
 };
 
@@ -17910,6 +18063,8 @@ webix.DataState = {
 			var filter = {};
 			var any_filter = 0;
 			for (var key in this._filter_elements) {
+				if (this._hidden_column_hash[key]) continue;
+
 				var f = this._filter_elements[key];
 				filter[key] = f[2].getValue(f[0]);
 				any_filter = 1;
@@ -17927,6 +18082,8 @@ webix.DataState = {
 	setState:function(obj){
 		var columns = this.config.columns;
 		if(!obj) return;
+
+		this._last_sorted = null; 
 
         if (obj.hidden){
             var hihash = {};
@@ -17965,11 +18122,13 @@ webix.DataState = {
 					this._setColumnWidth( i, obj.size[i], true);
 			}
 			this._updateColsSizeSettings();
-			if(obj.sort){
-				this._sort(obj.sort.id, obj.sort.dir, columns[this.getColumnIndex(obj.sort.id)].sort);
 
+			
+			if(obj.sort){
+				var column = columns[this.getColumnIndex(obj.sort.id)];
+				if (column)
+					this._sort(obj.sort.id, obj.sort.dir, column.sort);	
 			}
-	
 
 			var reorder = false;
 			var cols = this.config.columns;
@@ -18749,8 +18908,11 @@ webix.extend(webix.ui.datatable, {
 		this.$view.appendChild(d);
 
 		this.data.each(function(obj){
-			d.innerHTML = this._getValue(obj, config, 0);
-			obj.$height = Math.max(d.scrollHeight, this._settings.rowHeight);
+			//in case of dyn. mode - this can be undefined 
+			if (obj){
+				d.innerHTML = this._getValue(obj, config, 0);
+				obj.$height = Math.max(d.scrollHeight, this._settings.rowHeight);
+			}
 		}, this);
 
 		d = webix.html.remove(d);
@@ -19430,6 +19592,8 @@ webix.extend(webix.ui.datatable, {
 				this._settings.leftSplit--;
 			if (index>=this._rightSplit)	
 				this._settings.rightSplit--;
+			else 
+				this._rightSplit--;
 
 			this._fixColspansHidden(index, cols[index], 0);
 			this._hideColumn(index);
@@ -19460,6 +19624,8 @@ webix.extend(webix.ui.datatable, {
 				this._settings.leftSplit++;
 			if (i>=this._hidden_split[1])	
 				this._settings.rightSplit++;
+			else
+				this._rightSplit++;
 							
 			delete hhash[id];
 		}
@@ -19513,11 +19679,12 @@ webix.extend(webix.ui.datatable, {
             var col = this._columns_pull[i];
             if(col.batch){
                 if(col.batch == batch && this._hidden_column_hash[col.id])
-                    this.showColumn(col.id);
+                    this.hideColumn(col.id, false, true);
                 else if(col.batch!=batch && !this._hidden_column_hash[col.id])
-                    this.hideColumn(col.id, true);
+                    this.hideColumn(col.id, true, true);
             }
         }
+		this._refresh_columns();
     }
 });
 
@@ -19545,27 +19712,37 @@ webix.extend(webix.ui.datatable, {
 						index = this.config.columns.length-1;
 					column = this.columnId(index);
 				}
-			} else if (row && (mode == "up" || mode== "down" || mode == "pgup" || mode == "pgdown")){	//it seems row's can be seleted
-				var index = this.getIndexById(row);
-				var step = (mode == "pgup" || mode == "pgdown") ? Math.round(this._dtable_offset_height/this._settings.rowHeight) : 1;
-				//get new selection row
-				if (mode == "up" || mode == "pgup") index-=step;
-				else if (mode == "down" || mode == "pgdown") index+=step;
-				//check that we in valid row range
-				if (index <0) index=0;
-				if (index >=this.data.order.length) index=this.data.order.length-1;
+			} else if (mode == "up" || mode== "down" || mode == "pgup" || mode == "pgdown"){
+				if (row){
+					//it seems row's can be seleted
+					var index = this.getIndexById(row);
+					var step = (mode == "pgup" || mode == "pgdown") ? Math.round(this._dtable_offset_height/this._settings.rowHeight) : 1;
+					//get new selection row
+					if (mode == "up" || mode == "pgup") index-=step;
+					else if (mode == "down" || mode == "pgdown") index+=step;
+					//check that we in valid row range
+					if (index <0) index=0;
+					if (index >=this.data.order.length) index=this.data.order.length-1;
 
-				row = this.getIdByIndex(index);
-			} else if (column && (mode=="right" || mode=="left")){ //it seems column's can be selected
-				var index = this.getColumnIndex(column);
-				//get new selected column
-				if (mode == "right") index++;
-				else if (mode == "left") index--;
-				//check that result column index is in valid range
-				if (index<0 || index>=this.config.columns.length) return;
+					row = this.getIdByIndex(index);
+				}
+			} else if (mode == "right" || mode == "left"){
+				if (column && this.config.select != "row"){
+					//it seems column's can be selected
+					var index = this.getColumnIndex(column);
+					//get new selected column
+					if (mode == "right") index++;
+					else if (mode == "left") index--;
+					//check that result column index is in valid range
+					if (index<0 || index>=this.config.columns.length) return;
 
-				column = this.columnId(index);
-			} else { 
+					column = this.columnId(index);
+				} else if (this.open && mode == "right"){ 
+					return this.open(row);
+				} else if (this.close && mode == "left"){ 
+					return this.close(row);
+				}
+			} else {
 				webix.assert(false, "Not supported selection moving mode");
 				return;
 			}
@@ -21828,7 +22005,7 @@ webix.extend(webix.ui.chart, {
 		ctx.lineTo(x3,y3);
 		/*right rounding*/
 		if (radius&&radius>0)
-			ctx.arc(x3,y1,radius-offset,-Math.PI/2,0-angle_corr,false);
+			ctx.arc(x3+offset,y1,radius-offset,-Math.PI/2,0-angle_corr,false);
 		/*bottom right point*/
 		var x5 = x0 + barWidth-offset;
 		ctx.lineTo(x5,y0);
@@ -24074,6 +24251,9 @@ webix.protoUI({
         this._idToLine = {};
         for(var i =0; i < data.length; i++){
             var line = data[i];
+            if (line.type == "multiselect")
+            	line.optionslist = true;
+
             //line.type 	= 	line.type||"label";
             line.id 	=	line.id||webix.uid();
             line.label 	=	line.label||"";
@@ -24135,8 +24315,8 @@ webix.protoUI({
 			parent:this._contentobj
 		};
 	},
-	setValues:function(data){
-		this._clear();
+	setValues:function(data, update){
+		if(!update) this._clear();
 		for(var key in data){
 			var line = this.getItem(key);
 			if (line)
@@ -24905,6 +25085,50 @@ webix.protoUI({
 }, webix.ui.toolbar);
 
 
+webix.protoUI({
+	name:"gridsuggest",
+	defaults:{
+		type:"datatable",
+		fitMaster:false,
+		width:0,
+		body:{
+			navigation:true,
+			autoheight:true,
+			autowidth:true,
+			select:true
+		},
+		filter:function(item, value){
+			var text = this.config.template(item);
+			if (text.toString().toLowerCase().indexOf(value.toLowerCase())===0) return true;
+				return false;
+		}
+	},
+	$init:function(obj){
+		if (!obj.body.columns)
+			obj.body.autoConfig = true;
+		if (!obj.template)
+			obj.template = webix.bind(this._getText, this);
+	},
+	_getText:function(item, common){
+		var grid = this.getBody();
+		var value = this.config.textValue || grid.config.columns[0].id;
+		return grid.getText(item.id, value);
+	}
+}, webix.ui.suggest);
+webix.protoUI({
+	name:"datasuggest",
+	defaults:{
+		type:"dataview",
+		fitMaster:false,
+		width:0,
+		body:{
+			xCount:3,
+			autoheight:true,
+			select:true
+		}
+	}
+}, webix.ui.suggest);
+
 
 
 
@@ -24931,7 +25155,9 @@ webix.protoUI({
 
 				//ignore disabled items
 				if (!this.data.getMark(id, "webix_disabled")){
-					parent.callEvent("onMenuItemClick", [id, e, trg]);
+					if (!parent.callEvent("onMenuItemClick", [id, e, trg]))
+						return;
+
 					if (this != parent)
 						parent._call_onclick(id,e,trg);
 
@@ -24963,11 +25189,11 @@ webix.protoUI({
 	},
 	_auto_height_calc:function(count){
 		if (this._settings.autoheight) count = this.count();
-		
+
 		var height = 0;
 		for (var i=0; i<count; i++){
 			var item = this.data.pull[this.data.order[i]];
-			if (item.$template == "Separator")
+			if (item && item.$template == "Separator")
 				height+=4;
 			else
 				height+=this.type.height;
@@ -24979,15 +25205,14 @@ webix.protoUI({
 		css:"menu",
 		width:"auto",
 		templateStart:function(obj, common, mark){
-	        if (obj.$template){
+	        if (obj.$template == "Separator"){
 				return '<div webix_l_id="#id#" class="webix_context_sep">';
 			}
-			var target = (obj.target?" target='"+obj.target+"' ":"");
-			var link = "<a"+(obj.href?" href='"+obj.href+"' ":"")+target+" class='webix_menu_link' >";
-	        return webix.ui.list.prototype.type.templateStart(obj,common,mark)+link+((obj.submenu && common.subsign)?"<div class='webix_submenu_icon'></div>":"");
+			var link = (obj.href?" href='"+obj.href+"' ":"")+(obj.target?" target='"+obj.target+"' ":"");
+			return webix.ui.list.prototype.type.templateStart(obj,common,mark).replace(/^<div/,"<a "+link)+((obj.submenu && common.subsign)?"<div class='webix_submenu_icon'></div>":"");
 		},
-		templateEnd:function(obj, common, mark){
-			return "</a>"+webix.ui.list.prototype.type.templateEnd(obj,common,mark);
+		templateEnd: function(obj, common, mark){
+			return (obj.$template == "Separator"?"</div>":"</a>");
 		},
 		templateSeparator:webix.template("<div class='sep_line'></div>")
 	},
@@ -25451,15 +25676,20 @@ webix.protoUI({
 			var temp = webix.extend({ cheight: calcHeight, aheight:height }, tab);
 			html+= this._tabTemplate(temp);
 		}
-		else
-			html+=tab.value;
+		else {
+			var icon = tab.icon?("<span class='webix_icon fa-"+tab.icon+"'></span> "):"";
+			html+=icon + tab.value;
+		}
+
+		if (tab.close || config.close)
+			html+="<span class='webix_tab_close webix_icon fa-times'></span>";
 
 		html+="</div>";
 		return html;
 	},
 	_types:{
 		image:"<div class='webix_img_btn_top' style='height:#cheight#px;background-image:url(#image#);'><div class='webix_img_btn_text'>#value#</div></div>",
-		icon:"<div class='webix_img_btn' style='line-height:#cheight#px;'><span class='webix_icon_btn fa-#icon#' style='max-width:#cheight#px;max-height:#cheight#px;'></span>#value#</div>",
+		icon:"<div class='webix_img_btn' style='line-height:#cheight#px;height:#cheight#px;'><span class='webix_icon_btn fa-#icon#' style='max-width:#cheight#px;max-height:#cheight#px;'></span>#value#</div>",
 		iconTop:"<div class='webix_img_btn_top' style='height:#cheight#px;width:100%;top:0px;text-align:center;'><span class='webix_icon fa-#icon#'></span><div class='webix_img_btn_text'>#value#</div></div>"
 	},
 	type_setter:function(value){
@@ -25496,7 +25726,7 @@ webix.protoUI({
 		for (var i = cells.length - 1; i >= 0; i--){
 			var view = cells[i].body||cells[i];
 			if (!view.id) view.id = "view"+webix.uid();
-			tabs[i] = { value:cells[i].header, id:view.id };
+			tabs[i] = { value:cells[i].header, id:view.id, close:cells[i].close };
 			cells[i] = view;
 		}
 
@@ -25566,7 +25796,8 @@ webix.protoUI({
 		}
 		return data;
 	},
-	setValues: function(data) {
+	setValues: function(data, update) {
+        if(!update) this.clear(true);
 		this.render();
 
 		this._values = webix.clone(data);
@@ -25592,14 +25823,13 @@ webix.protoUI({
 		if (!webix.isUndefined(el)) el.focus();
 	},
 
-	clear: function() {
-		if (this._default_values){
+	clear: function(all) {
 			this.render();
 			var els = this._parse_inputs();
 			for (var i = 0; i < els.length; i++) {
-				this._set_html_value(els[i], this._default_values[els[i].name] || "");				
+                var cleared = all?"":this._default_values[els[i].name] || "";
+                this._set_html_value(els[i], cleared);
 			}
-		}
 	},
 
 	_tagname: function(el) {
@@ -25660,7 +25890,8 @@ webix.protoUI({
 			el.value = value;
 		},
 		select: function(el, value) {
-			el.value = value;
+            //select first option if no provided and if possible
+			el.value = value?value:el.firstElementChild.value||value;
 		},
 		other: function(el, value) {
 			el.innerHTML = value;
@@ -25912,6 +26143,8 @@ webix.DataProcessor = webix.proto({
 					//promise
 					precise_url(tosave.id, tosave.operation, tosave.data).then(
 						function(data){
+							if (data && typeof data.json == "function")
+								data = data.json();
 							callback.success("", data, -1);
 						},
 						function(error){
@@ -26064,6 +26297,14 @@ webix.DataProcessor = webix.proto({
 			return this._settings.escape(value);
 		else
 			return encodeURIComponent(value);
+	},
+	getState:function(){
+		if (!this._updates.length) return false;
+		for (var i = this._updates.length - 1; i >= 0; i--)
+			if (this._updates[i]._in_progress)
+				return "saving";
+
+		return true;
 	},
 	getItemState:function(id){
 		var index = this._get_stack_index(id);
@@ -26481,7 +26722,7 @@ webix.markup = {
 			config.box.parentNode.removeChild(config.box);
 			_webix_msg_cfg = config.box = null;
 			if (usercall)
-				usercall(result);
+				usercall(result,config.details);
 	}
 	function modal_key(e){
 		if (_webix_msg_cfg){
@@ -26865,6 +27106,7 @@ webix.debug_ready(function(){
 
 	webix.ui({
 		view:"contextmenu",
+		id:"webix:debugmenu",
 		on:{
 			onBeforeShow:function(e){
 				if (!e.ctrlKey) return false;
@@ -27085,20 +27327,18 @@ webix.protoUI({
 		return selfSizes;
 	},
 	$setSize:function(x,y){
+		var layout = this._layout;
+		var c = layout._cells.length;
+		var yc = this._content_height*(layout._vertical_orientation?c:1);
+		var xc = this._content_width*(layout._vertical_orientation?1:c);
+
 		if (webix.ui.view.prototype.$setSize.call(this,x,y)){
-
-			var layout = this._layout;
-			var c = layout._cells.length;
-			var yc = this._content_height*(layout._vertical_orientation?c:1);
-			var xc = this._content_width*(layout._vertical_orientation?1:c);
-
 			this._contentobj.style.height = yc+"px";
 			this._contentobj.style.width = xc+"px";
-
 			layout.$setSize(xc,yc);
-
 			this._setScroll();
-		}
+		} else
+			layout.$setSize(xc,yc);
 	},
 	_setScroll: function(){
 		var layout = this._layout;
@@ -27504,12 +27744,12 @@ webix.ui.fullScreen = function(){
 			document.body.style.width = x+"px";
 		}
 
-		webix.ui._freeze = false;
+		webix.ui.$freeze = false;
 		webix.ui.resize();
 	};
 
 	var onrotate = function(){ 
-		webix.ui._freeze = true;
+		webix.ui.$freeze = true;
 		if(webix.env.isSafari) 
 			fix();
 		else
@@ -27924,9 +28164,6 @@ webix.proxy.offline = {
 		this.storage.remove(this._data_name());
 	},
 	setCache:function(text){
-		if (typeof text != "string")
-			text = JSON.stringify(text);
-
 		this.storage.put(this._data_name(), text);
 	},
 	_data_name:function(){
@@ -27936,7 +28173,7 @@ webix.proxy.offline = {
 			return this.source + "_$proxy$_data";
 	},
 	saveAll:function(view, update, dp, callback){
-		this.setCache(JSON.stringify(view.serialize()));
+		this.setCache(view.serialize());
 		webix.ajax.$callback(view, callback, "", update);
 	},
 	result:function(id, master, dp, text, data){
@@ -28479,6 +28716,7 @@ webix.ActiveContent = {
 				var el = object._active_references[key];
 				el.blockEvent();
 				el.setValue(obj[key]);
+				el.refresh();
 				el.unblockEvent();
 				
 				object._active_holders_values[key][obj.id] = obj[key];
@@ -28487,6 +28725,66 @@ webix.ActiveContent = {
 			
 			return object._active_holders_item[key][obj.id]||object._active_holders[key];
 		};
+	}
+};
+webix.ProgressBar = {
+	$init:function(){
+		if (webix.isUndefined(this._progress) && this.attachEvent){
+			this.attachEvent("onBeforeLoad", this.showProgress);
+			this.attachEvent("onAfterLoad", this.hideProgress);
+			this._progress = null;
+		}
+	},
+	showProgress:function(config){
+		// { position: 0 - 1, delay: 2000ms by default, css : name of css class to use }
+		if (!this._progress){
+
+			config = webix.extend({
+				position:0,
+				delay: 2000,
+				type:"icon",
+				icon:"refresh",
+				hide:false
+			}, (config||{}), true);
+
+			var incss = (config.type == "icon") ? ("fa-"+config.icon+" fa-spin") : "";
+			this._progress = webix.html.create(
+				"DIV",
+				{ "class":"webix_progress_"+config.type },
+				"<div class='webix_progress_state "+incss+"'></div>"
+			);
+			this._viewobj.style.position = "relative";
+			webix.html.insertBefore(this._progress, this._viewobj.firstChild, this._viewobj);
+			this._progress_delay = 1;
+		}
+
+		if (config && config.type != "icon")
+			webix.delay(function(){
+				if (this._progress){
+					var position = config.position || 1;
+					this._progress.firstChild.style.width = position*100+"%";
+
+					if (config.delay)
+						this._progress.firstChild.style[webix.env.transitionDuration] = config.delay+"ms";
+					if (config.hide)
+						webix.delay(this.hideProgress, this, [1], config.delay);
+				}
+				this._progress_delay = 0;
+			}, this);
+		
+	},
+	hideProgress:function(now){
+		if (this._progress_delay)
+			now = true;
+
+		if (this._progress){
+			if (now){
+				webix.html.remove(this._progress);
+				this._progress = null;
+			} else {
+				this.showProgress({ position:1.1, delay:300 , hide:true });
+			}
+		}		
 	}
 };
 

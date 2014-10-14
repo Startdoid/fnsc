@@ -269,13 +269,13 @@ App.Frame.grouptoolframe = {
   view:'toolbar',
   id:'grouptoolframe',
   cols:[
-    { view:'button', value:'Добавить основную', width:140, align:'left', on:{
+    { view:'button', id:'grtlbtnAddMaster', value:'Добавить основную', width:140, align:'left', on:{
       'onItemClick':function() { App.Collections.Groups.newGroup(0); }
     } },
-    { view:'button', value:'Добавить', width:100, align:"left", on:{
+    { view:'button', id:'grtlbtnAdd', value:'Добавить', width:100, align:"left", on:{
 		  'onItemClick':function() { App.Collections.Groups.newGroup(App.User.get('this_ingrid_groupframe_ItemSelected')); }
     } },
-    { view:'button', value:'Удалить', width:100, align:"left", on:{
+    { view:'button', id:'grtlbtnDlt', value:'Удалить', width:100, align:"left", on:{
       'onItemClick':function() {
         var selectedId = App.User.get('this_ingrid_groupframe_ItemSelected');
         if (selectedId != 0) {
@@ -300,6 +300,18 @@ App.Frame.grouptoolframe = {
           });
         }
       }
+    } },
+    { view:'button', id:'grtlbtnUp', value:'Вверх', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Groups.moveUp(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+    } },
+    { view:'button', id:'grtlbtnDown', value:'Вниз', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Groups.moveDown(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+    } },
+    { view:'button', id:'grtlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Groups.moveUpLevel(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+    } },
+    { view:'button', id:'grtlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Groups.moveDownLevel(App.User.get('this_ingrid_groupframe_ItemSelected')); }
     } },
     { }
   ]
@@ -365,7 +377,7 @@ App.Frame.groupframe = {
      body:{
         id:'communitygroups_groupframe',
         rows:[
-          App.Frame.grouptoolframe,
+          //App.Frame.grouptoolframe,
           {}]        
         }
     }

@@ -162,7 +162,9 @@ var implementFunction = (function() {
           }
         } else {
           if (element.id === branch[i].id) {
+            //var deletedElements = this.models.splice(delElementIndex, 1); ПОПРОБУЙ
             branch[i] = null;
+            //delete branch[i];
             return true;
           }
           else
@@ -189,7 +191,8 @@ var implementFunction = (function() {
         //var currentItem = views[0].getItem(element.attributes.parent_id);
         //views[0].data.sync(tree);
         for (var i = views.length; i--; ) {
-          views[i].add(element.attributes, 0, element.attributes.parent_id);
+          //var insertIndex = tree.getIndexById(element.attributes.parent_id);
+          views[i].add(webix.copy(element.attributes), -1, element.attributes.parent_id);
           views[i].refresh();
         }
       }
@@ -271,9 +274,14 @@ var implementFunction = (function() {
     App.Trees.GroupTree.treeChange(model);
   });
   
+  App.Collections.Groups.on('moveUp', function(model) {
+    webix.message("model up");
+  });
+  
+  //_.extend(App.Collections.Groups, Backbone.Events);
+  
 	//Создаем на основе коллекции менеджер дерева групп
 	App.Trees.GroupTree = new treeManager(App.Collections.Groups.models);
-	console.log(JSON.stringify(App.Trees.GroupTree.tree));
 
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   //описание внизу модуля
@@ -286,7 +294,7 @@ var implementFunction = (function() {
   });
   
 	webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
-  webix.event(window, "resize", function(){ masterframe.adjust(); })
+  webix.event(window, "resize", function(){ masterframe.adjust(); });
 	Backbone.history.start({pushState: true, root: "/"});
 });
 
