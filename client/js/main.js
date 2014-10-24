@@ -45,25 +45,28 @@ var implementFunction = (function() {
 			    //Меняем окно приветствия, на окно конфигурации групп
 			    webix.ui(App.Frame.groupframe, $$('greetingframe'));
 
-          $$('ingrid_groupframe').attachEvent("onAfterEditStop", function(state, editor, ignoreUpdate) {
-            if (editor.column === 'name') {
-              var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemSelected'));
-              selectGroup.set({ 'name': state.value });
-              ignoreUpdate = false;
-              console.log('ikzgbrc');
-            }
+          $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
+            App.User.set('this_ingrid_groupframe_ItemEdited', id);
           });
 
-			    //console.log(masterframe.getChildViews()[1].getChildViews()23);
-			    //console.log(top.getChildViews()[1]);
-			    //webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
+          $$('ingrid_groupframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+            var ItemEdited = App.User.get('this_ingrid_groupframe_ItemEdited');
+            var ItemSelected = App.User.get('this_ingrid_groupframe_ItemSelected');
+            if (editor.column === 'name') {
+              if(ItemEdited != ItemSelected)
+              {
+                this.getItem(ItemEdited).name = state.old;
+                this.updateItem(ItemEdited);
+                App.User.set('this_ingrid_groupframe_ItemEdited', null);
+              } else {
+                var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemEdited'));
+                selectGroup.set({ 'name': state.value });
+              }
+            }
+          });
   		  } else {
 			  }
-			};
-			
-			//$$("mylist").attachEvent("onAfterSelect", function(id){
-				//Router.navigate("films/"+id, { trigger:true });
-		  //});
+			}
 		},
 		//раздел группы
 		groups:function() {
@@ -186,7 +189,7 @@ var implementFunction = (function() {
     
     //добавление элемента в дерево, автоматическое обновление элементов во вьюхах из массива views
     this.treeAdd = function(element) {
-      var result = recursively(tree, element.attributes, 'add');
+      var result = recursively(tree, webix.copy(element.attributes), 'add');
       if(result) {
         //var currentItem = views[0].getItem(element.attributes.parent_id);
         //views[0].data.sync(tree);
@@ -200,13 +203,17 @@ var implementFunction = (function() {
     
     this.treeRemove = function(element) {
       var result = recursively(tree, element.attributes, 'delete');
-      for (var i = views.length; i--; ) {
-        views[i].remove(element.attributes.id);
-        views[i].refresh();
+      if(result) {
+        for (var i = views.length; i--; ) {
+          views[i].remove(element.attributes.id);
+          views[i].refresh();
+        }
       }
     };
     
     this.treeChange = function(element) {
+      //тут большая ошибка... когда щелкаешь один элемет для изменения, и тут же щелкаешь в нередактируемую область другого элемента, то
+      //при вызо
       for (var i = views.length; i--; ) {
         var record = views[i].getItem(element.get('id'));
         var chgAtr = element.changedAttributes();
@@ -218,7 +225,18 @@ var implementFunction = (function() {
         views[i].refresh();
       }
     };
-
+    
+    this.move = function(currentPosId, newPosId, parentId) {
+      for (var i = views.length; i--; ) {
+        //var newPosIndex = views[i].getBranchIndex(newPosId, views[i].getParentId(newPosId));
+        //views[i].move(currentPosId, newPosIndex, null, { parent: views[i].getParentId(newPosId) });
+        //views[i].refresh();
+        var newPosIndex = views[i].getBranchIndex(newPosId, parentId);
+        views[i].move(currentPosId, newPosIndex, null, { parent: parentId });
+        views[i].refresh();
+      }      
+    };
+    
     //добавление вьюхи в массив для датабиндинга
     this.viewsAdd = function(view) {
       console.log('view add');
@@ -231,8 +249,8 @@ var implementFunction = (function() {
           //обновим вновь добавленную информацией из дерева
           view.clearAll();
           view.parse(JSON.stringify(tree));
-        };
-      };
+        }
+      }
     };
     
     //удаление вьюхи из массива датабиндинга
@@ -244,22 +262,21 @@ var implementFunction = (function() {
 	  if (typeof collection !== 'undefined')
 	  {
 	    this.treeBuild(collection);
-	  };
+	  }
   };
 
-  //App.Collections.SliceGroups = new collectionGroups();
-	//App.Collections.SliceGroups.fetch();
-	//if(App.Collections.SliceGroups.length === 0) {
-    //addDefaultGroupsModel();
-	//} else {
-	//  var defaultModels = App.Collections.SliceGroups.where({name: 'Default'});
-	//  if(defaultModels.length === 0) {
-	//    addDefaultGroupsModel();
-	//  }
-	//};
-	
+  var buildInterfaceAfterFetch = function(Groups, response, options) {
+    App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
+  };
+
+  //Создаем на основе коллекции менеджер дерева групп
+	App.Trees.GroupTree = new treeManager();
+  
   //Создаем коллекцию групп
-	App.Collections.Groups = new collectionGroups(collect);
+	App.Collections.Groups = new collectionGroups();
+
+  App.Collections.Groups.fetch({
+    success: buildInterfaceAfterFetch });
 
   //Обработка события добавления в коллекцию групп
 	App.Collections.Groups.on('add', function(grp) {
@@ -274,15 +291,12 @@ var implementFunction = (function() {
     App.Trees.GroupTree.treeChange(model);
   });
   
-  App.Collections.Groups.on('moveUp', function(model) {
-    webix.message("model up");
+  App.Collections.Groups.on('move', function(currentPosId, newPosId, parentId) {
+    App.Trees.GroupTree.move(currentPosId, newPosId, parentId);
   });
   
   //_.extend(App.Collections.Groups, Backbone.Events);
   
-	//Создаем на основе коллекции менеджер дерева групп
-	App.Trees.GroupTree = new treeManager(App.Collections.Groups.models);
-
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   //описание внизу модуля
   var masterframe = new webix.ui({
@@ -293,9 +307,10 @@ var implementFunction = (function() {
     ]
   });
   
-	webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
+  
+  webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
   webix.event(window, "resize", function(){ masterframe.adjust(); });
-	Backbone.history.start({pushState: true, root: "/"});
+  Backbone.history.start({pushState: true, root: "/"});
 });
 
 //(frame)(id)(view)
@@ -335,3 +350,24 @@ var implementFunction = (function() {
 //->optionsframe|optionsframe|accordion
 
 //throw new TypeError('Array.prototype.some called on null or undefined')
+
+//$$('tree').move("a13", null, null, { parent: "new parent id" });
+
+//console.log(masterframe.getChildViews()[1].getChildViews()23);
+//console.log(top.getChildViews()[1]);
+//webix.ui( App.Frame.workframe, $$('masterframe'), top.getChildViews()[1].getChildViews()[1]);
+
+//$$("mylist").attachEvent("onAfterSelect", function(id){
+  //Router.navigate("films/"+id, { trigger:true });
+//});
+
+  //App.Collections.SliceGroups = new collectionGroups();
+	//App.Collections.SliceGroups.fetch();
+	//if(App.Collections.SliceGroups.length === 0) {
+    //addDefaultGroupsModel();
+	//} else {
+	//  var defaultModels = App.Collections.SliceGroups.where({name: 'Default'});
+	//  if(defaultModels.length === 0) {
+	//    addDefaultGroupsModel();
+	//  }
+	//};

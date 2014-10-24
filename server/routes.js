@@ -2,6 +2,16 @@ var _ = require('underscore');
 var path = require('path');
 var taskModel = require('./models/task');
 var userModel = require('./models/user');
+var groupModel = require('./models/group');
+
+	var collect = [
+    {id:1, parent_id:0, name: "My organization", numUsers: 5},
+    {id:2, parent_id:1, name: "Administrations", numUsers: 2},
+    {id:3, parent_id:2, name: "CEO", numUsers: 1},
+    {id:55, parent_id:2, name: "Vice CEO", numUsers: 1},
+    {id:425, parent_id:55, name: "financical departament", numUsers: 2},
+    {id:4, parent_id:0, name: "investors", numUsers: 1}
+  ];
 
 var routes = [
   // Views
@@ -14,7 +24,40 @@ var routes = [
       //res.render(requestedView);
     }]
   },
-
+  //получить коллекцию пользователя
+  {
+    path: '/groups',
+    httpMethod: 'GET',
+    middleware: [function(req, res) {
+      console.log('srv: in groups');
+      //res.json(JSON.stringify(collect));
+      groupModel.find(function(err, groups) {
+        if (err) { res.send(err); return; }
+        //console.log(groups);
+        res.json(groups);
+      });
+    }]
+  },
+  //сохранить модель коллекции
+  {
+    path: '/groups/:group_id',
+    httpMethod: 'PUT',
+    middleware: [function (req, res) {
+      console.log(req.body);
+      groupModel.findOneAndUpdate({id : req.params.group_id}, req.body, {upsert:true}, function(err, group) {
+        if (err) { res.send(err); return; }
+        
+        console.log(group);
+      });
+      
+      //Task.create({
+      //   text : req.body.text,
+      //   done : false
+      // }, function(err, task) {
+      //   if (err)
+      //     res.send(err);
+    }]
+  },
   //получить пользователя, а вместе с ним настройки сессии
   {
     path: '/user/:user_id',
@@ -22,12 +65,12 @@ var routes = [
     middleware: [function(req, res){
       console.log(req.params.user_id);
       userModel.findOne({id : req.params.user_id}, function(err, user) {
-        if (err) res.send(err);
-        if (!user) {};
+        if (err) { res.send(err); return; }
+        if (!user) {}
         
         console.log(user);
         res.json(user);
-      })
+      });
     }]
   },
 
@@ -94,13 +137,12 @@ var routes = [
       //   });
       //});      
     }]
-    },
+  },
 
   {
     path: '/*',
     httpMethod: 'GET',
     middleware: [function(req, res) {
-      //console.log("index");
       res.sendfile('./client/index.html'); 
     }]
   },
@@ -108,7 +150,6 @@ var routes = [
     path: '/home',
     httpMethod: 'GET',
     middleware: [function(req, res) {
-      //console.log("index");
       res.sendfile('./client/index.html'); 
     }]
   }

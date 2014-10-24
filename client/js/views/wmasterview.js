@@ -121,6 +121,7 @@ App.Frame.slicegroups = {
   view:'tree',
   isolate:false, 
   select:true,
+  autoheight:true,
 	template:'{common.icon()}{common.folder()}<span>#name#</span>',
   url: "myData->load"
 };
@@ -174,7 +175,8 @@ App.Frame.sliceframe = {
 		view:'accordion',
 		type:'space',
 		rows:[{ body: 'Task pull' },
-		      { header:'Группы', body: App.Frame.slicegroups },
+				  { view: 'resizer' },
+		      { header:'Группы', body: App.Frame.slicegroups,  autoheight:true},
 		      { header:'Люди', body: App.Frame.sliceusers },
 		      { header:'Проекты', body: App.Frame.sliceprojects },
 		      { header:"Категории", body: App.Frame.slicecategory },
@@ -302,16 +304,16 @@ App.Frame.grouptoolframe = {
       }
     } },
     { view:'button', id:'grtlbtnUp', value:'Вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveUp(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'up'); }
     } },
     { view:'button', id:'grtlbtnDown', value:'Вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveDown(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'down'); }
     } },
     { view:'button', id:'grtlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveUpLevel(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'uplevel'); }
     } },
     { view:'button', id:'grtlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveDownLevel(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'downlevel'); }
     } },
     { }
   ]
@@ -319,20 +321,13 @@ App.Frame.grouptoolframe = {
 
 webix.proxy.myData = {
   $proxy:true,
-  init:function(){
+  init:function() {
     //webix.extend(this, webix.proxy.offline);
   },
   load: function(view, callback) {
     //Добавляем id вебиксовых вьюх для синхронизации с данными
 	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-  
-    if(view.config.id === 'ingrid_groupframe') {
-      App.Trees.GroupTree.viewsAdd($$('ingrid_groupframe'));
-    }
-    
-    if(view.config.id === 'slicegroups') {
-      App.Trees.GroupTree.viewsAdd($$('slicegroups'));
-    }
+    App.Trees.GroupTree.viewsAdd($$(view.config.id));
   }
 };
 
@@ -344,15 +339,22 @@ App.Frame.ingrid_groupframe = {
 	editable:true, 
 	autoheight:true, 
 	select: true,
+	drag:true,
 	columns:[
 		{ id:'id', header:'', css:{"text-align":"center"}, width:40 },
 		{ id:'name', editor:"text", header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 		],
 	on: {
-	  'onItemClick':function() {
+	  onItemClick:function() {
 	    App.User.set('this_ingrid_groupframe_ItemSelected', this.getSelectedId().id);
-	  }
+	  },
+    onBeforeDrop:function(context, event) {
+      var id_conf = context.to.config.id;
+      if(id_conf === 'ingrid_groupframe') {
+        App.Collections.Groups.moveGroup(context.start, 'jump', context.index, context.parent);
+      }
+  	}
 	},
 	url: "myData->load"
 };
