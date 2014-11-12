@@ -1,3 +1,6 @@
+var App = window.App;
+var webix = window.webix;
+
 App.Frame.lblInTask = {
 	id:"lblInTask",
 	width:100,
@@ -104,7 +107,10 @@ App.Frame.searchMaster = {
 };
 
 App.Frame.headerframe = {
-	view:"toolbar", height:25,
+	view:"toolbar",
+	height:25,
+	//minWidth:App.WinSize.windowWidth / 100 * 80,
+	maxWidth:App.WinSize.windowWidth / 100 * 80,
 	elements:[App.Frame.btnHome,
 	          App.Frame.lblInTask,
 	          App.Frame.searchMaster,
@@ -169,7 +175,9 @@ App.Frame.sliceframe = {
   id:'sliceframe',
 	width:250,
 	header:'Срезы',
-	height:600,
+	//height:600,
+	minHeight:App.WinSize.windowHeight / 100 * 85,
+	autoheight:true,
 	body:{
 		multi:true,
 		view:'accordion',
@@ -189,7 +197,9 @@ App.Frame.optionsframe = {
   id:"optionsframe",
 	width:250,
 	header:"Опции",
-	height:600,
+	//height:600,
+	minHeight:App.WinSize.windowHeight / 100 * 85,
+	autoheight:true,
 	collapsed:true,
 	body:{
 		multi:true,
@@ -280,7 +290,7 @@ App.Frame.grouptoolframe = {
     { view:'button', id:'grtlbtnDlt', value:'Удалить', width:100, align:"left", on:{
       'onItemClick':function() {
         var selectedId = App.User.get('this_ingrid_groupframe_ItemSelected');
-        if (selectedId != 0) {
+        if (selectedId !== 0) {
           var firstModels = App.Collections.Groups.findWhere( { parent_id: selectedId } );
           var text = '';
           if (typeof firstModels === 'undefined') {
@@ -362,6 +372,8 @@ App.Frame.ingrid_groupframe = {
 App.Frame.groupframe = {
 	id:'groupframe',
 	view:'tabview',
+	//minWidth:App.WinSize.windowWidth / 100 * 80,
+	autowidth:true,
 	animate:'true',
 	tabbar : { optionWidth : 200 },
   cells:[
@@ -386,50 +398,117 @@ App.Frame.groupframe = {
   ]
 };
 
-App.Frame.greetingframe = {
-    id:'greetingframe',
-    container:'centralframe',
-    rows:[
-    {
-      view:"htmlform",
-      template: "http->greeting.html"
-    },
-    { 
-      cols:[{},
-      {
-     	  id:"btnTry",
-	      view:"button", 
-	      value:"Попробовать",
-	      height: 45,
-	      width: 100,
-	      on:{
-		      'onItemClick':function() {
-		        App.User.set('thisTry', true);
-		      }
-	      }
-      },
-      {
-     	  id:"btnRegister",
-	      view:"button",
-	      disabled:true,
-	      value:"Зарегистрировать",
-	      height: 45,
-	      width: 130,
-	      on:{
-		      'onItemClick': function(){ webix.message("Заглушка"); }
-	      }
-      },
-      {
-     	  id:"btnLogin",
-	      view:"button",
-	      disabled:true,
-	      value:"Войти",
-	      height: 45,
-	      width: 100,
-	      on:{
-		      'onItemClick': function(){ webix.message("Заглушка"); }
-	      }
-      },{}]
-    }
+var registrationForm = {
+  view:'form',
+  width:350,
+  elements:[
+    { view:'template', template:'Регистрация', type:'header', align:'center'},
+    { view:'text', label:'Email', id:'reg_email'},
+    { view:'text', label:'Имя пользователя', id:'reg_username'},
+    { view:'text', type:'password', label:'Пароль', id:'reg_password'},
+    { margin:5, cols:[
+      { view:'button', value:'Зарегистрировать', type:'form', on:{
+	      'onItemClick':function() {
+	        var promise = webix.ajax().post('register', {email:$$('reg_email').getValue(), username:$$('reg_username').getValue(), password:$$('reg_password').getValue()}, function(text, data)
+	        {
+	          console.log(data.json().some);
+	          console.log('psot');
+	        });
+	        
+          promise.then(function(realdata){
+            console.log('success');
+          }).fail(function(err){
+            webix.message({type:"error", text:err.responseText});
+          });
+        }
+      }},
+      { view:'button', value:'Отменить', on:{
+        'onItemClick':function() {
+          App.Router.navigate('', {trigger: true});
+        }
+      }}
+    ]}          
   ]
+};
+
+App.Frame.registerframe = {
+  id:'registerframe',
+  autoheight:true,
+  autowidth:true,
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      registrationForm,      
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+App.Frame.greetingframe = {
+  id:'greetingframe',
+  container:'greetingframe',
+  //minHeight:600,
+  //maxWidth:1500,
+  autoheight:true,
+  autowidth:true,
+  rows:[
+  {
+    view:'htmlform',
+    template: 'http->greeting.html'
+  },
+  { 
+    cols:[{},
+    {
+      id:'btnTry',
+	    view:'button', 
+	    value:'Попробовать',
+	    height: 45,
+	    width: 100,
+	    on:{
+	      'onItemClick':function() {
+	        App.User.set('thisTry', true);
+        }
+      }
+    },
+    {
+      id:"btnRegister",
+	    view:"button",
+	    value:"Зарегистрировать",
+	    height: 45,
+	    width: 130,
+	    on:{
+		    'onItemClick': function() { 
+		      App.Router.navigate('register', {trigger:true} );
+		    }
+      }
+    },
+    {
+      id:"btnLogin",
+	    view:"button",
+	    disabled:true,
+	    value:"Войти",
+	    height: 45,
+	    width: 100,
+	    on:{
+		    'onItemClick': function(){ webix.message("Заглушка"); }
+      }
+    },{}]
+  }
+  ]
+};
+
+App.Frame.centralframe = {
+  id:'centralframe',
+  container:'centralframe',
+  autoheight:true,
+  autowidth:true,
+  view:"multiview", 
+  cells:[App.Frame.greetingframe,
+  App.Frame.groupframe,
+  App.Frame.registerframe],
+  fitBiggest:true
 };

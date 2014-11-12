@@ -4,15 +4,6 @@ var taskModel = require('./models/task');
 var userModel = require('./models/user');
 var groupModel = require('./models/group');
 
-	var collect = [
-    {id:1, parent_id:0, name: "My organization", numUsers: 5},
-    {id:2, parent_id:1, name: "Administrations", numUsers: 2},
-    {id:3, parent_id:2, name: "CEO", numUsers: 1},
-    {id:55, parent_id:2, name: "Vice CEO", numUsers: 1},
-    {id:425, parent_id:55, name: "financical departament", numUsers: 2},
-    {id:4, parent_id:0, name: "investors", numUsers: 1}
-  ];
-
 var routes = [
   // Views
   {
@@ -138,7 +129,18 @@ var routes = [
       //});      
     }]
   },
-
+  {
+    path: '/login',
+    httpMethod: 'POST',
+    middleware: [function(req, res) {
+      
+    }]
+  },
+  {
+    path: '/register',
+    httpMethod: 'POST',
+    middleware: [register]
+  },
   {
     path: '/*',
     httpMethod: 'GET',
@@ -184,3 +186,26 @@ function ensureAuthorized(req, res, next) {
   console.log('hat');
   return next();
 }
+
+function register(req, res, next) {
+  try {
+    userModel.validate(req.body);
+  }
+  catch(err) {
+    return res.send(432, err.message);
+  }
+
+  userModel.addUser(req.body.username, req.body.password, req.body.email, function(err, usr) {
+    if(err === 'UserAlreadyExists') return res.send(432, "User already exists");
+    else if(err === 'UserDbError') return res.send(433, "DB can't add user");
+    else if(err) return res.send(500);
+
+    //req.logIn(usr, function(err) {
+    //  if(err)     { next(err); }
+    //  else        { res.json(200, { "role": usr.role, "username": usr.username }); }
+    //});
+  });
+}
+
+//432 - Autorization error
+//433 - User db error

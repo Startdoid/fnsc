@@ -1,5 +1,8 @@
 //блок, который исполнит вебикс когда все загрузит
 var implementFunction = (function() {
+  var App = window.App;
+  var webix = window.webix;
+  var Backbone = window.Backbone;
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
 	App.Router = new (Backbone.Router.extend({
 	  //слева роут, косая в скобках означает, что роут может быть как с косой чертой на конце, так и без нее
@@ -20,8 +23,6 @@ var implementFunction = (function() {
 		//корень приложения
 		index:function() {
 			if(App.User) {
-			  webix.message(App.User.get('username') + " :index ");
-			  
 			  if((App.User.get('id') === 0) && (!App.User.get('thisTry')))
 	      {
       	  $$("sliceframe").define("collapsed", true);
@@ -40,10 +41,8 @@ var implementFunction = (function() {
     	  }
 			  
 			  if(App.User.get('thisTry')) {
-			    webix.message(App.User.get('username') + " :thisTry ");
-			    
 			    //Меняем окно приветствия, на окно конфигурации групп
-			    webix.ui(App.Frame.groupframe, $$('greetingframe'));
+			    $$('groupframe').show();
 
           $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
             App.User.set('this_ingrid_groupframe_ItemEdited', id);
@@ -65,42 +64,39 @@ var implementFunction = (function() {
             }
           });
   		  } else {
+			    $$('greetingframe').show();
 			  }
 			}
 		},
 		//раздел группы
 		groups:function() {
-		  
 		},
 		login:function() {
-		  webix.message(App.User.get('username') + " login ");
 		},
 		logout:function() {
 		},
 		register:function() {
-  	},
+	    //Меняем окно приветствия, на окно регистрации
+  	  $$("sliceframe").define("collapsed", true);
+  		$$("sliceframe").disable();
+  		$$("sliceframe").refresh();
+      			  
+  		$$("optionsframe").define("collapsed", true);
+  		$$("optionsframe").disable();
+  		$$("optionsframe").refresh();
+
+	    $$('registerframe').show();
+		},
   	//тестовая заглушка, закрою её нахуй, как доберуться руки
 		details:function(id) {
 			//template.render();
 		}
 	}));
 	
-	//Это пример данных в коллекции. Бакбоновские коллекции не организуют иерархически данные
-	//поэтому создан объект treeManager, экземпляры которого позволяют строить дерево из бакбоновской 
-	//коллекции и хранить в себе древовидный массив
-	var collect = [
-    {id:1, parent_id:0, name: "My organization", numUsers: 5},
-    {id:2, parent_id:1, name: "Administrations", numUsers: 2},
-    {id:3, parent_id:2, name: "CEO", numUsers: 1},
-    {id:55, parent_id:2, name: "Vice CEO", numUsers: 1},
-    {id:425, parent_id:55, name: "financical departament", numUsers: 2},
-    {id:4, parent_id:0, name: "investors", numUsers: 1}
-  ];
-
 	//Инициализируем глобальный объект пользователя со всеми настройками приложения
 	//пробуем получить рест запросом с сервера
 	App.User = new App.Models.User();
-	App.User.fetch();
+	//App.User.fetch();
 	
 	//Привязываем события которые будут обрабатываться User model
 	App.User.on('change:thisSegment', function() {
@@ -109,7 +105,6 @@ var implementFunction = (function() {
 	});
 
 	App.User.on('change:thisTry', function() {
-	  webix.message(App.User.get('thisSegment') + " segment select");
 	  App.Router.navigate('home', {trigger:true} );
 	});
 	
@@ -212,8 +207,6 @@ var implementFunction = (function() {
     };
     
     this.treeChange = function(element) {
-      //тут большая ошибка... когда щелкаешь один элемет для изменения, и тут же щелкаешь в нередактируемую область другого элемента, то
-      //при вызо
       for (var i = views.length; i--; ) {
         var record = views[i].getItem(element.get('id'));
         var chgAtr = element.changedAttributes();
@@ -239,7 +232,6 @@ var implementFunction = (function() {
     
     //добавление вьюхи в массив для датабиндинга
     this.viewsAdd = function(view) {
-      console.log('view add');
       if (typeof view === 'object')
       {
         //добавим в массив, если нет такой
@@ -296,20 +288,25 @@ var implementFunction = (function() {
   });
   
   //_.extend(App.Collections.Groups, Backbone.Events);
-  
+
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   //описание внизу модуля
   var masterframe = new webix.ui({
     id:"masterframe",
     container:"masterframe",
+    //minHeight:App.WinSize.windowHeight / 100 * 95,
+    autoheight:true,
+    autowidth:true,
+    cols:[{
     rows:[App.Frame.headerframe, 
-      {cols:[App.Frame.sliceframe, App.Frame.greetingframe, App.Frame.optionsframe]}
+      {cols:[App.Frame.sliceframe, App.Frame.centralframe, App.Frame.optionsframe]}
     ]
+    }]
   });
-  
-  
+  $$('greetingframe').show();
+
   webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
-  webix.event(window, "resize", function(){ masterframe.adjust(); });
+  webix.event(window, "resize", function() { masterframe.adjust(); });
   Backbone.history.start({pushState: true, root: "/"});
 });
 

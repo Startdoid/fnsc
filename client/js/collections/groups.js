@@ -144,41 +144,8 @@ collectionGroups = Backbone.Collection.extend({
     //currentPosId, newPosId, parentId
     if (direction != 'jump') {
       this.trigger('move', selectedId, shiftedElement.get('id'), currentElement.get('parent_id'));
+    } else {
+      this.trigger('move', selectedId, shiftedElement.get('id'), shiftedElement.get('parent_id'));
     }
-  },
-  moveUpLevel: function(selectedId) {
-    //получаем перемещаемый элемент и его индекс
-    var currentElement = this.get(selectedId);
-    var currentElementIndex = this.models.indexOf(currentElement);
-    //если элемент с индексом равным размеру массива, то он находится в самом конце списка и не требует дальнейшего перемещения
-    if (currentElementIndex === 0) { return; }
-    
-    //получаем элемент перед перемещаемым
-    var previousElementIndex = currentElementIndex;
-    var previousElement = this.models[previousElementIndex];
-    do {
-      previousElementIndex = previousElementIndex - 1;
-      if(previousElementIndex === -1) { return; }
-      previousElement = this.models[previousElementIndex];
-    } while(previousElement.get('id') != currentElement.get('parent_id'));
-    
-    currentElement.set({ parent_id: previousElement.get('parent_id') }, { silent: true });
-    
-    //получаем список вложенных элементов и индекс последнего, мы вырежем этот интервал из массива
-    //и переместим весь на позицию вниз
-    var listGroup = this.getInnerGroup(selectedId);
-    
-    //удаляем вложенные элементы из массива
-    var deletedElements = this.models.splice(currentElementIndex, listGroup.length);
-
-    //помещаем удаленные элементы в новую позицию
-    for (var i = 0; i < deletedElements.length; i++) {
-      this.models.splice(previousElementIndex + i, 0, deletedElements[i]);
-    }
-    
-    this.trigger('move', selectedId, previousElement.get('id'));    
-  },
-  moveDownLevel: function(selectedId) {
-    
   }
 });

@@ -4,7 +4,8 @@
         "configs": {
             "json()": {},
             "@inited": "true"
-        }
+        },
+        "@runner": "Nodes"
     },
     "share": {
         "@preview": false,

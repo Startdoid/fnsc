@@ -1,19 +1,19 @@
 {
   "name"         : "testio",
   "version"      : "0.0.1",
-  "description"  : "Backbone test applications",
+  "description"  : "InTask.me prototype",
   "main"         : "server.js",
   "author"       : "bruian, iceflash",
   "dependencies" : {
     "express"    : "~3.4.7",
     "mongoose"   : "~3.8.1",
-    "passport"   : "~0.1.17",
-    "passport-local": "~0.1.6",
     "underscore" : "~1.5.2",
     "validator"  : "~1.1.1",
-    "passport-twitter": "~0.1.4",
-    "passport-facebook": "~0.1.5",
-    "passport-google": "~0.3.0",
-    "passport-linkedin": "~0.1.3"
+    "passport"   : "*",
+    "passport-local": "*",
+    "passport-facebook": "*",
+    "passport-google": "*",
+    "mongoose-auto-increment": "*",
+    "MD5": "*"
     }
 }
