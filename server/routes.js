@@ -3,6 +3,7 @@ var path = require('path');
 var taskModel = require('./models/task');
 var userModel = require('./models/user');
 var groupModel = require('./models/group');
+var passport = require('passport');
 
 var routes = [
   // Views
@@ -17,57 +18,30 @@ var routes = [
   },
   //получить коллекцию пользователя
   {
-    path: '/groups',
+    path: '/api/groups',
     httpMethod: 'GET',
-    middleware: [function(req, res) {
-      console.log('srv: in groups');
-      //res.json(JSON.stringify(collect));
-      groupModel.find(function(err, groups) {
-        if (err) { res.send(err); return; }
-        //console.log(groups);
-        res.json(groups);
-      });
-    }]
+    middleware: [getgroups]
   },
   //сохранить модель коллекции
   {
-    path: '/groups/:group_id',
+    path: '/api/groups/:group_id',
     httpMethod: 'PUT',
     middleware: [function (req, res) {
-      console.log(req.body);
       groupModel.findOneAndUpdate({id : req.params.group_id}, req.body, {upsert:true}, function(err, group) {
         if (err) { res.send(err); return; }
-        
-        console.log(group);
       });
-      
-      //Task.create({
-      //   text : req.body.text,
-      //   done : false
-      // }, function(err, task) {
-      //   if (err)
-      //     res.send(err);
     }]
   },
   //получить пользователя, а вместе с ним настройки сессии
   {
-    path: '/user/:user_id',
+    path: '/api/users/:user_id',
     httpMethod: 'GET',
-    middleware: [function(req, res){
-      console.log(req.params.user_id);
-      userModel.findOne({id : req.params.user_id}, function(err, user) {
-        if (err) { res.send(err); return; }
-        if (!user) {}
-        
-        console.log(user);
-        res.json(user);
-      });
-    }]
+    middleware: [getuser]
   },
 
   //получить задачу из базы
   {
-    path: '/tasks/:task_id',
+    path: '/api/tasks/:task_id',
     httpMethod: 'GET',
     middleware: [function (req, res) {
       console.log(req.params.task_id);
@@ -78,7 +52,7 @@ var routes = [
         if (err) {
           console.log('error');
           res.send(err);
-        };
+        }
         console.log(task);
         res.json(task); // return task in JSON format
 
@@ -132,9 +106,12 @@ var routes = [
   {
     path: '/login',
     httpMethod: 'POST',
-    middleware: [function(req, res) {
-      
-    }]
+    middleware: [login]
+  },
+  {
+    path: '/logout',
+    httpMethod: 'POST',
+    middleware: [logout]
   },
   {
     path: '/register',
@@ -145,7 +122,7 @@ var routes = [
     path: '/*',
     httpMethod: 'GET',
     middleware: [function(req, res) {
-      res.sendfile('./client/index.html'); 
+      res.redirect('/');
     }]
   },
   {
@@ -180,11 +157,19 @@ module.exports = function(app) {
         break;
       }
   });
-}
+};
 
 function ensureAuthorized(req, res, next) {
-  console.log('hat');
-  return next();
+  req.isAuthenticated()
+    ? next()
+    : res.redirect('/');
+
+  //if(!req.user) role = userRoles.public;
+  //else          role = req.user.role;
+
+  //var accessLevel = _.findWhere(routes, { path: req.route.path }).accessLevel || accessLevels.public;
+
+  //if(!(accessLevel.bitMask & role.bitMask)) return res.send(403);
 }
 
 function register(req, res, next) {
@@ -198,14 +183,59 @@ function register(req, res, next) {
   userModel.addUser(req.body.username, req.body.password, req.body.email, function(err, usr) {
     if(err === 'UserAlreadyExists') return res.send(432, "User already exists");
     else if(err === 'UserDbError') return res.send(433, "DB can't add user");
-    else if(err) return res.send(500);
+    else if(err) return res.send(400);
 
-    //req.logIn(usr, function(err) {
-    //  if(err)     { next(err); }
-    //  else        { res.json(200, { "role": usr.role, "username": usr.username }); }
-    //});
+    req.logIn(usr, function(err) {
+      if(err) return next(err); 
+      else return res.json(200, usr); 
+      //else return res.redirect('/users/' + req.user.id);
+    });
   });
 }
 
+function login(req, res, next) {
+  passport.authenticate('local', function(err, user) {
+
+  if(err)     { return next(err); }
+  if(!user)   { return res.send(400); }
+
+  req.logIn(user, function(err) {
+    if(err) return next(err);
+
+    if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
+    res.json(200, user);
+    });
+  })(req, res, next);
+}
+
+function logout(req, res, next) {
+  req.logout();
+  res.redirect('/');
+  //res.send(200);
+}
+
+function getuser(req, res, next) {
+  if(!req.isAuthenticated()) return res.redirect('/');
+
+  userModel.getUserById(req.params.user_id, function(err, usr) {
+    if(err === 'UserDbError') return res.send(433, "DB can't add user");
+    else if(err === 'NoUser') return res.send(434, 'User not found');
+    else if(err) return res.send(400);
+    
+    res.json(200, usr);
+  });
+}
+
+function getgroups(req, res, next) {
+  if(!req.isAuthenticated()) return res.redirect('/');
+  
+  var cur = userModel.id;
+  groupModel.find(function(err, groups) {
+    if (err) { res.send(err); return; }
+    //console.log(groups);
+    res.json(groups);
+  });
+}
 //432 - Autorization error
 //433 - User db error
+//434 - User not found

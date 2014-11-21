@@ -3,6 +3,20 @@ var implementFunction = (function() {
   var App = window.App;
   var webix = window.webix;
   var Backbone = window.Backbone;
+  
+  var showInterface = function(enable) {
+    $$("sliceframe").define("collapsed", !enable);
+    if(enable) $$("sliceframe").enable(); else $$("sliceframe").disable();
+    $$("sliceframe").refresh();
+      			  
+    $$("optionsframe").define("collapsed", !enable);
+    if(enable) $$("optionsframe").enable(); else $$("optionsframe").disable();
+    $$("optionsframe").refresh();
+    
+    if(enable) $$("headerframe").enable(); else $$("headerframe").disable();
+    $$("headerframe").refresh();
+  };
+  
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
 	App.Router = new (Backbone.Router.extend({
 	  //слева роут, косая в скобках означает, что роут может быть как с косой чертой на конце, так и без нее
@@ -12,7 +26,7 @@ var implementFunction = (function() {
 			"logout(/)":"logout",
 			"register(/)":"register",
 			"groups(/)":"groups",
-			"films/:id":"details",
+			"users(/)":"users",
 			'home(/)':"home",
 			'':"index"
 		},
@@ -22,94 +36,94 @@ var implementFunction = (function() {
 		},
 		//корень приложения
 		index:function() {
-			if(App.User) {
-			  if((App.User.get('id') === 0) && (!App.User.get('thisTry')))
-	      {
-      	  $$("sliceframe").define("collapsed", true);
-      		$$("sliceframe").disable();
-      		$$("sliceframe").refresh();
-      			  
-      		$$("optionsframe").define("collapsed", true);
-      		$$("optionsframe").disable();
-      		$$("optionsframe").refresh();
-    	  } else {
-      		$$("sliceframe").enable();
-      		$$("sliceframe").refresh();
-      			  
-      		$$("optionsframe").enable();
-      		$$("optionsframe").refresh();
-    	  }
-			  
-			  if(App.User.get('thisTry')) {
-			    //Меняем окно приветствия, на окно конфигурации групп
-			    $$('groupframe').show();
+		  //если пользователь залогинился
+			if(App.User.get('usrLogged')) {
+			  //Отрисовка интерфейса в зависимости от выбранного сегмента
+			  showInterface(true);
+			  switch(App.User.get('thisSegment')) {
+          case 'users':
+         	  $$("userframe").showProgress({
+              type:"icon",
+              delay:1000
+            });
 
-          $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
-            App.User.set('this_ingrid_groupframe_ItemEdited', id);
-          });
+            App.User.url = '/api/users/' + App.User.get('id');
+		        App.User.fetch({ success: showUserDataAfterFetch });
+		        
+	          App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
 
-          $$('ingrid_groupframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
-            var ItemEdited = App.User.get('this_ingrid_groupframe_ItemEdited');
-            var ItemSelected = App.User.get('this_ingrid_groupframe_ItemSelected');
-            if (editor.column === 'name') {
-              if(ItemEdited != ItemSelected)
-              {
-                this.getItem(ItemEdited).name = state.old;
-                this.updateItem(ItemEdited);
-                App.User.set('this_ingrid_groupframe_ItemEdited', null);
-              } else {
-                var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemEdited'));
-                selectGroup.set({ 'name': state.value });
-              }
-            }
-          });
-  		  } else {
-			    $$('greetingframe').show();
+            break;
+          case 'groups':
+            App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
+            $$('groupframe').show();
+            break;
+          case 'tasks':
+            // code
+            break;
+          case 'templates':
+            // code
+            break;
+          case 'finances':
+            break;
+          case 'process':
+            // code
+            break;
+          case 'files':
+            // code
+            break;
+          case 'notes':
+            // code
+            break;
 			  }
-			}
+  		} else {
+			  showInterface(false);
+			  $$('greetingframe').show();
+			} //if(App.User.usrLogged)
 		},
 		//раздел группы
 		groups:function() {
+		  this.navigate('', {trigger: true});
 		},
 		login:function() {
+      showInterface(false);
+	    $$('loginframe').show();
 		},
 		logout:function() {
 		},
 		register:function() {
 	    //Меняем окно приветствия, на окно регистрации
-  	  $$("sliceframe").define("collapsed", true);
-  		$$("sliceframe").disable();
-  		$$("sliceframe").refresh();
-      			  
-  		$$("optionsframe").define("collapsed", true);
-  		$$("optionsframe").disable();
-  		$$("optionsframe").refresh();
-
+      showInterface(false);
 	    $$('registerframe').show();
 		},
-  	//тестовая заглушка, закрою её нахуй, как доберуться руки
-		details:function(id) {
-			//template.render();
+		users:function() {
+		  this.navigate('', {trigger: true});
 		}
-	}));
+	}))();
 	
+	var showUserDataAfterFetch = function(User, response, options) {
+    showInterface(true);
+    
+    $$('userframe').show();
+    $$("userframe").hideProgress();
+  };
+	
+  var showGroupDataAfterFetch = function(Groups, response, options) {
+    App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
+  };
+
 	//Инициализируем глобальный объект пользователя со всеми настройками приложения
-	//пробуем получить рест запросом с сервера
 	App.User = new App.Models.User();
-	//App.User.fetch();
-	
+
 	//Привязываем события которые будут обрабатываться User model
 	App.User.on('change:thisSegment', function() {
-	  webix.message(App.User.get('thisSegment') + " segment select");
-	  App.Router.navigate('groups', {trigger:true} );
 	});
 
 	App.User.on('change:thisTry', function() {
-	  App.Router.navigate('home', {trigger:true} );
+	  //App.Router.navigate('home', {trigger:true} );
 	});
 	
 	App.User.on('change:this_ingrid_groupframe_ItemSelected', function() {
-	  console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
+	  //console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
 	});
 
   //объект организует работу с деревьями, для того что бы линейную бэкбоновскую коллекцию
@@ -257,18 +271,11 @@ var implementFunction = (function() {
 	  }
   };
 
-  var buildInterfaceAfterFetch = function(Groups, response, options) {
-    App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
-  };
-
   //Создаем на основе коллекции менеджер дерева групп
 	App.Trees.GroupTree = new treeManager();
   
   //Создаем коллекцию групп
 	App.Collections.Groups = new collectionGroups();
-
-  App.Collections.Groups.fetch({
-    success: buildInterfaceAfterFetch });
 
   //Обработка события добавления в коллекцию групп
 	App.Collections.Groups.on('add', function(grp) {
@@ -303,6 +310,27 @@ var implementFunction = (function() {
     ]
     }]
   });
+  webix.extend($$("userframe"), webix.ProgressBar);
+  
+  $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
+    App.User.set('this_ingrid_groupframe_ItemEdited', id);
+  });
+
+  $$('ingrid_groupframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+    var ItemEdited = App.User.get('this_ingrid_groupframe_ItemEdited');
+    var ItemSelected = App.User.get('this_ingrid_groupframe_ItemSelected');
+    if (editor.column === 'name') {
+      if(ItemEdited != ItemSelected) {
+        this.getItem(ItemEdited).name = state.old;
+        this.updateItem(ItemEdited);
+        App.User.set('this_ingrid_groupframe_ItemEdited', null);
+      } else {
+        var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemEdited'));
+        selectGroup.set({ 'name': state.value });
+      }
+    }
+  });
+
   $$('greetingframe').show();
 
   webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");

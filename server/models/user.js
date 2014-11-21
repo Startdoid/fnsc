@@ -15,6 +15,7 @@ var userSchema = mongoose.Schema({
 
 userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
 var userModel = mongoose.model('user', userSchema);
+var logedUser = null;
 
 module.exports = userModel;
 
@@ -22,6 +23,7 @@ var _ = require('underscore');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var check = require('validator').check;
+var md5 = require('MD5');
 
 module.exports = {
   addUser: function(username, password, email, callback) {
@@ -29,13 +31,21 @@ module.exports = {
       if (err) return callback("UserDbError");
       if (user !== null) return callback("UserAlreadyExists");
       
-      var newUser = new userModel({ username: username, password: password, email: email });
+      var newUser = new userModel({ username: username, password: md5(password), email: email });
       newUser.save(function (err) {
         if (err) return callback("UserCantCreate");
           
         var Cuser = newUser.toObject();
         callback(null, Cuser);
       });
+    });
+  },
+  getUserById: function(id, callback) {
+    userModel.findOne({ id : id }, function(err, user) {
+      if (err) return callback("UserDbError");
+      if (user === null) return callback("NoUser");
+  
+      callback(null, user.toObject());
     });
   },
   validate: function(user) {
@@ -47,17 +57,17 @@ module.exports = {
   },
   localStrategy: new LocalStrategy({ usernameField: 'email' },
     function(username, password, done) {
-      userModel.findOne({ username: username }, doAuth);
+      userModel.findOne({ email: username }, doAuth);
 
-      function doAuth(err, newUser) {
-        if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
-        if (newUser === null) return done(null, false, { message: 'User not found'})
+      function doAuth(err, foundUser) {
+        if (err) return done(null, false, { message: 'Db error' });
+        if (foundUser === null) return done(null, false, { message: 'User not found'});
 
-        var Cuser = newUser.toObject();
-        if(Cuser.password != password)
-          { done(null, false, { message: 'Incorrect password.' }); }
+        var Cuser = foundUser.toObject();
+        if(Cuser.password != md5(password))
+          done(null, false, { message: 'Incorrect password.' });
         else
-          { return done(null, Cuser); }
+          return done(null, Cuser);
       }
     }
   ),
@@ -69,7 +79,7 @@ module.exports = {
 
     function doAuth(err, newUser) {
       if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
-      if (newUser === null) return done(null, false, { message: 'User not found'})
+      if (newUser === null) return done(null, false, { message: 'User not found'});
 
       var Cuser = newUser.toObject();
       done(null, Cuser);

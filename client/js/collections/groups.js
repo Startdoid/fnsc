@@ -1,6 +1,6 @@
 collectionGroups = Backbone.Collection.extend({
   model: App.Models.Group,
-  url:"/groups",
+  url:"/api/groups",
   //создает новую группу вложенную в родительскую
   //parentId - id родительского элемента, в котором создается группа
   newGroup: function(parentId) {

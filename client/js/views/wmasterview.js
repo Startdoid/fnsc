@@ -22,16 +22,21 @@ App.Frame.btnHome = {
 	}
 };
 
-App.Frame.btnSettings = {
-	id:"btnSettings",
-	view:"button", 
-	type:"icon", 
-	icon:"cogs", 
-	width:25,
+App.Frame.mnuSettings = {
+	id:"mnuSettings",
+	view:"menu", 
+	width:35,
 	align:"right",
-	on:{
-		'onItemClick': function(){ webix.message("onGoHome"); }
-	}
+  data:[
+    { id:"1", value:"Настройки", submenu:[
+    	{id: "1.1", value:"Персональные настройки"},
+    	{id: "1.2", value:"Регистрация"},
+      {id: "1.3", value:"Сменить учетную запись"},
+      {id: "1.4", value:"Выйти"}]},
+  ],
+  template:function(obj) {
+    return "<span class='webix_icon fa-cogs'"+obj.value+"</span>";
+  }
 };
 
 App.Frame.btnChat = {
@@ -61,38 +66,44 @@ App.Frame.mnuSegments = {
 	width:300,
 	label: 'Сегменты', 
 	labelAlign:"right",
-	align:"right",
+	align:"left",
 	value:1, options:[
-		{ id:1, value:"Группы" }, 
-		{ id:2, value:"Задачи" }, 
-		{ id:3, value:"Шаблоны" },
-		{ id:4, value:"Финансы" },
-		{ id:5, value:"Процессы" },
-		{ id:6, value:"Файлы" },
-		{ id:7, value:"Заметки" }
+		{ id:1, value:"Профиль" }, 
+		{ id:2, value:"Группы" }, 
+		{ id:3, value:"Задачи" }, 
+		{ id:4, value:"Шаблоны" },
+		{ id:5, value:"Финансы" },
+		{ id:6, value:"Процессы" },
+		{ id:7, value:"Файлы" },
+		{ id:8, value:"Заметки" }
 	],
 	on: {
     'onChange': function(newv, oldv) {
       switch(newv) {
         case 1:
-          App.User.set('thisSegment', 'groups');
+          App.User.set('thisSegment', 'users');
+          App.Router.navigate('users', {trigger:true} );
           break;
         case 2:
-          App.User.set('thisSegment', 'tasks');
+          App.User.set('thisSegment', 'groups');
+          App.Router.navigate('groups', {trigger:true} );
           break;
         case 3:
-          App.User.set('thisSegment', 'templates');
+          App.User.set('thisSegment', 'tasks');
           break;
         case 4:
-          App.User.set('thisSegment', 'finances');
+          App.User.set('thisSegment', 'templates');
           break;
         case 5:
-          App.User.set('thisSegment', 'process');
+          App.User.set('thisSegment', 'finances');
           break;
         case 6:
-          App.User.set('thisSegment', 'files');
+          App.User.set('thisSegment', 'process');
           break;
         case 7:
+          App.User.set('thisSegment', 'files');
+          break;
+        case 8:
           App.User.set('thisSegment', 'notes');
           break;          
       }
@@ -108,6 +119,7 @@ App.Frame.searchMaster = {
 
 App.Frame.headerframe = {
 	view:"toolbar",
+	id: 'headerframe',
 	height:25,
 	//minWidth:App.WinSize.windowWidth / 100 * 80,
 	maxWidth:App.WinSize.windowWidth / 100 * 80,
@@ -118,7 +130,7 @@ App.Frame.headerframe = {
 	          App.Frame.btnChat,
 	          App.Frame.btnEvents,
 	          App.Frame.mnuSegments,
-	          App.Frame.btnSettings
+	          App.Frame.mnuSettings
 	         ]
 };
 
@@ -402,26 +414,60 @@ var registrationForm = {
   view:'form',
   width:350,
   elements:[
-    { view:'template', template:'Регистрация', type:'header', align:'center'},
+    { view:'template', template:'Регистрация', type:'header', align:'center' },
     { view:'text', label:'Email', id:'reg_email'},
     { view:'text', label:'Имя пользователя', id:'reg_username'},
     { view:'text', type:'password', label:'Пароль', id:'reg_password'},
     { margin:5, cols:[
-      { view:'button', value:'Зарегистрировать', type:'form', on:{
+      { view:'button', value:'Зарегистрировать', type:'form', hotkey: "enter", on:{
 	      'onItemClick':function() {
-	        var promise = webix.ajax().post('register', {email:$$('reg_email').getValue(), username:$$('reg_username').getValue(), password:$$('reg_password').getValue()}, function(text, data)
+	        var promise = webix.ajax().post('register', { email:$$('reg_email').getValue(), 
+	                                                      username:$$('reg_username').getValue(), 
+	                                                      password:$$('reg_password').getValue()}, function(text, data)
 	        {
-	          console.log(data.json().some);
-	          console.log('psot');
+	          App.User.set('usrLogged', true);
+	          App.User.set('id', data.json().id);
+	          App.Router.navigate('', {trigger: true});
 	        });
 	        
-          promise.then(function(realdata){
-            console.log('success');
-          }).fail(function(err){
+          promise.then(function(realdata){}).fail(function(err){
             webix.message({type:"error", text:err.responseText});
           });
         }
       }},
+      { view:'button', value:'Отменить', on:{
+        'onItemClick':function() {
+          App.Router.navigate('', {trigger: true});
+        }
+      }}
+    ]}          
+  ]
+};
+
+var loginForm = {
+  id:'loginForm',
+  view:'form',
+  width:350,
+  elements:[
+    { view:'template', template:'login', type:'header', align:'center' },
+    { view:'text', label:'Email', id:'log_email'},
+    { view:'text', type:'password', label:'Пароль', id:'log_password'},
+    { margin:5, cols:[
+      { view:'button', value:'Войти', type:'form', click:function() {
+
+	        var promise = webix.ajax().post('login', { email:$$('log_email').getValue(), 
+	                                                   password:$$('log_password').getValue()}, function(text, data)
+	        {
+	          App.User.set('usrLogged', true);
+	          App.User.set('id', data.json().id);
+	          App.Router.navigate('', {trigger: true});
+	        });
+	        
+          promise.then(function(realdata){}).fail(function(err){
+            webix.message({type:"error", text:err.responseText});
+          });
+        }
+      },
       { view:'button', value:'Отменить', on:{
         'onItemClick':function() {
           App.Router.navigate('', {trigger: true});
@@ -441,6 +487,40 @@ App.Frame.registerframe = {
       cols:[
       {},
       registrationForm,      
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+App.Frame.loginframe = {
+  id:'loginframe',
+  autoheight:true,
+  autowidth:true,
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      loginForm,      
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+App.Frame.userframe = {
+  id:'userframe',
+  autoheight:true,
+  autowidth:true,
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'User page', type:'header', align:'center' },
       {}
       ]
     },
@@ -489,12 +569,11 @@ App.Frame.greetingframe = {
     {
       id:"btnLogin",
 	    view:"button",
-	    disabled:true,
 	    value:"Войти",
 	    height: 45,
 	    width: 100,
 	    on:{
-		    'onItemClick': function(){ webix.message("Заглушка"); }
+		    'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); }
       }
     },{}]
   }
@@ -509,6 +588,8 @@ App.Frame.centralframe = {
   view:"multiview", 
   cells:[App.Frame.greetingframe,
   App.Frame.groupframe,
-  App.Frame.registerframe],
+  App.Frame.registerframe,
+  App.Frame.loginframe,
+  App.Frame.userframe],
   fitBiggest:true
 };
