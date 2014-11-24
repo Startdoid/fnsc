@@ -111,8 +111,10 @@ collectionGroups = Backbone.Collection.extend({
   
       if (direction === 'uplevel') {
         currentElement.set({ parent_id: shiftedElement.get('parent_id') }, { silent: true });
+        currentElement.save();
       } else if (direction === 'downlevel') {
         currentElement.set({ parent_id: shiftedElement.get('id') }, { silent: true });
+        currentElement.save();
       }
     }
     

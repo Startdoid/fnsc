@@ -1,21 +1,20 @@
 var mongoose = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 
-autoIncrement.initialize(mongoose.connection);
-
 var userSchema = mongoose.Schema({
   id: Number,
-  grouplist: [{ groupId: String, permission: Number }],
-  tasklist: [{ taskId: String, permission: Number }],
-  friendlist: [{ userId: String }],
+  grouplist: [{ groupId: Number, permission: Number }],
+  tasklist: [{ taskId: Number, permission: Number }],
+  friendlist: [{ userId: Number }],
   username : String,
   email: String,
   password : String
 });
 
-userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
-var userModel = mongoose.model('user', userSchema);
-var logedUser = null;
+//userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
+//var userModel = mongoose.model('user', userSchema);
+var userModel = null;
+var loggedUser = null;
 
 module.exports = userModel;
 
@@ -26,6 +25,10 @@ var check = require('validator').check;
 var md5 = require('MD5');
 
 module.exports = {
+  modelInit: function() {
+    userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
+    userModel = mongoose.model('user', userSchema);
+  },
   addUser: function(username, password, email, callback) {
     userModel.findOne({ email: email }, function(err, user) {
       if (err) return callback("UserDbError");
@@ -34,11 +37,18 @@ module.exports = {
       var newUser = new userModel({ username: username, password: md5(password), email: email });
       newUser.save(function (err) {
         if (err) return callback("UserCantCreate");
-          
-        var Cuser = newUser.toObject();
-        callback(null, Cuser);
+        
+        loggedUser = newUser.toObject();
+        callback(null, loggedUser);
       });
     });
+  },
+  getLoggedUser: function() {
+    return loggedUser;
+  },
+  logoutUser: function() {
+    delete loggedUser;
+    loggedUser = null;
   },
   getUserById: function(id, callback) {
     userModel.findOne({ id : id }, function(err, user) {
@@ -63,11 +73,11 @@ module.exports = {
         if (err) return done(null, false, { message: 'Db error' });
         if (foundUser === null) return done(null, false, { message: 'User not found'});
 
-        var Cuser = foundUser.toObject();
-        if(Cuser.password != md5(password))
+        loggedUser = foundUser.toObject();
+        if(loggedUser.password != md5(password))
           done(null, false, { message: 'Incorrect password.' });
         else
-          return done(null, Cuser);
+          return done(null, loggedUser);
       }
     }
   ),
@@ -77,12 +87,12 @@ module.exports = {
   deserializeUser: function(id, done) {
     userModel.findOne({ id: id }, doAuth);
 
-    function doAuth(err, newUser) {
+    function doAuth(err, foundUser) {
       if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
-      if (newUser === null) return done(null, false, { message: 'User not found'});
+      if (foundUser === null) return done(null, false, { message: 'User not found'});
 
-      var Cuser = newUser.toObject();
-      done(null, Cuser);
+      loggedUser = foundUser.toObject();
+      done(null, loggedUser);
     }
   }
 };

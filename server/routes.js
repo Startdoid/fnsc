@@ -26,11 +26,7 @@ var routes = [
   {
     path: '/api/groups/:group_id',
     httpMethod: 'PUT',
-    middleware: [function (req, res) {
-      groupModel.findOneAndUpdate({id : req.params.group_id}, req.body, {upsert:true}, function(err, group) {
-        if (err) { res.send(err); return; }
-      });
-    }]
+    middleware: [savegroup]
   },
   //получить пользователя, а вместе с ним настройки сессии
   {
@@ -38,7 +34,6 @@ var routes = [
     httpMethod: 'GET',
     middleware: [getuser]
   },
-
   //получить задачу из базы
   {
     path: '/api/tasks/:task_id',
@@ -104,17 +99,22 @@ var routes = [
     }]
   },
   {
-    path: '/login',
+    path: '/api/logged',
+    httpMethod: 'GET',
+    middleware: [getLoggedUser]
+  },  
+  {
+    path: '/api/login',
     httpMethod: 'POST',
     middleware: [login]
   },
   {
-    path: '/logout',
-    httpMethod: 'POST',
+    path: '/api/logout',
+    httpMethod: 'PUT',
     middleware: [logout]
   },
   {
-    path: '/register',
+    path: '/api/register',
     httpMethod: 'POST',
     middleware: [register]
   },
@@ -209,13 +209,13 @@ function login(req, res, next) {
 }
 
 function logout(req, res, next) {
-  req.logout();
-  res.redirect('/');
-  //res.send(200);
+  if(req.isAuthenticated()) req.logout();
+  if(userModel != null) userModel.logoutUser();
+  res.send(200);
 }
 
 function getuser(req, res, next) {
-  if(!req.isAuthenticated()) return res.redirect('/');
+  if(!req.isAuthenticated()) return res.send(434, 'User not loged');
 
   userModel.getUserById(req.params.user_id, function(err, usr) {
     if(err === 'UserDbError') return res.send(433, "DB can't add user");
@@ -226,14 +226,35 @@ function getuser(req, res, next) {
   });
 }
 
-function getgroups(req, res, next) {
-  if(!req.isAuthenticated()) return res.redirect('/');
+function getLoggedUser(req, res, next) {
+  var loggedUser = userModel.getLoggedUser();
+  if(loggedUser === null) return res.send(434, 'User not loged');
   
-  var cur = userModel.id;
-  groupModel.find(function(err, groups) {
+  res.json(200, { id: loggedUser.id });
+}
+
+function getgroups(req, res, next) {
+  if(!req.isAuthenticated()) return res.send(434, 'User not loged');
+  
+  var loggedUser = userModel.getLoggedUser();
+  if(loggedUser === null) return res.send(434, 'User not logged');
+  
+  var grId = loggedUser.grouplist.map(function(object) { return object.groupId });
+  
+  groupModel.find({ id: { $in: grId } }, function(err, groups) {
     if (err) { res.send(err); return; }
     //console.log(groups);
     res.json(groups);
+  });
+}
+
+function savegroup(req, res, next) {
+  if(!req.isAuthenticated()) return res.send(434, 'User not loged');
+  
+  delete req.body._id;
+  delete req.body.__v;
+  groupModel.findOneAndUpdate({id : req.params.group_id}, req.body, {upsert:true}, function(err, group) {
+    if (err) { res.send(err); return; }
   });
 }
 //432 - Autorization error

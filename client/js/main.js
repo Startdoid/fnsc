@@ -36,49 +36,20 @@ var implementFunction = (function() {
 		},
 		//корень приложения
 		index:function() {
-		  //если пользователь залогинился
-			if(App.User.get('usrLogged')) {
-			  //Отрисовка интерфейса в зависимости от выбранного сегмента
-			  showInterface(true);
-			  switch(App.User.get('thisSegment')) {
-          case 'users':
-         	  $$("userframe").showProgress({
-              type:"icon",
-              delay:1000
-            });
-
-            App.User.url = '/api/users/' + App.User.get('id');
-		        App.User.fetch({ success: showUserDataAfterFetch });
-		        
-	          App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
-
-            break;
-          case 'groups':
-            App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
-            $$('groupframe').show();
-            break;
-          case 'tasks':
-            // code
-            break;
-          case 'templates':
-            // code
-            break;
-          case 'finances':
-            break;
-          case 'process':
-            // code
-            break;
-          case 'files':
-            // code
-            break;
-          case 'notes':
-            // code
-            break;
-			  }
-  		} else {
-			  showInterface(false);
-			  $$('greetingframe').show();
-			} //if(App.User.usrLogged)
+		  if(App.User.get('id') === 0) {
+        var promise = webix.ajax().get('api/logged', {}, function(text, data) {
+          App.User.set('usrLogged', true);
+          App.User.set('id', data.json().id);
+          interfaceSelector();
+	      });
+	        
+        promise.then(function(realdata){}).fail(function(err) {
+          if(err.status === 434) interfaceSelector();
+          else connectionErrorShow(err);
+        });
+		  } else {
+		    interfaceSelector();
+		  }
 		},
 		//раздел группы
 		groups:function() {
@@ -89,6 +60,15 @@ var implementFunction = (function() {
 	    $$('loginframe').show();
 		},
 		logout:function() {
+      var promise = webix.ajax().put("api/logout", { id: App.User.id });
+	        
+      promise.then(function(realdata){
+        delete App.User;
+        UserModelInit();
+        App.Router.navigate('', {trigger: true});
+      }).fail(function(err){
+        connectionErrorShow(err);
+      });
 		},
 		register:function() {
 	    //Меняем окно приветствия, на окно регистрации
@@ -105,26 +85,80 @@ var implementFunction = (function() {
     
     $$('userframe').show();
     $$("userframe").hideProgress();
+    
+    App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
   };
 	
   var showGroupDataAfterFetch = function(Groups, response, options) {
     App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
   };
 
-	//Инициализируем глобальный объект пользователя со всеми настройками приложения
-	App.User = new App.Models.User();
+  var interfaceSelector = function() {
+    //если пользователь залогинился
+  	if(App.User.get('usrLogged')) {
+  	  //Отрисовка интерфейса в зависимости от выбранного сегмента
+  	  showInterface(true);
+  	  switch(App.User.get('thisSegment')) {
+        case 'users':
+       	  $$("userframe").showProgress({
+            type:"icon",
+            delay:1000
+          });
+  
+          App.User.url = '/api/users/' + App.User.get('id');
+          App.User.fetch({ success: showUserDataAfterFetch });
+  		        
+          break;
+        case 'groups':
+          App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
+          $$('groupframe').show();
+          break;
+        case 'tasks':
+          // code
+          break;
+        case 'templates':
+          // code
+          break;
+        case 'finances':
+          break;
+        case 'process':
+          // code
+          break;
+        case 'files':
+          // code
+          break;
+        case 'notes':
+          // code
+          break;
+  	  }
+  	} else {
+  	  showInterface(false);
+  	  $$('greetingframe').show();
+  	} //if(App.User.usrLogged)    
+  };
 
-	//Привязываем события которые будут обрабатываться User model
-	App.User.on('change:thisSegment', function() {
-	});
-
-	App.User.on('change:thisTry', function() {
-	  //App.Router.navigate('home', {trigger:true} );
-	});
-	
-	App.User.on('change:this_ingrid_groupframe_ItemSelected', function() {
-	  //console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
-	});
+  var UserModelInit = function() {
+    //Инициализируем глобальный объект пользователя со всеми настройками приложения
+  	App.User = new App.Models.User();
+  	
+  	//Привязываем события которые будут обрабатываться User model
+  	App.User.on('change:thisSegment', function() {
+  	});
+  
+  	App.User.on('change:thisTry', function() {
+  	  //App.Router.navigate('home', {trigger:true} );
+  	});
+  	
+  	App.User.on('change:this_ingrid_groupframe_ItemSelected', function() {
+  	  //console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
+  	});
+  };
+  
+  UserModelInit();
+  
+  var connectionErrorShow = function(err) {
+    webix.message({type:"error", text:err.responseText});
+  };
 
   //объект организует работу с деревьями, для того что бы линейную бэкбоновскую коллекцию
   //разворачивать в древовидную структуру и выводить в webix-овые вьюхи
@@ -288,6 +322,7 @@ var implementFunction = (function() {
 
   App.Collections.Groups.on('change', function(model, options) {
     App.Trees.GroupTree.treeChange(model);
+    model.save();
   });
   
   App.Collections.Groups.on('move', function(currentPosId, newPosId, parentId) {
@@ -330,8 +365,6 @@ var implementFunction = (function() {
       }
     }
   });
-
-  $$('greetingframe').show();
 
   webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
   webix.event(window, "resize", function() { masterframe.adjust(); });

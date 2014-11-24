@@ -7,7 +7,7 @@ App.Frame.lblInTask = {
 	view: "label",
 	label:"InTask.me",
 	on:{
-		'onItemClick': function(){ webix.message("onGoHome"); }
+		'onItemClick': function() { App.Router.navigate('home', {trigger:true} ); }
 	}
 };
 
@@ -23,17 +23,26 @@ App.Frame.btnHome = {
 };
 
 App.Frame.mnuSettings = {
-	id:"mnuSettings",
-	view:"menu", 
+	id:'mnuSettings',
+	view:'menu', 
 	width:35,
-	align:"right",
+	align:'right',
   data:[
-    { id:"1", value:"Настройки", submenu:[
-    	{id: "1.1", value:"Персональные настройки"},
-    	{id: "1.2", value:"Регистрация"},
-      {id: "1.3", value:"Сменить учетную запись"},
-      {id: "1.4", value:"Выйти"}]},
+    { id:'1', value: 'Настройки', submenu:[
+    	{id: '1.1', value: 'Персональные настройки'},
+    	{id: '1.2', value: 'Регистрация'},
+      {id: '1.3', value: 'Сменить учетную запись'},
+      {id: '1.4', value: 'Выйти'}]},
   ],
+  on:{
+        onMenuItemClick:function(id) {
+          switch(id) {
+            case '1.4':
+              App.Router.navigate('logout', {trigger:true} );
+              break;
+          }
+        }
+      },
   template:function(obj) {
     return "<span class='webix_icon fa-cogs'"+obj.value+"</span>";
   }
@@ -149,9 +158,9 @@ App.Frame.sliceusers = {
   view:'tree',
   select:true,
   data: [
-    { id:'viktor', value:'Виктор' },
-    { id:'lubov', value:'Любовь' },
-    { id:'denis', value:'Денис' }
+    //{ id:'viktor', value:'Виктор' },
+    //{ id:'lubov', value:'Любовь' },
+    //{ id:'denis', value:'Денис' }
   ]
 };
 
@@ -421,7 +430,7 @@ var registrationForm = {
     { margin:5, cols:[
       { view:'button', value:'Зарегистрировать', type:'form', hotkey: "enter", on:{
 	      'onItemClick':function() {
-	        var promise = webix.ajax().post('register', { email:$$('reg_email').getValue(), 
+	        var promise = webix.ajax().post('api/register', { email:$$('reg_email').getValue(), 
 	                                                      username:$$('reg_username').getValue(), 
 	                                                      password:$$('reg_password').getValue()}, function(text, data)
 	        {
@@ -455,7 +464,7 @@ var loginForm = {
     { margin:5, cols:[
       { view:'button', value:'Войти', type:'form', click:function() {
 
-	        var promise = webix.ajax().post('login', { email:$$('log_email').getValue(), 
+	        var promise = webix.ajax().post('api/login', { email:$$('log_email').getValue(), 
 	                                                   password:$$('log_password').getValue()}, function(text, data)
 	        {
 	          App.User.set('usrLogged', true);
