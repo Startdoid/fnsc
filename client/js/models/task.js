@@ -1,10 +1,10 @@
 App.Models.Task = Backbone.Model.extend({
   defaults: {
     id: 0,
-    groupId: 0,
-    text: 'Empty task',
+    parent_id: 0,
+    description: 'Empty task',
     done: false
   },
  
-  urlRoot: '/tasks'
+  urlRoot: '/api/tasks'
 });

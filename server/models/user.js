@@ -4,19 +4,16 @@ var autoIncrement = require('mongoose-auto-increment');
 var userSchema = mongoose.Schema({
   id: Number,
   grouplist: [{ groupId: Number, permission: Number }],
-  tasklist: [{ taskId: Number, permission: Number }],
   friendlist: [{ userId: Number }],
+  fotolist: [{ fotoId: Number }],
+  avatar: Number,
   username : String,
   email: String,
   password : String
 });
 
-//userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
-//var userModel = mongoose.model('user', userSchema);
 var userModel = null;
 var loggedUser = null;
-
-module.exports = userModel;
 
 var _ = require('underscore');
 var passport = require('passport');
@@ -25,6 +22,7 @@ var check = require('validator').check;
 var md5 = require('MD5');
 
 module.exports = {
+  model: userModel,
   modelInit: function() {
     userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
     userModel = mongoose.model('user', userSchema);
@@ -34,12 +32,11 @@ module.exports = {
       if (err) return callback("UserDbError");
       if (user !== null) return callback("UserAlreadyExists");
       
-      var newUser = new userModel({ username: username, password: md5(password), email: email });
-      newUser.save(function (err) {
+      loggedUser = new userModel({ username: username, password: md5(password), email: email });
+      loggedUser.save(function (err) {
         if (err) return callback("UserCantCreate");
         
-        loggedUser = newUser.toObject();
-        callback(null, loggedUser);
+        callback(null, loggedUser.toObject());
       });
     });
   },
@@ -47,8 +44,10 @@ module.exports = {
     return loggedUser;
   },
   logoutUser: function() {
-    delete loggedUser;
-    loggedUser = null;
+    if(!loggedUser) {
+      delete loggedUser;
+      loggedUser = null;
+    }
   },
   getUserById: function(id, callback) {
     userModel.findOne({ id : id }, function(err, user) {
@@ -73,11 +72,12 @@ module.exports = {
         if (err) return done(null, false, { message: 'Db error' });
         if (foundUser === null) return done(null, false, { message: 'User not found'});
 
-        loggedUser = foundUser.toObject();
-        if(loggedUser.password != md5(password))
+        loggedUser = foundUser;
+        var obj = loggedUser.toObject();
+        if(obj.password != md5(password))
           done(null, false, { message: 'Incorrect password.' });
         else
-          return done(null, loggedUser);
+          return done(null, obj);
       }
     }
   ),
@@ -91,8 +91,8 @@ module.exports = {
       if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
       if (foundUser === null) return done(null, false, { message: 'User not found'});
 
-      loggedUser = foundUser.toObject();
-      done(null, loggedUser);
+      loggedUser = foundUser;
+      done(null, loggedUser.toObject());
     }
   }
 };

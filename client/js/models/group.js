@@ -2,6 +2,7 @@ App.Models.Group = Backbone.Model.extend({
   defaults: {
     id: 0,
     parent_id: 0,
+    owner_id: 0,
     name: 'Default try',
     picId: 0,
     numUsers: 1,

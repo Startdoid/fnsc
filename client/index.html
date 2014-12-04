@@ -15,6 +15,27 @@
     <script type="text/javascript" src="js/main.js"></script>
   </head>
   
+  <style>
+  	div.friend_avatar {
+		  width: 120px;
+		  float: left;
+	  }
+	 	div.friend_avatar img {
+	  	border: none;
+	  }
+	  
+  	div.friend_info span{
+  		display: block;
+  		width: 64px;
+  		font-weight: bold;
+  		float: left;
+  	}
+  	.friend_info, .friend_avatar{
+  		padding:8px;
+  		line-height: 21px;
+  	}	  
+  </style>
+  
   <body>
 		<div id="masterframe"></div>
 		<div id="headerframe"></div>
@@ -37,6 +58,16 @@
 		<div id="slicetagsframe"></div>
 		
 		<div id="loginForm"></div>
+		
+		<div id="friendlist_template" style='display:none'>
+  		<div class='friend_avatar'>
+  			<img src='img/avatars/#img#'/>
+  		</div>
+  		<div class='friend_info'>
+  			<div><span>Name:</span>#name#</div>
+  			<div><span>Email:</span>#email#</div>
+  		</div>
+  	</div>
 	
     <script type="text/javascript" charset="utf-8">
       var webix = window.webix;
@@ -104,6 +135,7 @@
     <script type="text/javascript" src='js/models/task.js'></script>
     <script type="text/javascript" src='js/models/user.js'></script>
     <script type="text/javascript" src='js/models/group.js'></script>
+    <script type="text/javascript" src='js/collections/tasks.js'></script>
     <script type="text/javascript" src='js/collections/groups.js'></script>
     <script type="text/javascript" src='js/views/dview.js'></script>
     <script type="text/javascript" src='js/views/wmasterview.js'></script>

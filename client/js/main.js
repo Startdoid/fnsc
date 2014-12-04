@@ -26,6 +26,7 @@ var implementFunction = (function() {
 			"logout(/)":"logout",
 			"register(/)":"register",
 			"groups(/)":"groups",
+			"tasks(/)":"tasks",
 			"users(/)":"users",
 			'home(/)':"home",
 			'':"index"
@@ -38,21 +39,25 @@ var implementFunction = (function() {
 		index:function() {
 		  if(App.User.get('id') === 0) {
         var promise = webix.ajax().get('api/logged', {}, function(text, data) {
-          App.User.set('usrLogged', true);
+          App.User.set('usrLogged', data.json().usrLogged);
           App.User.set('id', data.json().id);
           interfaceSelector();
 	      });
 	        
         promise.then(function(realdata){}).fail(function(err) {
-          if(err.status === 434) interfaceSelector();
-          else connectionErrorShow(err);
+          connectionErrorShow(err);
         });
 		  } else {
 		    interfaceSelector();
 		  }
 		},
-		//раздел группы
 		groups:function() {
+		  this.navigate('', {trigger: true});
+		},
+		tasks:function() {
+		  this.navigate('', {trigger: true});
+		},
+		users:function() {
 		  this.navigate('', {trigger: true});
 		},
 		login:function() {
@@ -62,9 +67,8 @@ var implementFunction = (function() {
 		logout:function() {
       var promise = webix.ajax().put("api/logout", { id: App.User.id });
 	        
-      promise.then(function(realdata){
-        delete App.User;
-        UserModelInit();
+      promise.then(function(realdata) {
+        defaultState();
         App.Router.navigate('', {trigger: true});
       }).fail(function(err){
         connectionErrorShow(err);
@@ -74,13 +78,12 @@ var implementFunction = (function() {
 	    //Меняем окно приветствия, на окно регистрации
       showInterface(false);
 	    $$('registerframe').show();
-		},
-		users:function() {
-		  this.navigate('', {trigger: true});
 		}
 	}))();
 	
-	var showUserDataAfterFetch = function(User, response, options) {
+	//***************************************************************************
+	//AFTER FETCH FUNCTIONs
+  var showUserDataAfterFetch = function(User, response, options) {
     showInterface(true);
     
     $$('userframe').show();
@@ -91,8 +94,19 @@ var implementFunction = (function() {
 	
   var showGroupDataAfterFetch = function(Groups, response, options) {
     App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
+    
+    $$('ingrid_groupframe').load('GroupData->load');
+    $$('slicegroups').load('GroupData->load');
   };
 
+  var showTaskDataAfterFetch = function(Tasks, response, options) {
+    App.Trees.TaskTree.treeBuild(App.Collections.Tasks.models);
+    
+    $$('ingrid_taskframe').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
+  };
+
+  //***************************************************************************
+  //INTERFACE MANIPULATION
   var interfaceSelector = function() {
     //если пользователь залогинился
   	if(App.User.get('usrLogged')) {
@@ -102,7 +116,7 @@ var implementFunction = (function() {
         case 'users':
        	  $$("userframe").showProgress({
             type:"icon",
-            delay:1000
+            delay:500
           });
   
           App.User.url = '/api/users/' + App.User.get('id');
@@ -114,7 +128,8 @@ var implementFunction = (function() {
           $$('groupframe').show();
           break;
         case 'tasks':
-          // code
+          App.Collections.Tasks.fetch({ success: showTaskDataAfterFetch });
+          $$('taskframe').show();
           break;
         case 'templates':
           // code
@@ -136,7 +151,17 @@ var implementFunction = (function() {
   	  $$('greetingframe').show();
   	} //if(App.User.usrLogged)    
   };
+  
+  var connectionErrorShow = function(err) {
+    if(err.status === 434) {
+      defaultState();
+      App.Router.navigate('', {trigger: true});
+    }
+    webix.message({type:"error", text:err.responseText});
+  };
 
+  //***************************************************************************
+  //INIT FUNCTIONs
   var UserModelInit = function() {
     //Инициализируем глобальный объект пользователя со всеми настройками приложения
   	App.User = new App.Models.User();
@@ -154,12 +179,74 @@ var implementFunction = (function() {
   	});
   };
   
-  UserModelInit();
+  var GroupModelInit = function() {
+  	App.Trees.GroupTree = new treeManager();
+    
+  	App.Collections.Groups = new collectionGroups();
   
-  var connectionErrorShow = function(err) {
-    webix.message({type:"error", text:err.responseText});
+  	App.Collections.Groups.on('add', function(grp) {
+  	  App.Trees.GroupTree.treeAdd(grp);
+  	});
+  	
+  	App.Collections.Groups.on('remove', function(ind) {
+  	  App.Trees.GroupTree.treeRemove(ind);
+  	});
+  
+    App.Collections.Groups.on('change', function(model, options) {
+      App.Trees.GroupTree.treeChange(model);
+      model.save();
+    });
+    
+    App.Collections.Groups.on('move', function(currentPosId, newPosId, parentId) {
+      App.Trees.GroupTree.move(currentPosId, newPosId, parentId);
+    });
   };
-
+  
+  var TaskModelInit = function() {
+    App.Trees.TaskTree = new treeManager();
+    
+    App.Collections.Tasks = new collectionTasks();
+    
+    App.Collections.Tasks.on('add', function(tsk) {
+      App.Trees.TaskTree.treeAdd(tsk);
+    });
+    
+  	App.Collections.Tasks.on('remove', function(ind) {
+  	  App.Trees.TaskTree.treeRemove(ind);
+  	});
+  
+    App.Collections.Tasks.on('change', function(model, options) {
+      App.Trees.TaskTree.treeChange(model);
+      model.save();
+    });
+    
+    App.Collections.Tasks.on('move', function(currentPosId, newPosId, parentId) {
+      App.Trees.TaskTree.move(currentPosId, newPosId, parentId);
+    });    
+  };
+  
+  var defaultState = function() {
+    delete App.User;
+    UserModelInit();
+      
+    delete App.Trees.GroupTree;
+    delete App.Collections.Groups;
+    GroupModelInit();
+    
+    delete App.Trees.TaskTree;
+    delete App.Collections.Tasks;
+    TaskModelInit();
+    
+    $$('ingrid_taskframe').clearAll();
+    
+    $$('ingrid_groupframe').clearAll();
+    $$('slicegroups').clearAll();
+    
+    $$('mnuSegments').setValue(1);
+  };
+  
+  //***************************************************************************
+  //TREE MANAGER
   //объект организует работу с деревьями, для того что бы линейную бэкбоновскую коллекцию
   //разворачивать в древовидную структуру и выводить в webix-овые вьюхи
 	var treeManager = function (collection) {
@@ -169,7 +256,7 @@ var implementFunction = (function() {
 
     //рекурсивный перебор
     var treeRecursively = function(branch, list) {
-      if (typeof branch == 'undefined') return null;
+      if (typeof branch === 'undefined') return null;
       var tr = [];
       for(var i=0; i<branch.length; i++)      
       {
@@ -224,10 +311,14 @@ var implementFunction = (function() {
     this.treeBuild = function(collection) {
 	    //преобразуем в линейный массив бэкбоновскую коллекцию (разворачиваем атрибуты объекта)
       var maplist = collection.map(function(object) { return object.attributes });
-      //сгруппируем элементы массива по родителю
-      var list = _.groupBy(maplist, 'parent_id');
-      //рекурсивно перебирая сгруппированный массив построим дерево
-      tree = treeRecursively(list[0], list);
+      if(maplist.length > 0) {
+        //сгруппируем элементы массива по родителю
+        var list = _.groupBy(maplist, 'parent_id');
+        //рекурсивно перебирая сгруппированный массив построим дерево
+        tree = treeRecursively(list[0], list);
+      } else {
+        tree = [];
+      }
     };
     
     //добавление элемента в дерево, автоматическое обновление элементов во вьюхах из массива views
@@ -286,7 +377,7 @@ var implementFunction = (function() {
         if(views.indexOf(view) === -1) {
           views.push(view);
           
-          //обновим вновь добавленную информацией из дерева
+          //обновим вновь добавленную информ��цией из дерева
           view.clearAll();
           view.parse(JSON.stringify(tree));
         }
@@ -305,31 +396,10 @@ var implementFunction = (function() {
 	  }
   };
 
-  //Создаем на основе коллекции менеджер дерева групп
-	App.Trees.GroupTree = new treeManager();
-  
-  //Создаем коллекцию групп
-	App.Collections.Groups = new collectionGroups();
-
-  //Обработка события добавления в коллекцию групп
-	App.Collections.Groups.on('add', function(grp) {
-	  App.Trees.GroupTree.treeAdd(grp);
-	});
-	
-	App.Collections.Groups.on('remove', function(ind) {
-	  App.Trees.GroupTree.treeRemove(ind);
-	});
-
-  App.Collections.Groups.on('change', function(model, options) {
-    App.Trees.GroupTree.treeChange(model);
-    model.save();
-  });
-  
-  App.Collections.Groups.on('move', function(currentPosId, newPosId, parentId) {
-    App.Trees.GroupTree.move(currentPosId, newPosId, parentId);
-  });
-  
   //_.extend(App.Collections.Groups, Backbone.Events);
+  UserModelInit();
+  GroupModelInit();
+  TaskModelInit();
 
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   //описание внизу модуля
@@ -365,6 +435,26 @@ var implementFunction = (function() {
       }
     }
   });
+  
+  $$('ingrid_taskframe').attachEvent('onAfterEditStart', function(id) {
+    App.User.set('this_ingrid_taskframe_ItemEdited', id);
+  });
+
+  $$('ingrid_taskframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+    var ItemEdited = App.User.get('this_ingrid_taskframe_ItemEdited');
+    var ItemSelected = App.User.get('this_ingrid_taskframe_ItemSelected');
+    if (editor.column === 'name') {
+      if(ItemEdited != ItemSelected) {
+        this.getItem(ItemEdited).name = state.old;
+        this.updateItem(ItemEdited);
+        App.User.set('this_ingrid_taskframe_ItemEdited', null);
+      } else {
+        var selectTask = App.Collections.Tasks.get(App.User.get('this_ingrid_taskframe_ItemEdited'));
+        selectTask.set({ 'name': state.value });
+      }
+    }
+  });
+  showInterface(false);
 
   webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
   webix.event(window, "resize", function() { masterframe.adjust(); });

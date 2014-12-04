@@ -71,6 +71,7 @@ App.Frame.btnEvents = {
 };
 
 App.Frame.mnuSegments = {
+  id:'mnuSegments',
 	view:"richselect", 
 	width:300,
 	label: 'Сегменты', 
@@ -99,6 +100,7 @@ App.Frame.mnuSegments = {
           break;
         case 3:
           App.User.set('thisSegment', 'tasks');
+          App.Router.navigate('tasks', {trigger:true} );
           break;
         case 4:
           App.User.set('thisSegment', 'templates');
@@ -150,7 +152,7 @@ App.Frame.slicegroups = {
   select:true,
   autoheight:true,
 	template:'{common.icon()}{common.folder()}<span>#name#</span>',
-  url: "myData->load"
+  url: "GroupData->load"
 };
 
 App.Frame.sliceusers = {
@@ -298,6 +300,34 @@ App.Frame.workframe = {
 	}
 };
 
+webix.proxy.GroupData = {
+  $proxy: true,
+  init: function() {
+    //webix.extend(this, webix.proxy.offline);
+  },
+  load: function(view, callback) {
+    //Добавляем id вебиксовых вьюх для синхронизации с данными
+	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
+    App.Trees.GroupTree.viewsAdd($$(view.config.id));
+  }
+};
+
+webix.proxy.TaskData = {
+  $proxy: true,
+  init: function() {
+    //webix.extend(this, webix.proxy.offline);
+  },
+  load: function(view, callback) {
+    //Добавляем id вебиксовых вьюх для синхронизации с данными
+	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
+    App.Trees.TaskTree.viewsAdd($$(view.config.id));
+  }
+};
+//webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
+
+//***************************************************************************
+//GROUP frames
+
 App.Frame.grouptoolframe = {
   view:'toolbar',
   id:'grouptoolframe',
@@ -350,20 +380,6 @@ App.Frame.grouptoolframe = {
   ]
 };
 
-webix.proxy.myData = {
-  $proxy:true,
-  init:function() {
-    //webix.extend(this, webix.proxy.offline);
-  },
-  load: function(view, callback) {
-    //Добавляем id вебиксовых вьюх для синхронизации с данными
-	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-    App.Trees.GroupTree.viewsAdd($$(view.config.id));
-  }
-};
-
-//webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
-
 App.Frame.ingrid_groupframe = {
   id:'ingrid_groupframe',
 	view:'treetable', 
@@ -375,19 +391,19 @@ App.Frame.ingrid_groupframe = {
 		{ id:'id', header:'', css:{"text-align":"center"}, width:40 },
 		{ id:'name', editor:"text", header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
-		],
+	],
 	on: {
 	  onItemClick:function() {
 	    App.User.set('this_ingrid_groupframe_ItemSelected', this.getSelectedId().id);
-	  },
+    },
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
       if(id_conf === 'ingrid_groupframe') {
         App.Collections.Groups.moveGroup(context.start, 'jump', context.index, context.parent);
       }
-  	}
+  	 }
 	},
-	url: "myData->load"
+	url: "GroupData->load"
 };
 
 App.Frame.groupframe = {
@@ -419,6 +435,193 @@ App.Frame.groupframe = {
   ]
 };
 
+//***************************************************************************
+//TASK frames
+
+App.Frame.tasktoolframe = {
+  view:'toolbar',
+  id:'tasktoolframe',
+  cols:[
+    { view:'button', id:'tsktlbtnAddMaster', value:'Добавить основную', width:140, align:'left', on:{
+      'onItemClick':function() { App.Collections.Tasks.newTask(0); }
+    } },
+    { view:'button', id:'tsktlbtnAdd', value:'Добавить', width:100, align:"left", on:{
+		  'onItemClick':function() { App.Collections.Tasks.newTask(App.User.get('this_ingrid_taskframe_ItemSelected')); }
+    } },
+    { view:'button', id:'tsktlbtnDlt', value:'Удалить', width:100, align:"left", on:{
+      'onItemClick':function() {
+        var selectedId = App.User.get('this_ingrid_taskframe_ItemSelected');
+        if (selectedId !== 0) {
+          var firstModels = App.Collections.Tasks.findWhere( { parent_id: selectedId } );
+          var text = '';
+          if (typeof firstModels === 'undefined') {
+            text = 'Вы пожелали удалить выбранную задачу?';
+          } else {
+            text = 'Задача содержит подзадачи, вы желаете удалить корневую задачу вместе с потомками?';
+          }
+
+          webix.confirm({
+            title:'Запрос на удаление задачи',
+            ok:'Да', 
+            cancel:'Нет',
+            type:'confirm-warning',
+            text:text,
+            callback: function(result) { 
+              if (result) { App.Collections.Tasks.removeTask(App.User.get('this_ingrid_taskframe_ItemSelected')); }
+              }
+          });
+        }
+      }
+    } },
+    { view:'button', id:'tsktlbtnUp', value:'Вверх', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'up'); }
+    } },
+    { view:'button', id:'tsktlbtnDown', value:'Вниз', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'down'); }
+    } },
+    { view:'button', id:'tsktlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'uplevel'); }
+    } },
+    { view:'button', id:'tsktlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'downlevel'); }
+    } },
+    { }
+  ]
+};
+
+App.Frame.ingrid_taskframe = {
+  id:'ingrid_taskframe',
+	view:'treetable', 
+	editable:true, 
+	autoheight:true, 
+	select: true,
+	drag:true,
+	columns:[
+		{ id:'id', header:'', css:{"text-align":"center"}, width:40 },
+		{ id:'description', editor:"text", header:'Описание задачи', width:250, template:'{common.treetable()} #description#' }
+	],
+	on: {
+	  onItemClick:function() {
+	    App.User.set('this_ingrid_taskframe_ItemSelected', this.getSelectedId().id);
+    },
+    onBeforeDrop:function(context, event) {
+      var id_conf = context.to.config.id;
+      if(id_conf === 'ingrid_taskframe') {
+        App.Collections.Tasks.moveTask(context.start, 'jump', context.index, context.parent);
+      }
+  	 }
+	},
+	url: "TaskData->load"
+};
+
+App.Frame.taskframe = {
+	id:'taskframe',
+	view:'tabview',
+	autowidth:true,
+	animate:'true',
+	tabbar : { optionWidth : 200 },
+  cells:[
+    {
+     header:'Мои',
+     body:{
+        id:'mytasks_taskframe',
+        rows:[
+          App.Frame.tasktoolframe,
+          App.Frame.ingrid_taskframe]
+        }
+    },
+    {
+     header:'Входящие',
+     body:{
+        id:'incomingtasks_taskframe',
+        rows:[
+          {}]        
+        }
+    },
+    {
+     header:'Порученные',
+     body:{
+        id:'outcomingtasks_taskframe',
+        rows:[
+          {}]        
+        }
+    }    
+  ]
+};
+
+//***************************************************************************
+//USER frames
+var userframe_profile_friendlist = {
+  id:"userframe_profile_friendlist",
+  view:"list",
+	width:300,
+	minHeight:App.WinSize.windowHeight / 100 * 85,
+	autoheight:true,
+	template:"html->friendlist_template",
+	select:true,
+	type:{ height: 84 },
+	data:[
+	  { img: '1.jpg', name: 'bru', email: 'bru@bru.bru' }
+	]
+};
+
+var userframe_profile = {
+  id:'userframe_profile',
+  cols:[
+    { rows:[
+        { view:'template', template:'bru', type:'header', align:'center' },
+        { cols:[
+            { view:'template', template:"<img src='img/avatars/2.png'>", width: 200 },
+            { view:'template', template:"carousel" }
+          ], height:200
+        },
+        {}
+      ]
+    },
+    { rows:[
+        {type:"header", template:"Друзья"},
+        userframe_profile_friendlist
+      ]
+    }
+  ]  
+};
+
+var userframe_peoples = {
+  id:'userframe_peoples',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'User page', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+App.Frame.userframe = {
+  id:'userframe',
+  view:'tabview',
+  autoheight:true,
+  autowidth:true,
+  animate:true,
+  tabbar : { optionWidth : 200 },
+  cells:[
+    {
+      header: 'Профиль',
+      body: userframe_profile
+    },
+    {
+      header: 'Люди',
+      body: userframe_peoples
+    }
+  ]
+};
+
+//***************************************************************************
+//OTHER frames
 var registrationForm = {
   view:'form',
   width:350,
@@ -520,23 +723,6 @@ App.Frame.loginframe = {
   ]
 };
 
-App.Frame.userframe = {
-  id:'userframe',
-  autoheight:true,
-  autowidth:true,
-  rows:[
-    {},
-    {
-      cols:[
-      {},
-      { view:'template', template:'User page', type:'header', align:'center' },
-      {}
-      ]
-    },
-    {}
-  ]
-};
-
 App.Frame.greetingframe = {
   id:'greetingframe',
   container:'greetingframe',
@@ -597,6 +783,7 @@ App.Frame.centralframe = {
   view:"multiview", 
   cells:[App.Frame.greetingframe,
   App.Frame.groupframe,
+  App.Frame.taskframe,
   App.Frame.registerframe,
   App.Frame.loginframe,
   App.Frame.userframe],
