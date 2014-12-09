@@ -132,7 +132,6 @@ App.Frame.headerframe = {
 	view:"toolbar",
 	id: 'headerframe',
 	height:25,
-	//minWidth:App.WinSize.windowWidth / 100 * 80,
 	maxWidth:App.WinSize.windowWidth / 100 * 80,
 	elements:[App.Frame.btnHome,
 	          App.Frame.lblInTask,
@@ -176,15 +175,6 @@ App.Frame.sliceprojects = {
     ]
 };
 
-App.Frame.slicecategory = {
-  id:'slicecategory',
-  view:'tree',
-  select:'true',
-  data: [
-    { id:'Default', value:'Default' }
-  ]
-};
-
 App.Frame.slicetags = {
   id:'slicetags',
   view:'tree',
@@ -202,7 +192,7 @@ App.Frame.sliceframe = {
 	minHeight:App.WinSize.windowHeight / 100 * 85,
 	autoheight:true,
 	body:{
-		multi:true,
+		multi:false,
 		view:'accordion',
 		type:'space',
 		rows:[{ body: 'Task pull' },
@@ -210,93 +200,48 @@ App.Frame.sliceframe = {
 		      { header:'Группы', body: App.Frame.slicegroups,  autoheight:true},
 		      { header:'Люди', body: App.Frame.sliceusers },
 		      { header:'Проекты', body: App.Frame.sliceprojects },
-		      { header:"Категории", body: App.Frame.slicecategory },
 		      { header:"Тэги", body: App.Frame.slicetags }
 		      ]
 	}
 };
 
+var optionsframe_views_userprofile = {
+  view:"scrollview", id:"optionsframe_views_userprofile",
+  borderless: true, scroll:"y", //vertical scrolling
+  body:{
+    rows:[
+      { view:'template', template:'Фильтр', type:'section', align:'center' },
+  ]}
+};
+
+var optionsframe_views_groups = {
+  
+};
+
+var optionsframe_views_tasks = {
+  
+};
+
+var optionsframe_views = {
+  view:'multiview', id:'optionsframe_views',
+  autoheight:true, autowidth:true, fitBiggest:true,
+  borderless: true,
+  cells:[optionsframe_views_userprofile,
+  optionsframe_views_groups,
+  optionsframe_views_tasks ]
+};
+
 App.Frame.optionsframe = {
   id:"optionsframe",
-	width:250,
-	header:"Опции",
-	//height:600,
-	minHeight:App.WinSize.windowHeight / 100 * 85,
+	width:250, minHeight:App.WinSize.windowHeight / 100 * 85,
 	autoheight:true,
 	collapsed:true,
+	header:"Опции",
 	body:{
 		multi:true,
 		view:"accordion",
 		type:"space",
-		rows:[{ body:"First options" }
-		      ]
-	}
-};
-
-users = {
-		 "0" : "",
-		 "1" : "Carl Lager",
-		 "2" : "Ken Ford",
-		 "3" : "Mindy Resin",
-		 "4" : "Ben Sardonis",
-		 "5" : "Barbara Liston"
-	};
-  	
-App.Frame.workframe = {
-	id:"workgrid",
-	view:"treetable", 
-	editable:true, 
-	autoheight:true, 
-	leftSplit:5,
-	columns:[
-		{id:"num", 		header:"", width:40, css:"shade"},
-		{id:"blank",	header:"", width:40},
-		{id:"attach",	header:"", width:40, css:"myicon", template:function(obj){
-			if (!obj.attach) return "";
-			return "<span class='webix_icon icon-attach'></span>";
-		}},
-		{id:"comments", header:"", width:40, css:"myicon", template:function(obj){
-			if (!obj.comments) return "";
-			return "<span class='webix_icon icon-docs'></span>";
-		}},
-		{id:"category", header:"Category", width:300, template:"{common.space()} {common.icon()} &nbsp;#value#", editor:"text", sort:"string"},
-		{id:"status", 	header:"Status", width:60, template:function(obj)
-			{
-				if (!obj.status) return "";
-					return "<img style='padding:2px 10px' src='imgs/status_"+obj.status+".png'>";
-			}
-		},
-		{id:"owner", 	header:"Assigned To", editor:"select",	options:users },
-		{id:"cert", 	header:"Certified", width:60, css:"mystar", template:function(obj){
-			if (obj.cert == "yes") return "<span class='webix_icon icon-star'></span>";
-			if (obj.cert == "no") return "<span class='webix_icon icon-star-empty'></span>";
-			return "";
-		}},
-		{id:"certby", 	header:"Cert. By", editor:"select",	options:users },
-		{id:"start", 	header:"Start date", map:"(date)#start#", editor:"date", sort:"int"},
-		{id:"end",	 	header:"End date", map:"(date)#end#", editor:"date", sort:"int"}
-		],
-	//url:"js/data.json?v=4",
-	url:"/datagrid",
-	onClick:{
-		"webix_icon" : function(ev, id, trg){
-			if (id.column == "attach")
-				webix.message("Attach call for row: "+this.getItem(id.row).num);
-			if (id.column == "comments")
-				webix.message("Comments call for row: "+this.getItem(id.row).num);
-			if (id.column == "cert"){
-				var item = this.getItem(id.row);
-				if (item.cert){
-					item.cert = item.cert == "yes" ? "no" : "yes";
-					this.updateItem(id.row);
-				}
-			}
-		}
-	},
-	on:{
-		"onbeforeeditstart":function(cell){
-			return !this.getItem(cell.row).notedit;
-		}
+		rows:[ { body: optionsframe_views }]
 	}
 };
 
@@ -552,33 +497,68 @@ App.Frame.taskframe = {
 //***************************************************************************
 //USER frames
 var userframe_profile_friendlist = {
-  id:"userframe_profile_friendlist",
-  view:"list",
-	width:300,
-	minHeight:App.WinSize.windowHeight / 100 * 85,
-	autoheight:true,
+  view:"dataview", id:"userframe_profile_friendlist",
+	width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
+	borderless:false, scroll:'y', yCount:9, xCount:1,
+	type:{ height: 80, width:300 },
+	//container:'vbru',
 	template:"html->friendlist_template",
+  datafetch:3,
+  datathrottle: 100,
+  url:'api/userlist'
+};
+
+var userframe_profile_selector = {
+  view:"list", id:"userframe_profile_selector", css:"mainSelector",
+	borderless:true, yCount:4, width:250,
+	template:"#value#",
+	type:{ height:50 },
 	select:true,
-	type:{ height: 84 },
 	data:[
-	  { img: '1.jpg', name: 'bru', email: 'bru@bru.bru' }
+		{ id:"all", 		value:"Все", count:0 },
+		{ id:"personal",	value:"Персональные", count:0 }
 	]
+	//on:{"onAfterSelect": function(){
+		//app.trigger("filterIssues");
+	//}
+};
+
+var userframe_profile_section = {
+  view:"scrollview", id:"userframe_profile_section",
+  borderless: true, scroll:"y", //vertical scrolling
+  body:{
+    rows:[
+      { view:'template', template:'Персональные', type:'section', align:'center' },
+      { view:"text", value:'bru', label:"Имя пользователя", labelWidth:120 },
+      { view:"text", value:'bru@bru.bru', label:"Email", labelWidth:120 }
+  ]}
 };
 
 var userframe_profile = {
   id:'userframe_profile',
+  borderless:false,
   cols:[
     { rows:[
+        { height:5 },
         { view:'template', template:'bru', type:'header', align:'center' },
         { cols:[
-            { view:'template', template:"<img src='img/avatars/2.png'>", width: 200 },
+            { view:'template', template:"<img src='img/avatars/2.png'>", width: 250 },
+            { width:10 },
             { view:'template', template:"carousel" }
-          ], height:200
+          ], height:250
         },
-        {}
+        { height:10 },
+        { cols:[
+            userframe_profile_selector,
+            { width:10 },
+            userframe_profile_section
+          ]
+        }
       ]
     },
+    { width:10 },
     { rows:[
+        { height:5 },
         {type:"header", template:"Друзья"},
         userframe_profile_friendlist
       ]
@@ -586,14 +566,59 @@ var userframe_profile = {
   ]  
 };
 
-var userframe_peoples = {
-  id:'userframe_peoples',
+var userframe_albums = {
+  id:'userframe_albums',
   rows:[
     {},
     {
       cols:[
       {},
-      { view:'template', template:'User page', type:'header', align:'center' },
+      { view:'template', template:'albums', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+var userframe_achievements = {
+  id:'userframe_achievements',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'achievements', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+var userframe_events = {
+  id:'userframe_events',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'events', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+var userframe_message = {
+  id:'userframe_message',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'message', type:'header', align:'center' },
       {}
       ]
     },
@@ -614,9 +639,21 @@ App.Frame.userframe = {
       body: userframe_profile
     },
     {
-      header: 'Люди',
-      body: userframe_peoples
-    }
+      header: 'Альбомы',
+      body: userframe_albums
+    },
+    {
+      header: 'Достижения',
+      body: userframe_achievements
+    },
+    {
+      header: 'События',
+      body: userframe_events
+    },
+    {
+      header: 'Сообщения',
+      body: userframe_message
+    },    
   ]
 };
 
@@ -789,3 +826,34 @@ App.Frame.centralframe = {
   App.Frame.userframe],
   fitBiggest:true
 };
+
+//css
+//    .listCounter{
+//    	background: #444;
+//    	color:#fff;
+//    	border-radius: 8px;
+//    	width:28px;
+//    	text-align: center;
+//    	display: block;
+//    	margin-top: 10px;
+//    	line-height:30px;
+//    	float:right;
+//    }
+
+//var test = {
+//  view:"list",                    :тип webix-компонента:
+//  id:"userframe_profile_section", :идентификатор фрейма, можно получить доступ через $$("userframe_profile_section"):
+//  width:200,                      :ширина фрейма:
+//  css:"mainSelector",             :css - схема к фрейму:
+//	borderless:true,                :отображение границы вокруг фрейма:
+//	yCount:4,                       :количество элементов по вертикали в фрейме типа list:
+//	template:"#value# <span class='listCounter'>#count#</span>", :html - шаблон для каждого элемента в фрейме типа list:
+//	type:{ height:50 },             :спецификация того, как будет выглядеть каждый элемент компонента: http://docs.webix.com/desktop__type.html
+//	select:true,                    :разрешает или запрещает выбор элементов в фрейме типа list:
+//	data:[
+//		{ id:"all", 		value:"All Issues", count:0 },
+//	],
+//	on:{"onAfterSelect": function(){
+//		app.trigger("filterIssues");
+//		}
+//	}

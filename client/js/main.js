@@ -89,6 +89,8 @@ var implementFunction = (function() {
     $$('userframe').show();
     $$("userframe").hideProgress();
     
+    $$("optionsframe_views_userprofile").show();
+    
     App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
   };
 	

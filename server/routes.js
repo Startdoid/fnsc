@@ -62,6 +62,11 @@ var routes = [
     middleware: [getuser]
   },
   {
+    path: '/api/userlist',
+    httpMethod: 'GET',
+    middleware: [userlist]
+  },
+  {
     path: '/api/logged',
     httpMethod: 'GET',
     middleware: [getLoggedUser]
@@ -295,6 +300,27 @@ function savetask(req, res, next) {
 
 function deletetask(req, res, next) {
   res.send(400);
+}
+
+function userlist(req, res, next) {
+  var extr = [
+	  { img: '1.jpg', name: 'bru', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru2', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru3', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru4', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru5', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru6', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru7', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru8', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru9', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru10', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru11', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru12', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru13', email: 'bru@bru.bru' },
+	  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
+	];
+	res.json(extr);
+  //res.send(200);
 }
 //432 - Autorization error
 //433 - User db error
