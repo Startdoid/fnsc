@@ -306,6 +306,26 @@ function userlist(req, res, next) {
   var start = req.param("start");
   var count = req.param("count");
   
+  if (!start && !count){
+    //first time call
+        res.send({
+            total_count:5000,
+            data:[
+                //initial set of data
+                { value:"1"},
+                { value:"2"},
+                { value:"3"}
+            ]
+        });
+    } else {
+        //get "count" records from "pos" position
+        var json = { pos:start, data:[] };
+        for (var i = 0; i < count; i++) {
+            json.data.push({ value:"a"+(start*1+(i+1)) })
+        };
+        res.send(json);
+    }
+  
   var mydataset = { 
       pos:0, 
       total_count:150, 
