@@ -508,6 +508,17 @@ App.Frame.taskframe = {
 //   url:'api/userlist'
 // };
 
+var userframe_profile_friendlist = {
+  view:"dataview", id:"userframe_profile_friendlist",	container:"userframe_profile_friendlist",
+  width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
+  borderless:false, scroll:'y', yCount:9, xCount:1,
+  type:{ height: 80, width:300 },
+  template:"html->friendlist_template",
+	//select:1,
+	autowidth:true,
+	url:'api/userlist'
+};
+
 var userframe_profile_selector = {
   view:"list", id:"userframe_profile_selector", css:"mainSelector",
 	borderless:true, yCount:4, width:250,
@@ -559,8 +570,8 @@ var userframe_profile = {
     { width:10 },
     { rows:[
         { height:5 },
-        {type:"header", template:"Друзья"}
-        //userframe_profile_friendlist
+        {type:"header", template:"Друзья"},
+        userframe_profile_friendlist
       ]
     }
   ]  
@@ -826,36 +837,3 @@ App.Frame.centralframe = {
   App.Frame.userframe],
   fitBiggest:true
 };
-
-//css
-//    .listCounter{
-//    	background: #444;
-//    	color:#fff;
-//    	border-radius: 8px;
-//    	width:28px;
-//    	text-align: center;
-//    	display: block;
-//    	margin-top: 10px;
-//    	line-height:30px;
-//    	float:right;
-//    }
-
-//var test = {
-//  view:"list",                    :тип webix-компонента:
-//  id:"userframe_profile_section", :идентификатор фрейма, можно получить доступ через $$("userframe_profile_section"):
-//  width:200,                      :ширина фрейма:
-//  css:"mainSelector",             :css - схема к фрейму:
-//	borderless:true,                :отображение границы вокруг фрейма:
-//	yCount:4,                       :количество элементов по вертикали в фрейме типа list:
-//	template:"#value# <span class='listCounter'>#count#</span>", :html - шаблон для каждого элемента в фрейме типа list:
-//	type:{ height:50 },             :спецификация того, как будет выглядеть каждый элемент компонента: http://docs.webix.com/desktop__type.html
-//	select:true,                    :разрешает или запрещает выбор элементов в фрейме типа list:
-//	data:[
-//		{ id:"all", 		value:"All Issues", count:0 },
-//	],
-//	on:{"onAfterSelect": function(){
-//		app.trigger("filterIssues");
-//		}
-//	}
-
-//carousel.getActiveId()

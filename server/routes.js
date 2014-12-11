@@ -306,46 +306,28 @@ function userlist(req, res, next) {
   var start = req.param("start");
   var count = req.param("count");
   
-  if (!start && !count){
-    //first time call
-        res.send({
-            total_count:5000,
-            data:[
-                //initial set of data
-                { value:"1"},
-                { value:"2"},
-                { value:"3"}
-            ]
-        });
-    } else {
-        //get "count" records from "pos" position
-        var json = { pos:start, data:[] };
-        for (var i = 0; i < count; i++) {
-            json.data.push({ value:"a"+(start*1+(i+1)) })
-        };
-        res.send(json);
-    }
-  
-  var mydataset = { 
-      pos:0, 
-      total_count:150, 
+  if (!start && !count) {
+    //Первый вызов, это инициализация динамического списка первыми данными
+    res.send({
+      total_count:5000,
       data:[
-	  { img: '1.jpg', name: 'bru', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru2', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru3', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru4', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru5', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru6', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru7', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru8', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru9', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru10', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru11', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru12', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru13', email: 'bru@bru.bru' },
-	  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
-	] };
-	res.json(mydataset);
+        //initial set of data
+        { img:'1.jpg', name:'bru1', email:'bru@bru.bru' },
+        { img:'1.jpg', name:'bru2', email:'bru@bru.bru' },
+        { img:'1.jpg', name:'bru3', email:'bru@bru.bru' }
+      ]
+    });
+  } else {
+    //последующая подгрузка: get "count" records from "pos" position
+    var json = { pos:start, data:[] };
+    for (var i = 0; i < count; i++) {
+      json.data.push({ img:'1.jpg', name:'bru'+(start*1+(i+1)), email:'bru@bru.bru' });
+    }
+    res.send(json);
+  }
+  
+  //  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
+	//res.json(mydataset);
   //res.send(200);
 }
 //432 - Autorization error
