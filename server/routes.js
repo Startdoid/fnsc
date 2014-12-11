@@ -303,7 +303,13 @@ function deletetask(req, res, next) {
 }
 
 function userlist(req, res, next) {
-  var extr = [
+  var start = req.param("start");
+  var count = req.param("count");
+  
+  var mydataset = { 
+      pos:0, 
+      total_count:150, 
+      data:[
 	  { img: '1.jpg', name: 'bru', email: 'bru@bru.bru' },
 	  { img: '1.jpg', name: 'bru2', email: 'bru@bru.bru' },
 	  { img: '1.jpg', name: 'bru3', email: 'bru@bru.bru' },
@@ -318,8 +324,8 @@ function userlist(req, res, next) {
 	  { img: '1.jpg', name: 'bru12', email: 'bru@bru.bru' },
 	  { img: '1.jpg', name: 'bru13', email: 'bru@bru.bru' },
 	  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
-	];
-	res.json(extr);
+	] };
+	res.json(mydataset);
   //res.send(200);
 }
 //432 - Autorization error

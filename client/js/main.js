@@ -403,6 +403,58 @@ var implementFunction = (function() {
   GroupModelInit();
   TaskModelInit();
 
+// var userframe_profile_friendlist = {
+//   view:"dataview", id:"userframe_profile_friendlist",container:"userframe_profile_friendlist",select:1,
+// 	width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
+// 	borderless:false, scroll:'y', yCount:9, xCount:1, 
+// 	type:{ height: 80, width:300 },
+// 	template:"html->friendlist_template",
+//   url:'api/userlist',
+//   on: {
+//     'onScroll': function(pos)
+//     {
+//       webix.message(pos);
+//     }
+//   }
+// };
+
+webix.proxy.UserListData = {
+  $proxy: true,
+	load: function(view, callback, details) {
+		console.log(details)
+		if (details){
+			var data = [];
+			for (var i=0; i<details.count; i++)
+				data.push("x"+(i+1+details.from));
+
+		  	//need to be async
+				webix.delay(function() {	
+					webix.ajax.$callback(view, callback, {
+						pos:details.from,
+						data:data
+					});
+				});
+		} else {
+			webix.ajax.$callback(view, callback, {
+				total_count:200,
+				data:["1","2","3","4","5"]
+			});
+		}
+	}
+};
+
+var userframe_profile_friendlist = {
+  id:"userframe_profile_friendlist",
+  yCount:9, xCount:1,
+	container:"userframe_profile_friendlist",
+	view:"dataview",
+	//select:1,
+	autowidth:true,
+	//type:{template:"{common.space()}"},
+	url:'api/userlist'
+};
+
+
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   //описание внизу модуля
   var masterframe = new webix.ui({
@@ -413,11 +465,16 @@ var implementFunction = (function() {
     autowidth:true,
     cols:[{
     rows:[App.Frame.headerframe, 
-      {cols:[App.Frame.sliceframe, App.Frame.centralframe, App.Frame.optionsframe]}
+      {cols:[App.Frame.sliceframe, App.Frame.centralframe, userframe_profile_friendlist, App.Frame.optionsframe]}
     ]
     }]
   });
   webix.extend($$("userframe"), webix.ProgressBar);
+  
+  $$("userframe_profile_friendlist").attachEvent("onScrollY", function(pos){
+            var state = $$('userframe_profile_friendlist').getScrollState();    
+            webix.message("The scroll coordinates: ["+state.x+","+state.y+"]");                                                                                                                                           
+});
   
   $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
     App.User.set('this_ingrid_groupframe_ItemEdited', id);

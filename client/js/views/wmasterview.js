@@ -496,17 +496,17 @@ App.Frame.taskframe = {
 
 //***************************************************************************
 //USER frames
-var userframe_profile_friendlist = {
-  view:"dataview", id:"userframe_profile_friendlist",
-	width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
-	borderless:false, scroll:'y', yCount:9, xCount:1,
-	type:{ height: 80, width:300 },
-	//container:'vbru',
-	template:"html->friendlist_template",
-  datafetch:3,
-  datathrottle: 100,
-  url:'api/userlist'
-};
+// var userframe_profile_friendlist = {
+//   view:"dataview", id:"userframe_profile_friendlist",
+// 	width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
+// 	borderless:false, scroll:'y', yCount:9, xCount:1,
+// 	type:{ height: 80, width:300 },
+// 	//container:'vbru',
+// 	template:"html->friendlist_template",
+//   datafetch:3,
+//   datathrottle: 100,
+//   url:'api/userlist'
+// };
 
 var userframe_profile_selector = {
   view:"list", id:"userframe_profile_selector", css:"mainSelector",
@@ -559,8 +559,8 @@ var userframe_profile = {
     { width:10 },
     { rows:[
         { height:5 },
-        {type:"header", template:"Друзья"},
-        userframe_profile_friendlist
+        {type:"header", template:"Друзья"}
+        //userframe_profile_friendlist
       ]
     }
   ]  
@@ -857,3 +857,5 @@ App.Frame.centralframe = {
 //		app.trigger("filterIssues");
 //		}
 //	}
+
+//carousel.getActiveId()
