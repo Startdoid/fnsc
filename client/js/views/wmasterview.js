@@ -1,28 +1,34 @@
 var App = window.App;
 var webix = window.webix;
 
-App.Frame.lblInTask = {
-	id:"lblInTask",
+var btnMenu = {
+	view:"toggle", id:"btnMenu",
+	type:"icon", icon:"bars", 
+	width:30,	height:30,
+	on:{
+		'onItemClick': function() { 
+		  if($$("leftframe").isVisible()) {
+		    $$("leftframe").hide();
+		  } else {
+		    $$("leftframe").show();
+		    $$("leftframe_views_slice").show();
+		  }	
+		}
+	}
+};
+
+var lblInTask = {
+	view: "label", id:"lblInTask",
 	width:100,
-	view: "label",
 	label:"InTask.me",
 	on:{
-		'onItemClick': function() { App.Router.navigate('home', {trigger:true} ); }
+		'onItemClick': function() { 
+		  App.Router.navigate('home', {trigger:true} ); 
+		}
 	}
 };
 
-App.Frame.btnHome = {
-	id:"btnHome",
-	view:"button", 
-	type:"icon", 
-	icon:"home", 
-	width:25,
-	on:{
-		'onItemClick': function() { App.Router.navigate('home', {trigger:true} ); }
-	}
-};
-
-App.Frame.mnuSettings = {
+var mnuSettings = {
 	id:'mnuSettings',
 	view:'menu', 
 	width:35,
@@ -48,34 +54,48 @@ App.Frame.mnuSettings = {
   }
 };
 
-App.Frame.btnChat = {
-	view:"toggle", 
-	type:"iconButton",
-	name:"s1",
-	icon:"envelope",
-	label:"Чат",
-	align:"right",
-	value:0,
-	width: 100
+var btnUser = {
+	view: 'toggle', id: 'btnUser',
+	type: 'icon', icon: 'group',
+	width: 30,	height: 30,
+	on:{
+		'onItemClick': function() { 
+		  if($$("userlist").isVisible()) {
+		    $$("userlist").hide();
+		  } else {
+		    $$("userlist").show();
+		    //$$("rightframe_views_userprofile").show();
+		  }	
+		}
+	}
+	//label:"Чат",
+	//align:"right",
+	//value:0,
 };
 
-App.Frame.btnEvents = {
-	view:"toggle", 
-	type:"iconButton",
-	name:"s1",
-	icon:"info",
-	label:"События",
-	value:0,
-	align:"right",
-	width: 100
+var btnOptions = {
+	view: 'toggle',  id: 'btnOptions',
+	type: 'icon', icon: 'tasks',
+	width: 30,	height: 30,
+	on:{
+		'onItemClick': function() { 
+		  if($$("rightframe").isVisible()) {
+		    $$("rightframe").hide();
+		  } else {
+		    $$("rightframe").show();
+		    $$("rightframe_views_userprofile").show();
+		  }	
+		}
+	}	
+	//label:"События",
+	//value:0,
+	//align:"right",
 };
 
-App.Frame.mnuSegments = {
-  id:'mnuSegments',
-	view:"richselect", 
+var mnuSegments = {
+  view: 'richselect', id:'mnuSegments',
 	width:300,
-	label: 'Сегменты', 
-	labelAlign:"right",
+	label: 'Сегменты', labelAlign:'right',
 	align:"left",
 	value:1, options:[
 		{ id:1, value:"Профиль" }, 
@@ -122,7 +142,7 @@ App.Frame.mnuSegments = {
 	}
 };
 
-App.Frame.searchMaster = {
+var searchMaster = {
 	view:"search",
 	maxWidth:400,
 	placeholder:"Найти тут всё..."
@@ -131,16 +151,16 @@ App.Frame.searchMaster = {
 App.Frame.headerframe = {
 	view:"toolbar",
 	id: 'headerframe',
-	height:25,
+	height:32,
 	maxWidth:App.WinSize.windowWidth / 100 * 80,
-	elements:[App.Frame.btnHome,
-	          App.Frame.lblInTask,
-	          App.Frame.searchMaster,
+	elements:[btnMenu,
+	          lblInTask,
+	          searchMaster,
 	          {},
-	          App.Frame.btnChat,
-	          App.Frame.btnEvents,
-	          App.Frame.mnuSegments,
-	          App.Frame.mnuSettings
+	          mnuSegments,
+	          btnUser,
+	          btnOptions,	          
+	          mnuSettings
 	         ]
 };
 
@@ -184,16 +204,12 @@ App.Frame.slicetags = {
   ]
 };
 
-App.Frame.sliceframe = {
-  id:'sliceframe',
-	width:250,
-	header:'Срезы',
-	//height:600,
-	minHeight:App.WinSize.windowHeight / 100 * 85,
-	autoheight:true,
-	body:{
+var leftframe_views_slice = {
+  view:'scrollview', id:"leftframe_views_slice",
+  borderless: true, scroll:"y", //vertical scrolling
+  body:{
 		multi:false,
-		view:'accordion',
+		//view:'accordion',
 		type:'space',
 		rows:[{ body: 'Task pull' },
 				  { view: 'resizer' },
@@ -202,11 +218,19 @@ App.Frame.sliceframe = {
 		      { header:'Проекты', body: App.Frame.sliceprojects },
 		      { header:"Тэги", body: App.Frame.slicetags }
 		      ]
-	}
+  }
 };
 
-var optionsframe_views_userprofile = {
-  view:"scrollview", id:"optionsframe_views_userprofile",
+App.Frame.leftframe = {
+  view:'multiview', id:'leftframe',
+	width:250, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:true,
+	borderless: false,
+	//header:'Срезы',
+	cells:[leftframe_views_slice]
+};
+
+var rightframe_views_userprofile = {
+  view:"scrollview", id:"rightframe_views_userprofile",
   borderless: true, scroll:"y", //vertical scrolling
   body:{
     rows:[
@@ -214,35 +238,33 @@ var optionsframe_views_userprofile = {
   ]}
 };
 
-var optionsframe_views_groups = {
+var rightframe_views_groups = {
   
 };
 
-var optionsframe_views_tasks = {
+var rightframe_views_tasks = {
   
 };
 
-var optionsframe_views = {
-  view:'multiview', id:'optionsframe_views',
-  autoheight:true, autowidth:true, fitBiggest:true,
-  borderless: true,
-  cells:[optionsframe_views_userprofile,
-  optionsframe_views_groups,
-  optionsframe_views_tasks ]
+App.Frame.rightframe = {
+  view:'multiview', id:"rightframe",
+	width:250, minHeight:App.WinSize.windowHeight / 100 * 85,	autoheight:true,
+	//borderless: true,
+	//header:"Опции",
+  cells:[rightframe_views_userprofile,
+  rightframe_views_groups,
+  rightframe_views_tasks ]
 };
 
-App.Frame.optionsframe = {
-  id:"optionsframe",
-	width:250, minHeight:App.WinSize.windowHeight / 100 * 85,
-	autoheight:true,
-	collapsed:true,
-	header:"Опции",
-	body:{
-		multi:true,
-		view:"accordion",
-		type:"space",
-		rows:[ { body: optionsframe_views }]
-	}
+App.Frame.userlist = {
+  view:"dataview", id:"userlist",	container:"userlist",
+  width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
+  borderless:false, scroll:'y', yCount:9, xCount:1,
+  type:{ height: 80, width:300 },
+  template:"html->userlist_template",
+	//select:1,
+	autowidth:true,
+	url:'api/userlist'
 };
 
 webix.proxy.GroupData = {
@@ -496,28 +518,6 @@ App.Frame.taskframe = {
 
 //***************************************************************************
 //USER frames
-// var userframe_profile_friendlist = {
-//   view:"dataview", id:"userframe_profile_friendlist",
-// 	width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
-// 	borderless:false, scroll:'y', yCount:9, xCount:1,
-// 	type:{ height: 80, width:300 },
-// 	//container:'vbru',
-// 	template:"html->friendlist_template",
-//   datafetch:3,
-//   datathrottle: 100,
-//   url:'api/userlist'
-// };
-
-var userframe_profile_friendlist = {
-  view:"dataview", id:"userframe_profile_friendlist",	container:"userframe_profile_friendlist",
-  width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
-  borderless:false, scroll:'y', yCount:9, xCount:1,
-  type:{ height: 80, width:300 },
-  template:"html->friendlist_template",
-	//select:1,
-	autowidth:true,
-	url:'api/userlist'
-};
 
 var userframe_profile_selector = {
   view:"list", id:"userframe_profile_selector", css:"mainSelector",
@@ -566,14 +566,14 @@ var userframe_profile = {
           ]
         }
       ]
-    },
-    { width:10 },
-    { rows:[
-        { height:5 },
-        {type:"header", template:"Друзья"},
-        userframe_profile_friendlist
-      ]
-    }
+    }//,
+    // { width:10 },
+    // { rows:[
+    //     { height:5 },
+    //     {type:"header", template:"Друзья"},
+    //     userframe_profile_friendlist
+    //   ]
+    // }
   ]  
 };
 

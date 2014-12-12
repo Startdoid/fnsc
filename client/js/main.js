@@ -5,14 +5,8 @@ var implementFunction = (function() {
   var Backbone = window.Backbone;
   
   var showInterface = function(enable) {
-    $$("sliceframe").define("collapsed", !enable);
-    if(enable) $$("sliceframe").enable(); else $$("sliceframe").disable();
-    $$("sliceframe").refresh();
-      			  
-    $$("optionsframe").define("collapsed", !enable);
-    if(enable) $$("optionsframe").enable(); else $$("optionsframe").disable();
-    $$("optionsframe").refresh();
-    
+    //if(enable) $$("btnMenu").enable(); else
+
     if(enable) $$("headerframe").enable(); else $$("headerframe").disable();
     $$("headerframe").refresh();
   };
@@ -89,7 +83,7 @@ var implementFunction = (function() {
     $$('userframe').show();
     $$("userframe").hideProgress();
     
-    $$("optionsframe_views_userprofile").show();
+    //$$("optionsframe_views_userprofile").show();
     
     App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
   };
@@ -379,7 +373,7 @@ var implementFunction = (function() {
         if(views.indexOf(view) === -1) {
           views.push(view);
           
-          //обновим вновь добавленную информ��цией из дерева
+          //обновим вновь добавленную вьюху информцией из дерева
           view.clearAll();
           view.parse(JSON.stringify(tree));
         }
@@ -413,11 +407,15 @@ var implementFunction = (function() {
     autowidth:true,
     cols:[{
     rows:[App.Frame.headerframe, 
-      {cols:[App.Frame.sliceframe, App.Frame.centralframe, App.Frame.optionsframe]}
+      {cols:[App.Frame.leftframe, App.Frame.centralframe, App.Frame.userlist, App.Frame.rightframe]}
     ]
     }]
   });
   webix.extend($$("userframe"), webix.ProgressBar);
+  
+  $$("leftframe").hide();
+  $$("rightframe").hide();
+  $$("userlist").hide();
   
   $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
     App.User.set('this_ingrid_groupframe_ItemEdited', id);
