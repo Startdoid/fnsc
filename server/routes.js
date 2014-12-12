@@ -70,7 +70,22 @@ var routes = [
     path: '/api/logged',
     httpMethod: 'GET',
     middleware: [getLoggedUser]
-  },  
+  },
+  {
+    path: '/api/country',
+    httpMethod: 'GET',
+    middleware: [getcountry]
+  },
+  {
+    path: '/api/city',
+    httpMethod: 'GET',
+    middleware: [getcity]
+  },
+  {
+    path: '/api/familystatus',
+    httpMethod: 'GET',
+    middleware: [getfamilystatus]
+  },
   {
     path: '/api/login',
     httpMethod: 'POST',
@@ -329,6 +344,43 @@ function userlist(req, res, next) {
   //  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
 	//res.json(mydataset);
   //res.send(200);
+}
+
+function getcountry(req, res, next) {
+  var country = [
+	  {id:1, value:'Выбор страны'},
+    {id:2, value:'Россия'},
+    {id:3, value:'Украина'},
+    {id:4, value:'Беларусь'},
+    {id:5, value:'Казахстан'},
+    {id:6, value:'Азербайджан'},
+    {id:7, value:'Армения'},
+    {id:8, value:'Грузия'},
+    {id:9, value:'Израиль'}
+  ];
+  res.send(country);
+}
+
+function getcity(req, res, next) {
+  var city = [
+	  {id:1, value:'Выбор города'},
+    {id:2, value:'Красноярск'},
+    {id:3, value:'Москва'}
+  ];
+  res.send(city);
+}
+
+function getfamilystatus(req, res, next) {
+  var familystatus = [
+	  {id:1, value:'Выбор статуса'},
+    {id:2, value:'В поиске'},
+    {id:3, value:'Не женат'},
+    {id:4, value:'Встречается'},
+    {id:5, value:'Помолвен'},
+    {id:6, value:'Женат'},
+    {id:7, value:'Влюблен'}
+  ];
+  res.send(familystatus);
 }
 //432 - Autorization error
 //433 - User db error

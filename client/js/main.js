@@ -417,6 +417,13 @@ var implementFunction = (function() {
   $$("rightframe").hide();
   $$("userlist").hide();
   
+  // webix.ui({
+  //   view: "suggest",
+  //   input: document.getElementById("userlist_filter_country"),
+  //   dataFeed:"api/country"
+  // });
+
+  
   $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
     App.User.set('this_ingrid_groupframe_ItemEdited', id);
   });

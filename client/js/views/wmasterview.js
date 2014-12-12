@@ -29,9 +29,9 @@ var lblInTask = {
 };
 
 var mnuSettings = {
-	id:'mnuSettings',
-	view:'menu', 
+	view:'menu', id:'mnuSettings',
 	width:35,
+	borderless: true,
 	align:'right',
   data:[
     { id:'1', value: 'Настройки', submenu:[
@@ -144,7 +144,7 @@ var mnuSegments = {
 
 var searchMaster = {
 	view:"search",
-	maxWidth:400,
+	//maxWidth:400,
 	placeholder:"Найти тут всё..."
 };
 
@@ -156,7 +156,7 @@ App.Frame.headerframe = {
 	elements:[btnMenu,
 	          lblInTask,
 	          searchMaster,
-	          {},
+	          //{},
 	          mnuSegments,
 	          btnUser,
 	          btnOptions,	          
@@ -205,8 +205,8 @@ App.Frame.slicetags = {
 };
 
 var leftframe_views_slice = {
-  view:'scrollview', id:"leftframe_views_slice",
-  borderless: true, scroll:"y", //vertical scrolling
+  view:'scrollview', id:'leftframe_views_slice',
+  borderless: true, scroll:'y', //vertical scrolling
   body:{
 		multi:false,
 		//view:'accordion',
@@ -216,7 +216,7 @@ var leftframe_views_slice = {
 		      { header:'Группы', body: App.Frame.slicegroups,  autoheight:true},
 		      { header:'Люди', body: App.Frame.sliceusers },
 		      { header:'Проекты', body: App.Frame.sliceprojects },
-		      { header:"Тэги", body: App.Frame.slicetags }
+		      { header:'Тэги', body: App.Frame.slicetags }
 		      ]
   }
 };
@@ -229,12 +229,31 @@ App.Frame.leftframe = {
 	cells:[leftframe_views_slice]
 };
 
+//Фильтр в панели опции
 var rightframe_views_userprofile = {
-  view:"scrollview", id:"rightframe_views_userprofile",
+  view:'scrollview', id:'rightframe_views_userprofile', container:'rightframe_views_userprofile',
   borderless: true, scroll:"y", //vertical scrolling
+  $init: function(config) { 
+    //$$('userlist_filter_country').hide(); 
+  },
   body:{
     rows:[
-      { view:'template', template:'Фильтр', type:'section', align:'center' },
+      { view:'template', template:'Пользователи', type:'section', align:'center' },
+      { view:'checkbox', id:'userlist_filter_myfriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
+      { view:'checkbox', id:'userlist_filter_online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
+      { view:'template', template:'Регион', type:'section', align:'center' },
+      { view:'combo', id:'userlist_filter_country', suggest: 'api/country', value:'Выбор страны', relatedView:'userlist_filter_city', relatedAction:'snow' },
+      { view:'combo', id:'userlist_filter_city', value:'Выбор города', hidden:true },
+      { view:'template', template:'Возраст', type:'section', align:'center' },
+      { cols:[
+        { view:'combo', id:'userlist_filter_fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
+        {	view:'label', label:'-', width:10 },
+        { view:'combo', id:'userlist_filter_toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
+      ]},
+      { view:'template', template:'Пол', type:'section', align:'center' },
+      { view:"radio", id:'userlist_filter_gender', vertical:true, options:[{ value:"Любой", id:1 }, { value:"Мужской", id:2 }, { value:"Женский", id:3 }], value:1, autoheight:true },
+      { view:'template', template:'Семейное положение', type:'section', align:'center' },
+      { view:'richselect', id:'userlist_filter_familystatus', value:1, yCount:3, options:'api/familystatus' }
   ]}
 };
 
@@ -257,11 +276,11 @@ App.Frame.rightframe = {
 };
 
 App.Frame.userlist = {
-  view:"dataview", id:"userlist",	container:"userlist",
+  view:'dataview', id:'userlist',	container:'userlist',
   width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
   borderless:false, scroll:'y', yCount:9, xCount:1,
   type:{ height: 80, width:300 },
-  template:"html->userlist_template",
+  template:'html->userlist_template',
 	//select:1,
 	autowidth:true,
 	url:'api/userlist'
@@ -550,7 +569,7 @@ var userframe_profile = {
   borderless:false,
   cols:[
     { rows:[
-        { height:5 },
+        { height:1 },
         { view:'template', template:'bru', type:'header', align:'center' },
         { cols:[
             { view:'template', template:"<img src='img/avatars/2.png'>", width: 250 },
