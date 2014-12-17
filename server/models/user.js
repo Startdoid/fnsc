@@ -9,7 +9,12 @@ var userSchema = mongoose.Schema({
   avatar: Number,
   username : String,
   email: String,
-  password : String
+  password : String,
+  country: Number,
+  city: Number,
+  dateofbirth: Date,
+  gender: Number,
+  familystatus: Number
 });
 
 var userModel = null;
@@ -20,6 +25,36 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var check = require('validator').check;
 var md5 = require('MD5');
+
+var country = [
+  {id:0, value:'Выбор страны'},
+  {id:1, value:'Россия'},
+  {id:2, value:'Украина'},
+  {id:3, value:'Беларусь'},
+  {id:4, value:'Казахстан'},
+  {id:5, value:'Азербайджан'},
+  {id:6, value:'Армения'},
+  {id:7, value:'Грузия'},
+  {id:8, value:'Израиль'},
+  {id:9, value:'Мауссия'}
+];
+
+var city = [
+  {id:0, value:'Выбор города'},
+  {id:1, value:'Красноярск'},
+  {id:2, value:'Москва'},
+  {id:3, value:'Маусвиль'}
+];
+
+var familystatus = [
+  {id:1, value:'Выбор статуса'},
+  {id:2, value:'В поиске'},
+  {id:3, value:'Не женат'},
+  {id:4, value:'Встречается'},
+  {id:5, value:'Помолвен'},
+  {id:6, value:'Женат'},
+  {id:7, value:'Влюблен'}
+];
 
 module.exports = {
   model: userModel,
@@ -32,7 +67,16 @@ module.exports = {
       if (err) return callback("UserDbError");
       if (user !== null) return callback("UserAlreadyExists");
       
-      loggedUser = new userModel({ username: username, password: md5(password), email: email });
+      loggedUser = new userModel({ username: username, 
+        password: md5(password), 
+        email: email,
+        country: 0,
+        city: 0,
+        dateofbirth: new Date(),
+        gender: 0,
+        familystatus: 0
+      });
+
       loggedUser.save(function (err) {
         if (err) return callback("UserCantCreate");
         
@@ -53,8 +97,19 @@ module.exports = {
     userModel.findOne({ id : id }, function(err, user) {
       if (err) return callback("UserDbError");
       if (user === null) return callback("NoUser");
-  
-      callback(null, user.toObject());
+      
+      var userObj = user.toObject();
+      
+      var userCountry = country[user.country];
+      userObj.country = userCountry.value;
+      
+      var userCity = city[user.city];
+      userObj.city = userCity.value;
+      
+      var userFamilyStatus = familystatus[user.familystatus];
+      userObj.familystatus = userFamilyStatus.value;
+
+      callback(null, userObj);
     });
   },
   validate: function(user) {
@@ -88,7 +143,7 @@ module.exports = {
     userModel.findOne({ id: id }, doAuth);
 
     function doAuth(err, foundUser) {
-      if (err) { console.log(err); return done(null, false, { message: 'Db error' }) }
+      if (err) { return done(null, false, { message: 'Db error' }) }
       if (foundUser === null) return done(null, false, { message: 'User not found'});
 
       loggedUser = foundUser;

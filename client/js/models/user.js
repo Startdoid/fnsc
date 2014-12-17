@@ -4,6 +4,11 @@ App.Models.User = Backbone.Model.extend({
     groupId: 0,
     username: 'try-user',
     password: '',
+    country: 'Выбор страны',
+    city: 'Выбор города',
+    dateofbirth: new Date(),
+    gender: 0,
+    familystatus: 'Выбор статуса',    
     thisTry: false,
     thisSegment: 'users', //groups, tasks, templates, finances, process, files, notes
     thisGroup: 0, //Выбранная группа, по которой фильтруются задачи

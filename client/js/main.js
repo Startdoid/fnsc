@@ -4,9 +4,55 @@ var implementFunction = (function() {
   var webix = window.webix;
   var Backbone = window.Backbone;
   
-  var showInterface = function(enable) {
-    //if(enable) $$("btnMenu").enable(); else
+  var CountryData = new webix.DataCollection({ 
+    url:'api/country'
+  });
 
+  var CityData = new webix.DataCollection({
+    url:'api/city'
+  });
+  
+  var FamilyStatusData = new webix.DataCollection({
+    url:'api/familystatus'
+  });
+
+  webix.ui({
+		id:'CountrySuggest', view:'suggest', data:CountryData
+	});
+	
+	webix.ui({
+	  id:'CitySuggest', view:'suggest', data:CityData
+	});
+	
+	webix.ui({
+	  id:'FamilyStatusSuggest', view:'suggest', data:FamilyStatusData
+	});
+	
+	webix.proxy.GroupData = {
+    $proxy: true,
+    init: function() {
+      //webix.extend(this, webix.proxy.offline);
+    },
+    load: function(view, callback) {
+      //Добавляем id вебиксовых вьюх для синхронизации с данными
+  	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
+      App.Trees.GroupTree.viewsAdd($$(view.config.id));
+    }
+  };
+  
+  webix.proxy.TaskData = {
+    $proxy: true,
+    init: function() {
+      //webix.extend(this, webix.proxy.offline);
+    },
+    load: function(view, callback) {
+      //Добавляем id вебиксовых вьюх для синхронизации с данными
+  	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
+      App.Trees.TaskTree.viewsAdd($$(view.config.id));
+    }
+  };
+
+  var showInterface = function(enable) {
     if(enable) $$("headerframe").enable(); else $$("headerframe").disable();
     $$("headerframe").refresh();
   };
@@ -33,8 +79,8 @@ var implementFunction = (function() {
 		index:function() {
 		  if(App.User.get('id') === 0) {
         var promise = webix.ajax().get('api/logged', {}, function(text, data) {
-          App.User.set('usrLogged', data.json().usrLogged);
-          App.User.set('id', data.json().id);
+          App.User.set({'usrLogged': data.json().usrLogged}, {silent: true});
+          App.User.set({'id': data.json().id}, {silent: true});
           interfaceSelector();
 	      });
 	        
@@ -55,8 +101,8 @@ var implementFunction = (function() {
 		  this.navigate('', {trigger: true});
 		},
 		login:function() {
-      showInterface(false);
 	    $$('loginframe').show();
+	    webix.UIManager.setFocus("loginForm");
 		},
 		logout:function() {
       var promise = webix.ajax().put("api/logout", { id: App.User.id });
@@ -69,8 +115,6 @@ var implementFunction = (function() {
       });
 		},
 		register:function() {
-	    //Меняем окно приветствия, на окно регистрации
-      showInterface(false);
 	    $$('registerframe').show();
 		}
 	}))();
@@ -83,7 +127,14 @@ var implementFunction = (function() {
     $$('userframe').show();
     $$("userframe").hideProgress();
     
-    //$$("optionsframe_views_userprofile").show();
+    if($$("userlist").getSelectedId() === '') {
+      $$('userlist').select($$('userlist').getFirstId());
+      App.Frame.filluserframe(App.User.get('id'));
+    } else if ($$("userlist").getSelectedId() === $$('userlist').getFirstId()) {
+      App.Frame.filluserframe(App.User.get('id'));
+    } else {
+      App.Frame.filluserframe($$("userlist").getSelectedId());
+    }
     
     App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
   };
@@ -116,7 +167,7 @@ var implementFunction = (function() {
           });
   
           App.User.url = '/api/users/' + App.User.get('id');
-          App.User.fetch({ success: showUserDataAfterFetch });
+          App.User.fetch({ success: showUserDataAfterFetch, silent:true });
   		        
           break;
         case 'groups':
@@ -173,6 +224,10 @@ var implementFunction = (function() {
   	App.User.on('change:this_ingrid_groupframe_ItemSelected', function() {
   	  //console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
   	});
+  	
+    App.User.on('change', function(eventName) {
+      App.User.save(App.User.changedAttributes());
+    });  	
   };
   
   var GroupModelInit = function() {
@@ -401,31 +456,27 @@ var implementFunction = (function() {
   //описание внизу модуля
   var masterframe = new webix.ui({
     id:"masterframe",
-    container:"masterframe",
-    //minHeight:App.WinSize.windowHeight / 100 * 95,
-    autoheight:true,
-    autowidth:true,
-    cols:[{
     rows:[App.Frame.headerframe, 
-      {cols:[App.Frame.leftframe, App.Frame.centralframe, App.Frame.userlist, App.Frame.rightframe]}
+      { cols: [App.Frame.leftframe, App.Frame.centralframe,  App.Frame.userlist, App.Frame.rightframe] }
     ]
-    }]
   });
+
   webix.extend($$("userframe"), webix.ProgressBar);
   
   $$("leftframe").hide();
   $$("rightframe").hide();
   $$("userlist").hide();
   
-  // webix.ui({
-  //   view: "suggest",
-  //   input: document.getElementById("userlist_filter_country"),
-  //   dataFeed:"api/country"
-  // });
-
+  webix.UIManager.addHotKey('enter', function() { 
+    if($$('registerframe').isVisible()) {
+      App.Func.Register();
+    } else if($$('loginframe').isVisible()) {
+      App.Func.Login();
+    }
+  });
   
   $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
-    App.User.set('this_ingrid_groupframe_ItemEdited', id);
+    App.User.set({'this_ingrid_groupframe_ItemEdited': id}, {silent: true});
   });
 
   $$('ingrid_groupframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
@@ -435,7 +486,7 @@ var implementFunction = (function() {
       if(ItemEdited != ItemSelected) {
         this.getItem(ItemEdited).name = state.old;
         this.updateItem(ItemEdited);
-        App.User.set('this_ingrid_groupframe_ItemEdited', null);
+        App.User.set({'this_ingrid_groupframe_ItemEdited': null}, {silent: true});
       } else {
         var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemEdited'));
         selectGroup.set({ 'name': state.value });
@@ -444,7 +495,7 @@ var implementFunction = (function() {
   });
   
   $$('ingrid_taskframe').attachEvent('onAfterEditStart', function(id) {
-    App.User.set('this_ingrid_taskframe_ItemEdited', id);
+    App.User.set({'this_ingrid_taskframe_ItemEdited': id}, {silent: true});
   });
 
   $$('ingrid_taskframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
@@ -454,16 +505,17 @@ var implementFunction = (function() {
       if(ItemEdited != ItemSelected) {
         this.getItem(ItemEdited).name = state.old;
         this.updateItem(ItemEdited);
-        App.User.set('this_ingrid_taskframe_ItemEdited', null);
+        App.User.set({'this_ingrid_taskframe_ItemEdited': null}, {silent: true});
       } else {
         var selectTask = App.Collections.Tasks.get(App.User.get('this_ingrid_taskframe_ItemEdited'));
         selectTask.set({ 'name': state.value });
       }
     }
   });
+  
   showInterface(false);
 
-  webix.i18n.parseFormatDate = webix.Date.strToDate("%m/%d/%Y");
+  webix.i18n.parseFormatDate = webix.Date.strToDate("%Y/%m/%d");
   webix.event(window, "resize", function() { masterframe.adjust(); });
   Backbone.history.start({pushState: true, root: "/"});
 });

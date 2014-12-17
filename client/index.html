@@ -40,6 +40,18 @@
     .bless {
       border: none;
     }
+    /*.webix_tab_filler {*/
+    /*  background-color: #ececec;*/
+    /*}*/
+    /*.webix_multiview {*/
+    /*  background-color: #ececec;*/
+    /*}*/
+    /*.webix_spacer {*/
+    /*  background-color: #ececec;*/
+    /*}*/
+    /*.webix_scrollview {*/
+    /*  background-color: #ececec;*/
+    /*}*/
   </style>
   
   <body>
@@ -50,7 +62,7 @@
 		<div id='loginframe'></div>
 		<div id='userframe' style='background: #ECECEC'></div>
 
-		<div id='leftframe' style='width:20%'></div>
+		<div id='leftframe' style='width:20% height:100%'></div>
 		<div id='centralframe'></div>
 		<div id='userlist'></div>
 		<div id="rightframe" style='width:20%'></div>
@@ -82,8 +94,7 @@
 	      //user
   	    Frame:      {},//webix cfg frame
         Models:     {},//backbone models
-        WebixViews: {},//webix views in views dir with 
-        Views:      {},//backbone views in views dir
+        Func:        {},//functions
         Collections:{},//backbone collections in collection dir
         Trees:      {},
         WinSize:    {pageWidth:0, pageHeight:0, windowWidth:0, windowHeight:0}
@@ -144,7 +155,6 @@
     <script type="text/javascript" src='js/models/group.js'></script>
     <script type="text/javascript" src='js/collections/tasks.js'></script>
     <script type="text/javascript" src='js/collections/groups.js'></script>
-    <script type="text/javascript" src='js/views/dview.js'></script>
     <script type="text/javascript" src='js/views/wmasterview.js'></script>
   </body>
 </html>

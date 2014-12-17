@@ -62,6 +62,11 @@ var routes = [
     middleware: [getuser]
   },
   {
+    path: '/api/users/:user_id',
+    httpMethod: 'PUT',
+    middleware: [setuser]
+  },  
+  {
     path: '/api/userlist',
     httpMethod: 'GET',
     middleware: [userlist]
@@ -199,6 +204,17 @@ function getuser(req, res, next) {
     
     res.json(200, usr);
   });
+}
+
+function setuser(req, res, next) {
+  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  
+  var loggedUser = userModel.getLoggedUser();
+  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+
+  var body = req.body;
+  
+  return res.send(200);
 }
 
 function getLoggedUser(req, res, next) {

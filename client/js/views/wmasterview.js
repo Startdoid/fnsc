@@ -111,31 +111,31 @@ var mnuSegments = {
     'onChange': function(newv, oldv) {
       switch(newv) {
         case 1:
-          App.User.set('thisSegment', 'users');
+          App.User.set({'thisSegment': 'users'}, {silent: true});
           App.Router.navigate('users', {trigger:true} );
           break;
         case 2:
-          App.User.set('thisSegment', 'groups');
+          App.User.set({'thisSegment': 'groups'}, {silent: true});
           App.Router.navigate('groups', {trigger:true} );
           break;
         case 3:
-          App.User.set('thisSegment', 'tasks');
+          App.User.set({'thisSegment': 'tasks'}, {silent: true});
           App.Router.navigate('tasks', {trigger:true} );
           break;
         case 4:
-          App.User.set('thisSegment', 'templates');
+          App.User.set({'thisSegment': 'templates'}, {silent: true});
           break;
         case 5:
-          App.User.set('thisSegment', 'finances');
+          App.User.set({'thisSegment': 'finances'}, {silent: true});
           break;
         case 6:
-          App.User.set('thisSegment', 'process');
+          App.User.set({'thisSegment': 'process'}, {silent: true});
           break;
         case 7:
-          App.User.set('thisSegment', 'files');
+          App.User.set({'thisSegment': 'files'}, {silent: true});
           break;
         case 8:
-          App.User.set('thisSegment', 'notes');
+          App.User.set({'thisSegment': 'notes'}, {silent: true});
           break;          
       }
     }
@@ -206,6 +206,7 @@ App.Frame.slicetags = {
 
 var leftframe_views_slice = {
   view:'scrollview', id:'leftframe_views_slice',
+  //autoheight:true,
   borderless: true, scroll:'y', //vertical scrolling
   body:{
 		multi:false,
@@ -223,16 +224,15 @@ var leftframe_views_slice = {
 
 App.Frame.leftframe = {
   view:'multiview', id:'leftframe',
-	width:250, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:true,
+	width:250,
 	borderless: false,
-	//header:'Срезы',
 	cells:[leftframe_views_slice]
 };
 
 //Фильтр в панели опции
 var rightframe_views_userprofile = {
   view:'scrollview', id:'rightframe_views_userprofile', container:'rightframe_views_userprofile',
-  borderless: true, scroll:"y", //vertical scrolling
+  borderless: false, scroll:"y",
   $init: function(config) { 
     //$$('userlist_filter_country').hide(); 
   },
@@ -242,8 +242,8 @@ var rightframe_views_userprofile = {
       { view:'checkbox', id:'userlist_filter_myfriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
       { view:'checkbox', id:'userlist_filter_online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
       { view:'template', template:'Регион', type:'section', align:'center' },
-      { view:'combo', id:'userlist_filter_country', suggest: 'api/country', value:'Выбор страны', relatedView:'userlist_filter_city', relatedAction:'snow' },
-      { view:'combo', id:'userlist_filter_city', value:'Выбор города', hidden:true },
+      { view:'combo', id:'userlist_filter_country', suggest: 'CountrySuggest', value:'Выбор страны', relatedView:'userlist_filter_city', relatedAction:'snow' },
+      { view:'combo', id:'userlist_filter_city', suggest: 'CitySuggest', value:'Выбор города', hidden:true },
       { view:'template', template:'Возраст', type:'section', align:'center' },
       { cols:[
         { view:'combo', id:'userlist_filter_fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
@@ -253,7 +253,7 @@ var rightframe_views_userprofile = {
       { view:'template', template:'Пол', type:'section', align:'center' },
       { view:"radio", id:'userlist_filter_gender', vertical:true, options:[{ value:"Любой", id:1 }, { value:"Мужской", id:2 }, { value:"Женский", id:3 }], value:1, autoheight:true },
       { view:'template', template:'Семейное положение', type:'section', align:'center' },
-      { view:'richselect', id:'userlist_filter_familystatus', value:1, yCount:3, options:'api/familystatus' }
+      { view:'richselect', id:'userlist_filter_familystatus', value:'Выбор статуса', yCount:3, options:'FamilyStatusSuggest' }, {}
   ]}
 };
 
@@ -267,18 +267,16 @@ var rightframe_views_tasks = {
 
 App.Frame.rightframe = {
   view:'multiview', id:"rightframe",
-	width:250, minHeight:App.WinSize.windowHeight / 100 * 85,	autoheight:true,
-	//borderless: true,
-	//header:"Опции",
+	width:250,
   cells:[rightframe_views_userprofile,
   rightframe_views_groups,
   rightframe_views_tasks ]
 };
 
 App.Frame.userlist = {
-  view:'dataview', id:'userlist',	container:'userlist',
-  width:300, minHeight:App.WinSize.windowHeight / 100 * 85, autoheight:false,
-  borderless:false, scroll:'y', yCount:9, xCount:1,
+  view:'dataview', id:'userlist',
+  width:300,
+  borderless:false, scroll:'y',  xCount:1,
   type:{ height: 80, width:300 },
   template:'html->userlist_template',
 	//select:1,
@@ -286,29 +284,6 @@ App.Frame.userlist = {
 	url:'api/userlist'
 };
 
-webix.proxy.GroupData = {
-  $proxy: true,
-  init: function() {
-    //webix.extend(this, webix.proxy.offline);
-  },
-  load: function(view, callback) {
-    //Добавляем id вебиксовых вьюх для синхронизации с данными
-	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-    App.Trees.GroupTree.viewsAdd($$(view.config.id));
-  }
-};
-
-webix.proxy.TaskData = {
-  $proxy: true,
-  init: function() {
-    //webix.extend(this, webix.proxy.offline);
-  },
-  load: function(view, callback) {
-    //Добавляем id вебиксовых вьюх для синхронизации с данными
-	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-    App.Trees.TaskTree.viewsAdd($$(view.config.id));
-  }
-};
 //webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
 
 //***************************************************************************
@@ -380,7 +355,7 @@ App.Frame.ingrid_groupframe = {
 	],
 	on: {
 	  onItemClick:function() {
-	    App.User.set('this_ingrid_groupframe_ItemSelected', this.getSelectedId().id);
+	    App.User.set({'this_ingrid_groupframe_ItemSelected': this.getSelectedId().id}, {silent: true});
     },
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
@@ -488,7 +463,7 @@ App.Frame.ingrid_taskframe = {
 	],
 	on: {
 	  onItemClick:function() {
-	    App.User.set('this_ingrid_taskframe_ItemSelected', this.getSelectedId().id);
+	    App.User.set({'this_ingrid_taskframe_ItemSelected': this.getSelectedId().id}, {silent: true});
     },
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
@@ -538,15 +513,27 @@ App.Frame.taskframe = {
 //***************************************************************************
 //USER frames
 
+App.Frame.filluserframe = function(user_id) {
+  if(user_id === App.User.get('id')) {
+    $$('userframe_profile_section_name').setValue(App.User.get('username'));
+    $$('userframe_profile_section_email').setValue(App.User.get('email'));
+    $$('userframe_profile_section_country').setValue(App.User.get('country'));
+    $$('userframe_profile_section_city').setValue(App.User.get('city'));
+    $$('userframe_profile_section_dateofbirth').setValue(webix.i18n.dateFormatStr(App.User.get('dateofbirth')));
+    $$('userframe_profile_section_gender').setValue(App.User.get('gender'));
+    $$('userframe_profile_section_familystatus').setValue(App.User.get('familystatus'));
+  }
+};
+
 var userframe_profile_selector = {
-  view:"list", id:"userframe_profile_selector", css:"mainSelector",
-	borderless:true, yCount:4, width:250,
-	template:"#value#",
+  view:'list', id:'userframe_profile_selector', css:'mainSelector',
+	borderless:true,  width:250, scroll:false,
+	template:'#value#',
 	type:{ height:50 },
 	select:true,
 	data:[
-		{ id:"all", 		value:"Все", count:0 },
-		{ id:"personal",	value:"Персональные", count:0 }
+		{ id:'all', 		value:'Все', count:0 },
+		{ id:'personal',	value:'Персональные', count:0 }
 	]
 	//on:{"onAfterSelect": function(){
 		//app.trigger("filterIssues");
@@ -559,8 +546,14 @@ var userframe_profile_section = {
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:"text", value:'bru', label:"Имя пользователя", labelWidth:120 },
-      { view:"text", value:'bru@bru.bru', label:"Email", labelWidth:120 }
+      { view:'text', id:'userframe_profile_section_name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { 
+        App.User.set('username', this.getValue()) } } },
+      { view:'text', id:'userframe_profile_section_email', label:'Email', labelWidth:120 },
+      { view:'combo', id:'userframe_profile_section_country', label:"Страна", suggest: 'CountrySuggest', labelWidth:120 },
+      { view:'combo', id:'userframe_profile_section_city', label:'Город', suggest: 'CitySuggest', labelWidth:120 },
+      { view:'datepicker', id:'userframe_profile_section_dateofbirth', label:'Дата рождения', labelWidth:120 },
+      { view:"radio", id:'userframe_profile_section_gender', label:'Пол', vertical:true, options:[{ value:"Любой", id:0 }, { value:"Мужской", id:1 }, { value:"Женский", id:2 }], labelWidth:120 },
+      { view:'richselect', id:'userframe_profile_section_familystatus', label:'Семейное положение', suggest:'FamilyStatusSuggest', labelWidth:120 }
   ]}
 };
 
@@ -569,7 +562,6 @@ var userframe_profile = {
   borderless:false,
   cols:[
     { rows:[
-        { height:1 },
         { view:'template', template:'bru', type:'header', align:'center' },
         { cols:[
             { view:'template', template:"<img src='img/avatars/2.png'>", width: 250 },
@@ -583,16 +575,9 @@ var userframe_profile = {
             { width:10 },
             userframe_profile_section
           ]
-        }
+        },
       ]
-    }//,
-    // { width:10 },
-    // { rows:[
-    //     { height:5 },
-    //     {type:"header", template:"Друзья"},
-    //     userframe_profile_friendlist
-    //   ]
-    // }
+    }
   ]  
 };
 
@@ -689,6 +674,31 @@ App.Frame.userframe = {
 
 //***************************************************************************
 //OTHER frames
+var reglogResponse = function(text, data) {
+  App.User.set({'usrLogged': true}, {silent: true});
+  App.User.set({'id': data.json().id}, {silent: true});
+  App.Router.navigate('', {trigger: true});
+};
+
+App.Func.Register = function() {
+  var promise = webix.ajax().post('api/register', { email:$$('reg_email').getValue(), 
+	                                                  username:$$('reg_username').getValue(), 
+	                                                  password:$$('reg_password').getValue()}, reglogResponse);
+	        
+  promise.then(function(realdata){}).fail(function(err) {
+    webix.message({type:"error", text:err.responseText});
+  });
+};
+
+App.Func.Login = function() {
+  var promise = webix.ajax().post('api/login', { email:$$('log_email').getValue(), 
+	                                               password:$$('log_password').getValue()}, reglogResponse);
+	        
+  promise.then(function(realdata){}).fail(function(err){
+    webix.message({type:"error", text:err.responseText});
+  });
+};
+
 var registrationForm = {
   view:'form',
   width:350,
@@ -698,27 +708,8 @@ var registrationForm = {
     { view:'text', label:'Имя пользователя', id:'reg_username'},
     { view:'text', type:'password', label:'Пароль', id:'reg_password'},
     { margin:5, cols:[
-      { view:'button', value:'Зарегистрировать', type:'form', hotkey: "enter", on:{
-	      'onItemClick':function() {
-	        var promise = webix.ajax().post('api/register', { email:$$('reg_email').getValue(), 
-	                                                      username:$$('reg_username').getValue(), 
-	                                                      password:$$('reg_password').getValue()}, function(text, data)
-	        {
-	          App.User.set('usrLogged', true);
-	          App.User.set('id', data.json().id);
-	          App.Router.navigate('', {trigger: true});
-	        });
-	        
-          promise.then(function(realdata){}).fail(function(err){
-            webix.message({type:"error", text:err.responseText});
-          });
-        }
-      }},
-      { view:'button', value:'Отменить', on:{
-        'onItemClick':function() {
-          App.Router.navigate('', {trigger: true});
-        }
-      }}
+      { view:'button', value:'Зарегистрировать', type:'form', click: App.Func.Register },
+      { view:'button', value:'Отменить', click:function() { App.Router.navigate('', {trigger: true} ); } }
     ]}          
   ]
 };
@@ -732,26 +723,8 @@ var loginForm = {
     { view:'text', label:'Email', id:'log_email'},
     { view:'text', type:'password', label:'Пароль', id:'log_password'},
     { margin:5, cols:[
-      { view:'button', value:'Войти', type:'form', click:function() {
-
-	        var promise = webix.ajax().post('api/login', { email:$$('log_email').getValue(), 
-	                                                   password:$$('log_password').getValue()}, function(text, data)
-	        {
-	          App.User.set('usrLogged', true);
-	          App.User.set('id', data.json().id);
-	          App.Router.navigate('', {trigger: true});
-	        });
-	        
-          promise.then(function(realdata){}).fail(function(err){
-            webix.message({type:"error", text:err.responseText});
-          });
-        }
-      },
-      { view:'button', value:'Отменить', on:{
-        'onItemClick':function() {
-          App.Router.navigate('', {trigger: true});
-        }
-      }}
+      { view:'button', value:'Войти', type:'form', click: App.Func.Login },
+      { view:'button', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
     ]}          
   ]
 };
@@ -795,8 +768,8 @@ App.Frame.greetingframe = {
   container:'greetingframe',
   //minHeight:600,
   //maxWidth:1500,
-  autoheight:true,
-  autowidth:true,
+  //autoheight:true,
+  //autowidth:true,
   rows:[
   {
     view:'htmlform',
@@ -812,7 +785,7 @@ App.Frame.greetingframe = {
 	    width: 100,
 	    on:{
 	      'onItemClick':function() {
-	        App.User.set('thisTry', true);
+	        App.User.set({'thisTry': true});
         }
       }
     },
@@ -845,8 +818,9 @@ App.Frame.greetingframe = {
 App.Frame.centralframe = {
   id:'centralframe',
   container:'centralframe',
-  autoheight:true,
-  autowidth:true,
+  //adjust:true,
+  //autoheight:true,
+  //autowidth:true,
   view:"multiview", 
   cells:[App.Frame.greetingframe,
   App.Frame.groupframe,
