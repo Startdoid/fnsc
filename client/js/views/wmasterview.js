@@ -111,31 +111,31 @@ var mnuSegments = {
     'onChange': function(newv, oldv) {
       switch(newv) {
         case 1:
-          App.User.set({'thisSegment': 'users'}, {silent: true});
+          App.State.segment = 'users';
           App.Router.navigate('users', {trigger:true} );
           break;
         case 2:
-          App.User.set({'thisSegment': 'groups'}, {silent: true});
+          App.State.segment = 'groups';
           App.Router.navigate('groups', {trigger:true} );
           break;
         case 3:
-          App.User.set({'thisSegment': 'tasks'}, {silent: true});
+          App.State.segment = 'tasks';
           App.Router.navigate('tasks', {trigger:true} );
           break;
         case 4:
-          App.User.set({'thisSegment': 'templates'}, {silent: true});
+          App.State.segment = 'templates';
           break;
         case 5:
-          App.User.set({'thisSegment': 'finances'}, {silent: true});
+          App.State.segment = 'finances';
           break;
         case 6:
-          App.User.set({'thisSegment': 'process'}, {silent: true});
+          App.State.segment = 'process';
           break;
         case 7:
-          App.User.set({'thisSegment': 'files'}, {silent: true});
+          App.State.segment = 'files';
           break;
         case 8:
-          App.User.set({'thisSegment': 'notes'}, {silent: true});
+          App.State.segment = 'notes';
           break;          
       }
     }
@@ -297,11 +297,11 @@ App.Frame.grouptoolframe = {
       'onItemClick':function() { App.Collections.Groups.newGroup(0); }
     } },
     { view:'button', id:'grtlbtnAdd', value:'Добавить', width:100, align:"left", on:{
-		  'onItemClick':function() { App.Collections.Groups.newGroup(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+		  'onItemClick':function() { App.Collections.Groups.newGroup(App.State.ingrid_Groupframe_ItemSelected); }
     } },
     { view:'button', id:'grtlbtnDlt', value:'Удалить', width:100, align:"left", on:{
       'onItemClick':function() {
-        var selectedId = App.User.get('this_ingrid_groupframe_ItemSelected');
+        var selectedId = App.State.ingrid_Groupframe_ItemSelected;
         if (selectedId !== 0) {
           var firstModels = App.Collections.Groups.findWhere( { parent_id: selectedId } );
           var text = '';
@@ -318,7 +318,7 @@ App.Frame.grouptoolframe = {
             type:'confirm-warning',
             text:text,
             callback: function(result) { 
-              if (result) { App.Collections.Groups.removeGroup(App.User.get('this_ingrid_groupframe_ItemSelected')); }
+              if (result) { App.Collections.Groups.removeGroup(App.State.ingrid_Groupframe_ItemSelected); }
               //App.Collections.Groups.get(selectedId)
               }
           });
@@ -326,16 +326,16 @@ App.Frame.grouptoolframe = {
       }
     } },
     { view:'button', id:'grtlbtnUp', value:'Вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'up'); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'up'); }
     } },
     { view:'button', id:'grtlbtnDown', value:'Вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'down'); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'down'); }
     } },
     { view:'button', id:'grtlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'uplevel'); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'uplevel'); }
     } },
     { view:'button', id:'grtlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.User.get('this_ingrid_groupframe_ItemSelected'), 'downlevel'); }
+      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'downlevel'); }
     } },
     { }
   ]
@@ -354,9 +354,7 @@ App.Frame.ingrid_groupframe = {
 		{ id:'numUsers', header:'Польз.', width:50 }
 	],
 	on: {
-	  onItemClick:function() {
-	    App.User.set({'this_ingrid_groupframe_ItemSelected': this.getSelectedId().id}, {silent: true});
-    },
+	  onItemClick:function() { App.State.ingrid_Groupframe_ItemSelected = this.getSelectedId().id; },
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
       if(id_conf === 'ingrid_groupframe') {
@@ -407,11 +405,11 @@ App.Frame.tasktoolframe = {
       'onItemClick':function() { App.Collections.Tasks.newTask(0); }
     } },
     { view:'button', id:'tsktlbtnAdd', value:'Добавить', width:100, align:"left", on:{
-		  'onItemClick':function() { App.Collections.Tasks.newTask(App.User.get('this_ingrid_taskframe_ItemSelected')); }
+		  'onItemClick':function() { App.Collections.Tasks.newTask(App.State.ingrid_Taskframe_ItemSelected); }
     } },
     { view:'button', id:'tsktlbtnDlt', value:'Удалить', width:100, align:"left", on:{
       'onItemClick':function() {
-        var selectedId = App.User.get('this_ingrid_taskframe_ItemSelected');
+        var selectedId = App.State.ingrid_Taskframe_ItemSelected;
         if (selectedId !== 0) {
           var firstModels = App.Collections.Tasks.findWhere( { parent_id: selectedId } );
           var text = '';
@@ -428,23 +426,23 @@ App.Frame.tasktoolframe = {
             type:'confirm-warning',
             text:text,
             callback: function(result) { 
-              if (result) { App.Collections.Tasks.removeTask(App.User.get('this_ingrid_taskframe_ItemSelected')); }
+              if (result) { App.Collections.Tasks.removeTask(App.State.ingrid_Taskframe_ItemSelected); }
               }
           });
         }
       }
     } },
     { view:'button', id:'tsktlbtnUp', value:'Вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'up'); }
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'up'); }
     } },
     { view:'button', id:'tsktlbtnDown', value:'Вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'down'); }
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'down'); }
     } },
     { view:'button', id:'tsktlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'uplevel'); }
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'uplevel'); }
     } },
     { view:'button', id:'tsktlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.User.get('this_ingrid_taskframe_ItemSelected'), 'downlevel'); }
+      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'downlevel'); }
     } },
     { }
   ]
@@ -462,9 +460,7 @@ App.Frame.ingrid_taskframe = {
 		{ id:'description', editor:"text", header:'Описание задачи', width:250, template:'{common.treetable()} #description#' }
 	],
 	on: {
-	  onItemClick:function() {
-	    App.User.set({'this_ingrid_taskframe_ItemSelected': this.getSelectedId().id}, {silent: true});
-    },
+	  onItemClick:function() { App.State.ingrid_Taskframe_ItemSelected = this.getSelectedId().id; },
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
       if(id_conf === 'ingrid_taskframe') {
@@ -546,9 +542,8 @@ var userframe_profile_section = {
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'userframe_profile_section_name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { 
-        App.User.set('username', this.getValue()) } } },
-      { view:'text', id:'userframe_profile_section_email', label:'Email', labelWidth:120 },
+      { view:'text', id:'userframe_profile_section_name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { App.User.set('username', this.getValue()) } } },
+      { view:'text', id:'userframe_profile_section_email', label:'Email', labelWidth:120, on:{'onChange': function() { App.User.set('email', this.getValue()) } } },
       { view:'combo', id:'userframe_profile_section_country', label:"Страна", suggest: 'CountrySuggest', labelWidth:120 },
       { view:'combo', id:'userframe_profile_section_city', label:'Город', suggest: 'CitySuggest', labelWidth:120 },
       { view:'datepicker', id:'userframe_profile_section_dateofbirth', label:'Дата рождения', labelWidth:120 },

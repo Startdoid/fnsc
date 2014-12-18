@@ -4,6 +4,24 @@ var implementFunction = (function() {
   var webix = window.webix;
   var Backbone = window.Backbone;
   
+  App.State = {
+    $init: function() {
+      this.segment                  = 'users';
+      this.group                    = 0;
+      this.ingrid_Groupframe_ItemSelected   = 0;
+      this.ingrid_Groupframe_ItemEdited     = null;
+      this.ingrid_Taskframe_ItemSelected    = 0;
+      this.ingrid_Taskframe_ItemEdited      = null;
+    },
+    segment           : 'users',  //groups, tasks, templates, finances, process, files, notes
+    group             : 0,        //Выбранная группа, по которой фильтруются задачи
+    //флаги состояния приложения this_view_action
+    ingrid_Groupframe_ItemSelected    : 0,    //выделенный элемент в области конструктора групп
+    ingrid_Groupframe_ItemEdited      : null, //редактируемый элемент в области конструктора групп
+    ingrid_Taskframe_ItemSelected     : 0,    //выделенный элемент в области конструктора задач
+    ingrid_Taskframe_ItemEdited       : null  //редактируемый элемент в области конструктора задач
+  };
+  
   var CountryData = new webix.DataCollection({ 
     url:'api/country'
   });
@@ -159,7 +177,7 @@ var implementFunction = (function() {
   	if(App.User.get('usrLogged')) {
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
   	  showInterface(true);
-  	  switch(App.User.get('thisSegment')) {
+  	  switch(App.State.segment) {
         case 'users':
        	  $$("userframe").showProgress({
             type:"icon",
@@ -213,16 +231,8 @@ var implementFunction = (function() {
     //Инициализируем глобальный объект пользователя со всеми настройками приложения
   	App.User = new App.Models.User();
   	
-  	//Привязываем события которые будут обрабатываться User model
-  	App.User.on('change:thisSegment', function() {
-  	});
-  
   	App.User.on('change:thisTry', function() {
   	  //App.Router.navigate('home', {trigger:true} );
-  	});
-  	
-  	App.User.on('change:this_ingrid_groupframe_ItemSelected', function() {
-  	  //console.log(App.User.get('this_ingrid_groupframe_ItemSelected') + " item select");
   	});
   	
     App.User.on('change', function(eventName) {
@@ -476,38 +486,38 @@ var implementFunction = (function() {
   });
   
   $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
-    App.User.set({'this_ingrid_groupframe_ItemEdited': id}, {silent: true});
+    App.State.ingrid_Groupframe_ItemEdited = id;
   });
 
   $$('ingrid_groupframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
-    var ItemEdited = App.User.get('this_ingrid_groupframe_ItemEdited');
-    var ItemSelected = App.User.get('this_ingrid_groupframe_ItemSelected');
+    var ItemEdited = App.State.ingrid_Groupframe_ItemEdited;
+    var ItemSelected = App.State.ingrid_Groupframe_ItemSelected;
     if (editor.column === 'name') {
       if(ItemEdited != ItemSelected) {
         this.getItem(ItemEdited).name = state.old;
         this.updateItem(ItemEdited);
-        App.User.set({'this_ingrid_groupframe_ItemEdited': null}, {silent: true});
+        App.State.ingrid_Groupframe_ItemEdited = null;
       } else {
-        var selectGroup = App.Collections.Groups.get(App.User.get('this_ingrid_groupframe_ItemEdited'));
+        var selectGroup = App.Collections.Groups.get(App.State.ingrid_Groupframe_ItemEdited);
         selectGroup.set({ 'name': state.value });
       }
     }
   });
   
   $$('ingrid_taskframe').attachEvent('onAfterEditStart', function(id) {
-    App.User.set({'this_ingrid_taskframe_ItemEdited': id}, {silent: true});
+    App.State.ingrid_Taskframe_ItemEdited = id;
   });
 
   $$('ingrid_taskframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
-    var ItemEdited = App.User.get('this_ingrid_taskframe_ItemEdited');
-    var ItemSelected = App.User.get('this_ingrid_taskframe_ItemSelected');
+    var ItemEdited = App.State.ingrid_Taskframe_ItemEdited;
+    var ItemSelected = App.State.ingrid_Taskframe_ItemSelected;
     if (editor.column === 'name') {
       if(ItemEdited != ItemSelected) {
         this.getItem(ItemEdited).name = state.old;
         this.updateItem(ItemEdited);
-        App.User.set({'this_ingrid_taskframe_ItemEdited': null}, {silent: true});
+        App.State.ingrid_Taskframe_ItemEdited = null;
       } else {
-        var selectTask = App.Collections.Tasks.get(App.User.get('this_ingrid_taskframe_ItemEdited'));
+        var selectTask = App.Collections.Tasks.get(App.State.ingrid_Taskframe_ItemEdited);
         selectTask.set({ 'name': state.value });
       }
     }

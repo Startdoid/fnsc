@@ -213,6 +213,7 @@ function setuser(req, res, next) {
   if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
 
   var body = req.body;
+  console.log(body);
   
   return res.send(200);
 }

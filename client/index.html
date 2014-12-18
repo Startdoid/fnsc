@@ -91,14 +91,14 @@
     <script type="text/javascript" charset="utf-8">
       var webix = window.webix;
 	    window.App = {
-	      //user
+	      State:      {},
+	      User:       {},
   	    Frame:      {},//webix cfg frame
         Models:     {},//backbone models
-        Func:        {},//functions
+        Func:       {},//functions
         Collections:{},//backbone collections in collection dir
         Trees:      {},
         WinSize:    {pageWidth:0, pageHeight:0, windowWidth:0, windowHeight:0}
-       // Routes:     {} //backbone routes in main.js
       };
 
       window.App.GetWinSize = function() {
