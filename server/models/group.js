@@ -1,3 +1,9 @@
+/*
+* Модель "Группы"
+*/
+
+var pg            = require("pg");
+var database      = require('../database');
 var mongoose = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 
@@ -31,12 +37,29 @@ module.exports = {
   getGroups: function(user, filter, callback) {
     if(user === null) return callback("NeedUser");
     
-    var arrGrId = user.grouplist.map(function(object) { return object.groupId });
-    groupModel.find({ id: { $in: arrGrId }  }, function(err, groups) {
-      if (err) return callback("GroupDbError");
-      
-      callback(null, groups);
+    pg.connect(database.url_pg, function(err, client, done) {
+	   	if(err) {
+    		console.log('connection error (Postgres):'+err);
+    	}
+
+    	client.query('select "GroupId" from "GroupsUsers" where "UserId"=$1', [user.id], function(err, result) {
+    	  if(err) { console.log(err) }
+    	  done();
+    	  
+    	  var arrGrId = result.rows.map(function(object) { return object.GroupId });
+    	  groupModel.find({ id: { $in: arrGrId }  }, function(err, groups) {
+          if (err) return callback("GroupDbError");
+          
+          callback(null, groups);
+        });
+    	});
     });
+    // var arrGrId = user.grouplist.map(function(object) { return object.groupId });
+    // groupModel.find({ id: { $in: arrGrId }  }, function(err, groups) {
+    //   if (err) return callback("GroupDbError");
+      
+    //   callback(null, groups);
+    // });
   },
   getPublicGroups: function(user, filter, callback) {
     if(user === null) return callback("NeedUser");

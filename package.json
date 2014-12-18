@@ -14,6 +14,7 @@
     "passport-facebook": "*",
     "passport-google": "*",
     "mongoose-auto-increment": "*",
-    "MD5": "*"
+    "MD5": "*",
+    "pg":"*"
     }
 }
