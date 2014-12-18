@@ -1,18 +1,28 @@
 // set up ======================================================================
 
-var http = require("http");
-var express  = require('express');      //Подключаем библиотеку express :http://jsman.ru/express/#section
-var app      = express(); 							//создаем приложение на основе объекта express 
-var mongoose = require('mongoose'); 		//Подключаем библиотеку mongoose, враппер для mongoDB
-var port  	 = process.env.PORT; //Установка слушающего порта для сервера по-умолчанию
-var database = require('./server/database'); //Чтение настроек подключения к ИБ 
-var path = require('path');
-var passport = require('passport');
-var autoIncrement = require('mongoose-auto-increment');
-var User = require('./server/models/user');
+var http 			= require("http");
+var express  		= require('express');      //Подключаем библиотеку express :http://jsman.ru/express/#section
+var app      		= express(); 							//создаем приложение на основе объекта express 
+var mongoose 		= require('mongoose'); 		//Подключаем библиотеку mongoose, враппер для mongoDB
+var port  	 		= process.env.PORT; //Установка слушающего порта для сервера по-умолчанию
+var database 		= require('./server/database'); //Чтение настроек подключения к ИБ 
+var path 			= require('path');
+var passport 		= require('passport');
+var autoIncrement 	= require('mongoose-auto-increment');
+var User 			= require('./server/models/user');
+var pg				= require("pg");
 
 // configuration ==============================================================='
 mongoose.connect(database.url); 	// connect to mongoDB database on modulus.io
+
+//postgres (check connection)
+// pg.connect(database.url_pg, function(err, client, done){
+	
+// 	if(err){
+// 		console.log('connection error (Postgres):'+err);
+// 	}
+// 	done();
+// });
 
 var db = mongoose.connection;
 db.on('error', function (err) {
@@ -23,6 +33,7 @@ db.once('open', function callback () {
 	autoIncrement.initialize(db);
 
 	User.modelInit();
+	//Group.modelInit();
 
 	app.configure(function() {
 	 	app.use(express.logger('dev')); 						// log every request to the console
