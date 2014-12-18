@@ -7,11 +7,11 @@ var btnMenu = {
 	width:30,	height:30,
 	on:{
 		'onItemClick': function() { 
-		  if($$("leftframe").isVisible()) {
-		    $$("leftframe").hide();
+		  if($$("frameLeft").isVisible()) {
+		    $$("frameLeft").hide();
 		  } else {
-		    $$("leftframe").show();
-		    $$("leftframe_views_slice").show();
+		    $$("frameLeft").show();
+		    $$("frameLeft_views_slice").show();
 		  }	
 		}
 	}
@@ -60,11 +60,11 @@ var btnUser = {
 	width: 30,	height: 30,
 	on:{
 		'onItemClick': function() { 
-		  if($$("userlist").isVisible()) {
-		    $$("userlist").hide();
+		  if($$("frameUserList").isVisible()) {
+		    $$("frameUserList").hide();
 		  } else {
-		    $$("userlist").show();
-		    //$$("rightframe_views_userprofile").show();
+		    $$("frameUserList").show();
+		    //$$("frameRight_views_userprofile").show();
 		  }	
 		}
 	}
@@ -79,11 +79,11 @@ var btnOptions = {
 	width: 30,	height: 30,
 	on:{
 		'onItemClick': function() { 
-		  if($$("rightframe").isVisible()) {
-		    $$("rightframe").hide();
+		  if($$("frameRight").isVisible()) {
+		    $$("frameRight").hide();
 		  } else {
-		    $$("rightframe").show();
-		    $$("rightframe_views_userprofile").show();
+		    $$("frameRight").show();
+		    $$("frameRight_views_userprofile").show();
 		  }	
 		}
 	}	
@@ -148,11 +148,9 @@ var searchMaster = {
 	placeholder:"Найти тут всё..."
 };
 
-App.Frame.headerframe = {
-	view:"toolbar",
-	id: 'headerframe',
-	height:32,
-	maxWidth:App.WinSize.windowWidth / 100 * 80,
+App.Frame.frameHeader = {
+	view:"toolbar", id: 'frameHeader',
+	height:32, maxWidth:App.WinSize.windowWidth / 100 * 80,
 	elements:[btnMenu,
 	          lblInTask,
 	          searchMaster,
@@ -204,8 +202,8 @@ App.Frame.slicetags = {
   ]
 };
 
-var leftframe_views_slice = {
-  view:'scrollview', id:'leftframe_views_slice',
+var frameLeft_views_slice = {
+  view:'scrollview', id:'frameLeft_views_slice',
   //autoheight:true,
   borderless: true, scroll:'y', //vertical scrolling
   body:{
@@ -222,63 +220,63 @@ var leftframe_views_slice = {
   }
 };
 
-App.Frame.leftframe = {
-  view:'multiview', id:'leftframe',
+App.Frame.frameLeft = {
+  view:'multiview', id:'frameLeft',
 	width:250,
 	borderless: false,
-	cells:[leftframe_views_slice]
+	cells:[frameLeft_views_slice]
 };
 
 //Фильтр в панели опции
-var rightframe_views_userprofile = {
-  view:'scrollview', id:'rightframe_views_userprofile', container:'rightframe_views_userprofile',
+var frameRight_views_userprofile = {
+  view:'scrollview', id:'frameRight_views_userprofile', container:'frameRight_views_userprofile',
   borderless: false, scroll:"y",
   $init: function(config) { 
-    //$$('userlist_filter_country').hide(); 
+    //$$('frameUserList_filter_country').hide(); 
   },
   body:{
     rows:[
       { view:'template', template:'Пользователи', type:'section', align:'center' },
-      { view:'checkbox', id:'userlist_filter_myfriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
-      { view:'checkbox', id:'userlist_filter_online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
+      { view:'checkbox', id:'frameUserList_filter_myfriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
+      { view:'checkbox', id:'frameUserList_filter_online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
       { view:'template', template:'Регион', type:'section', align:'center' },
-      { view:'combo', id:'userlist_filter_country', suggest: 'CountrySuggest', value:'Выбор страны', relatedView:'userlist_filter_city', relatedAction:'snow' },
-      { view:'combo', id:'userlist_filter_city', suggest: 'CitySuggest', value:'Выбор города', hidden:true },
+      { view:'combo', id:'frameUserList_filter_country', suggest: 'CountrySuggest', value:'Выбор страны', relatedView:'frameUserList_filter_city', relatedAction:'snow' },
+      { view:'combo', id:'frameUserList_filter_city', suggest: 'CitySuggest', value:'Выбор города', hidden:true },
       { view:'template', template:'Возраст', type:'section', align:'center' },
       { cols:[
-        { view:'combo', id:'userlist_filter_fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
+        { view:'combo', id:'frameUserList_filter_fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
         {	view:'label', label:'-', width:10 },
-        { view:'combo', id:'userlist_filter_toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
+        { view:'combo', id:'frameUserList_filter_toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
       ]},
       { view:'template', template:'Пол', type:'section', align:'center' },
-      { view:"radio", id:'userlist_filter_gender', vertical:true, options:[{ value:"Любой", id:1 }, { value:"Мужской", id:2 }, { value:"Женский", id:3 }], value:1, autoheight:true },
+      { view:"radio", id:'frameUserList_filter_gender', vertical:true, options:[{ value:"Любой", id:1 }, { value:"Мужской", id:2 }, { value:"Женский", id:3 }], value:1, autoheight:true },
       { view:'template', template:'Семейное положение', type:'section', align:'center' },
-      { view:'richselect', id:'userlist_filter_familystatus', value:'Выбор статуса', yCount:3, options:'FamilyStatusSuggest' }, {}
+      { view:'richselect', id:'frameUserList_filter_familystatus', value:'Выбор статуса', yCount:3, options:'FamilyStatusSuggest' }, {}
   ]}
 };
 
-var rightframe_views_groups = {
+var frameRight_views_groups = {
   
 };
 
-var rightframe_views_tasks = {
+var frameRight_views_tasks = {
   
 };
 
-App.Frame.rightframe = {
-  view:'multiview', id:"rightframe",
+App.Frame.frameRight = {
+  view:'multiview', id:"frameRight",
 	width:250,
-  cells:[rightframe_views_userprofile,
-  rightframe_views_groups,
-  rightframe_views_tasks ]
+  cells:[frameRight_views_userprofile,
+  frameRight_views_groups,
+  frameRight_views_tasks ]
 };
 
-App.Frame.userlist = {
-  view:'dataview', id:'userlist',
+App.Frame.frameUserList = {
+  view:'dataview', id:'frameUserList',
   width:300,
   borderless:false, scroll:'y',  xCount:1,
   type:{ height: 80, width:300 },
-  template:'html->userlist_template',
+  template:'html->frameUserList_template',
 	//select:1,
 	autowidth:true,
 	url:'api/userlist'
@@ -365,10 +363,8 @@ App.Frame.ingrid_groupframe = {
 	url: "GroupData->load"
 };
 
-App.Frame.groupframe = {
-	id:'groupframe',
-	view:'tabview',
-	//minWidth:App.WinSize.windowWidth / 100 * 80,
+App.Frame.frameCentral_Group = {
+	view:'tabview', id:'frameCentral_Group',
 	autowidth:true,
 	animate:'true',
 	tabbar : { optionWidth : 200 },
@@ -636,11 +632,9 @@ var userframe_message = {
   ]
 };
 
-App.Frame.userframe = {
-  id:'userframe',
-  view:'tabview',
-  autoheight:true,
-  autowidth:true,
+App.Frame.frameCentral_User = {
+  view:'tabview', id:'frameCentral_User',
+  autoheight:true, autowidth:true,
   animate:true,
   tabbar : { optionWidth : 200 },
   cells:[
@@ -724,10 +718,9 @@ var loginForm = {
   ]
 };
 
-App.Frame.registerframe = {
-  id:'registerframe',
-  autoheight:true,
-  autowidth:true,
+App.Frame.frameCentral_Register = {
+  id:'frameCentral_Register',
+  autoheight:true, autowidth:true,
   rows:[
     {},
     {
@@ -741,10 +734,9 @@ App.Frame.registerframe = {
   ]
 };
 
-App.Frame.loginframe = {
-  id:'loginframe',
-  autoheight:true,
-  autowidth:true,
+App.Frame.frameCentral_Login = {
+  id:'frameCentral_Login',
+  autoheight:true, autowidth:true,
   rows:[
     {},
     {
@@ -758,13 +750,8 @@ App.Frame.loginframe = {
   ]
 };
 
-App.Frame.greetingframe = {
-  id:'greetingframe',
-  container:'greetingframe',
-  //minHeight:600,
-  //maxWidth:1500,
-  //autoheight:true,
-  //autowidth:true,
+App.Frame.frameCentral_Greeting = {
+  id:'frameCentral_Greeting', container:'frameCentral_Greeting',
   rows:[
   {
     view:'htmlform',
@@ -773,11 +760,9 @@ App.Frame.greetingframe = {
   { 
     cols:[{},
     {
-      id:'btnTry',
-	    view:'button', 
+      view:'button', id:'btnTry',
+	    height: 45, width: 100,
 	    value:'Попробовать',
-	    height: 45,
-	    width: 100,
 	    on:{
 	      'onItemClick':function() {
 	        App.User.set({'thisTry': true});
@@ -785,11 +770,9 @@ App.Frame.greetingframe = {
       }
     },
     {
-      id:"btnRegister",
-	    view:"button",
+      view:"button", id:"btnRegister",
+      height: 45, width: 130,
 	    value:"Зарегистрировать",
-	    height: 45,
-	    width: 130,
 	    on:{
 		    'onItemClick': function() { 
 		      App.Router.navigate('register', {trigger:true} );
@@ -797,11 +780,9 @@ App.Frame.greetingframe = {
       }
     },
     {
-      id:"btnLogin",
-	    view:"button",
+      view:"button", id:"btnLogin",
+	    height: 45, width: 100,
 	    value:"Войти",
-	    height: 45,
-	    width: 100,
 	    on:{
 		    'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); }
       }
@@ -810,18 +791,13 @@ App.Frame.greetingframe = {
   ]
 };
 
-App.Frame.centralframe = {
-  id:'centralframe',
-  container:'centralframe',
-  //adjust:true,
-  //autoheight:true,
-  //autowidth:true,
-  view:"multiview", 
-  cells:[App.Frame.greetingframe,
-  App.Frame.groupframe,
+App.Frame.frameCentral = {
+  view:"multiview", id:'frameCentral', container:'frameCentral',
+  cells:[App.Frame.frameCentral_Greeting,
+  App.Frame.frameCentral_Group,
   App.Frame.taskframe,
-  App.Frame.registerframe,
-  App.Frame.loginframe,
-  App.Frame.userframe],
+  App.Frame.frameCentral_Register,
+  App.Frame.frameCentral_Login,
+  App.Frame.frameCentral_User],
   fitBiggest:true
 };

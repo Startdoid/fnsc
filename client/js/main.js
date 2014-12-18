@@ -71,8 +71,8 @@ var implementFunction = (function() {
   };
 
   var showInterface = function(enable) {
-    if(enable) $$("headerframe").enable(); else $$("headerframe").disable();
-    $$("headerframe").refresh();
+    if(enable) $$("frameHeader").enable(); else $$("frameHeader").disable();
+    $$("frameHeader").refresh();
   };
   
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
@@ -119,7 +119,7 @@ var implementFunction = (function() {
 		  this.navigate('', {trigger: true});
 		},
 		login:function() {
-	    $$('loginframe').show();
+	    $$('frameCentral_Login').show();
 	    webix.UIManager.setFocus("loginForm");
 		},
 		logout:function() {
@@ -133,7 +133,7 @@ var implementFunction = (function() {
       });
 		},
 		register:function() {
-	    $$('registerframe').show();
+	    $$('frameCentral_Register').show();
 		}
 	}))();
 	
@@ -142,16 +142,16 @@ var implementFunction = (function() {
   var showUserDataAfterFetch = function(User, response, options) {
     showInterface(true);
     
-    $$('userframe').show();
-    $$("userframe").hideProgress();
+    $$('frameCentral_User').show();
+    $$("frameCentral_User").hideProgress();
     
-    if($$("userlist").getSelectedId() === '') {
-      $$('userlist').select($$('userlist').getFirstId());
+    if($$("frameUserList").getSelectedId() === '') {
+      $$('frameUserList').select($$('frameUserList').getFirstId());
       App.Frame.filluserframe(App.User.get('id'));
-    } else if ($$("userlist").getSelectedId() === $$('userlist').getFirstId()) {
+    } else if ($$("frameUserList").getSelectedId() === $$('frameUserList').getFirstId()) {
       App.Frame.filluserframe(App.User.get('id'));
     } else {
-      App.Frame.filluserframe($$("userlist").getSelectedId());
+      App.Frame.filluserframe($$("frameUserList").getSelectedId());
     }
     
     App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
@@ -179,7 +179,7 @@ var implementFunction = (function() {
   	  showInterface(true);
   	  switch(App.State.segment) {
         case 'users':
-       	  $$("userframe").showProgress({
+       	  $$("frameCentral_User").showProgress({
             type:"icon",
             delay:500
           });
@@ -190,7 +190,7 @@ var implementFunction = (function() {
           break;
         case 'groups':
           App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
-          $$('groupframe').show();
+          $$('frameCentral_Group').show();
           break;
         case 'tasks':
           App.Collections.Tasks.fetch({ success: showTaskDataAfterFetch });
@@ -213,7 +213,7 @@ var implementFunction = (function() {
   	  }
   	} else {
   	  showInterface(false);
-  	  $$('greetingframe').show();
+  	  $$('frameCentral_Greeting').show();
   	} //if(App.User.usrLogged)    
   };
   
@@ -464,23 +464,23 @@ var implementFunction = (function() {
 
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   //описание внизу модуля
-  var masterframe = new webix.ui({
-    id:"masterframe",
-    rows:[App.Frame.headerframe, 
-      { cols: [App.Frame.leftframe, App.Frame.centralframe,  App.Frame.userlist, App.Frame.rightframe] }
+  var frameBase = new webix.ui({
+    id:"frameBase",
+    rows:[App.Frame.frameHeader, 
+      { cols: [App.Frame.frameLeft, App.Frame.frameCentral,  App.Frame.frameUserList, App.Frame.frameRight] }
     ]
   });
 
-  webix.extend($$("userframe"), webix.ProgressBar);
+  webix.extend($$("frameCentral_User"), webix.ProgressBar);
   
-  $$("leftframe").hide();
-  $$("rightframe").hide();
-  $$("userlist").hide();
+  $$("frameLeft").hide();
+  $$("frameRight").hide();
+  $$("frameUserList").hide();
   
   webix.UIManager.addHotKey('enter', function() { 
-    if($$('registerframe').isVisible()) {
+    if($$('frameCentral_Register').isVisible()) {
       App.Func.Register();
-    } else if($$('loginframe').isVisible()) {
+    } else if($$('frameCentral_Login').isVisible()) {
       App.Func.Login();
     }
   });
@@ -526,6 +526,6 @@ var implementFunction = (function() {
   showInterface(false);
 
   webix.i18n.parseFormatDate = webix.Date.strToDate("%Y/%m/%d");
-  webix.event(window, "resize", function() { masterframe.adjust(); });
+  webix.event(window, "resize", function() { frameBase.adjust(); });
   Backbone.history.start({pushState: true, root: "/"});
 });
