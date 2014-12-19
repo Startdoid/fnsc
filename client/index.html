@@ -55,39 +55,51 @@
   </style>
   
   <body>
-    <div id='frameHeader'></div>
-		<div id='frameBase'></div>
-		<div id='frameLeft'></div>
-		<div id='frameCentral'></div>
-		  <div id='frameCentral_Greeting'></div>
-		  <div id='frameCentral_Group'></div>
-		  <div id='frameCentral_Register'></div>
-		  <div id='frameCentral_Login'></div>
-		  <div id='frameCentral_User'></div>
-		<div id='frameUserList'></div>
-		<div id='frameRight'></div>
+	  <div id='frameBase'></div>
+      <div id='toolbarHeader'></div>
+  		<div id='multiviewLeft'></div>
+  		  <div id='scrollviewLeft_Slices'></div>
+  		    <div id='treeSlices_Groups'></div>
+  		    <div id='treeSlices_Projects'></div>
+  		    <div id='treeSlices_Tags'></div>
+  		<div id='multiviewCentral'></div>
+  		  <div id='frameCentral_Greeting'></div>
+  		  <div id='tabviewCentral_Groups'></div>
+  		    <div id='frameGroups_Mygroups'></div>
+  		      <div id='toolbarMyGroups_Groupstool'></div>
+  		      <div id='treetableMyGroups_Groupstable'></div>
+  		    <div id='frameGroups_Communitygroups'></div>
+  		  <div id='tabviewCentral_Task'></div>
+  		    <div id='frameTask_Mytasks'></div>
+  		      <div id='toolbarMytasks_Tasktool'></div>
+  		      <div id='treetableMytasks_Tasktable'></div>
+  		    <div id='frameTask_Incomingtasks'></div>
+  		    <div id='frameTask_Outcomingtasks'></div>
+  		  <div id='frameCentral_Register'></div>
+  		  <div id='frameCentral_Login'></div>
+  		    <div id="formLogin"></div>
+  		    <div id="formRegistration"></div>
+  		  <div id='tabviewCentral_User'></div>
+  		    <div id='frameUser_Profile'></div>
+  		      <div id='listProfile_UserAttributesSelector'></div>
+  		      <div id='scrollviewProfile_UserAttributes'></div>
+  		    <div id='frameUser_Albums'></div>
+  		    <div id='frameUser_Achievements'></div>
+  		    <div id='frameUser_Events'></div>
+  		    <div id='frameUser_Message'></div>
+  		<div id='frameUserList'></div>
+  	 		<div id="frameUserList_template" style='display:none'>
+      		<div class='friend_avatar'>
+      			<img src='img/avatars/#img#'/>
+      		</div>
+      		<div class='friend_info'>
+      			<div><span>Name:</span>#name#</div>
+      			<div><span>Email:</span>#email#</div>
+      		</div>
+      	</div>
+  		<div id='multiviewRight'></div>
+  		  <div id='scrollviewRight_UserFilter'></div>
 		
-    <div id="slicegroupsframe"></div>
-		<div id="gridgroupsframe"></div>
-		<div id="sliceusersframe"></div>
-		<div id="sliceprojectsframe"></div>
-		<div id="inslicegroups"></div>
-		<div id="slicetagsframe"></div>
-		
-		<div id="loginForm"></div>
-		
-		<div id='frameRight_views_userprofile'></div>
-		
-		<div id="frameUserList_template" style='display:none'>
-  		<div class='friend_avatar'>
-  			<img src='img/avatars/#img#'/>
-  		</div>
-  		<div class='friend_info'>
-  			<div><span>Name:</span>#name#</div>
-  			<div><span>Email:</span>#email#</div>
-  		</div>
-  	</div>
-	
     <script type="text/javascript" charset="utf-8">
       var webix = window.webix;
 	    window.App = {

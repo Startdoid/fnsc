@@ -1,26 +1,26 @@
 var App = window.App;
 var webix = window.webix;
 
-var btnMenu = {
-	view:"toggle", id:"btnMenu",
-	type:"icon", icon:"bars", 
+var toggleHeader_Menu = {
+	view:'toggle', id:'toggleHeader_Menu',
+	type:'icon', icon:'bars', 
 	width:30,	height:30,
 	on:{
 		'onItemClick': function() { 
-		  if($$("frameLeft").isVisible()) {
-		    $$("frameLeft").hide();
+		  if($$('multiviewLeft').isVisible()) {
+		    $$('multiviewLeft').hide();
 		  } else {
-		    $$("frameLeft").show();
-		    $$("frameLeft_views_slice").show();
+		    $$('multiviewLeft').show();
+		    $$('scrollviewLeft_Slices').show();
 		  }	
 		}
 	}
 };
 
-var lblInTask = {
-	view: "label", id:"lblInTask",
+var labelHeader_InTask = {
+	view: 'label', id:'labelHeader_InTask',
 	width:100,
-	label:"InTask.me",
+	label:'InTask.me',
 	on:{
 		'onItemClick': function() { 
 		  App.Router.navigate('home', {trigger:true} ); 
@@ -28,8 +28,8 @@ var lblInTask = {
 	}
 };
 
-var mnuSettings = {
-	view:'menu', id:'mnuSettings',
+var menuHeader_Settings = {
+	view:'menu', id:'menuHeader_Settings',
 	width:35,
 	borderless: true,
 	align:'right',
@@ -54,58 +54,52 @@ var mnuSettings = {
   }
 };
 
-var btnUser = {
-	view: 'toggle', id: 'btnUser',
+var toggleHeader_User = {
+	view: 'toggle', id: 'toggleHeader_User',
 	type: 'icon', icon: 'group',
 	width: 30,	height: 30,
 	on:{
 		'onItemClick': function() { 
-		  if($$("frameUserList").isVisible()) {
-		    $$("frameUserList").hide();
+		  if($$('frameUserList').isVisible()) {
+		    $$('frameUserList').hide();
 		  } else {
-		    $$("frameUserList").show();
-		    //$$("frameRight_views_userprofile").show();
+		    $$('frameUserList').show();
+		    //$$("scrollviewRight_UserFilter").show();
 		  }	
 		}
 	}
-	//label:"Чат",
-	//align:"right",
-	//value:0,
 };
 
-var btnOptions = {
-	view: 'toggle',  id: 'btnOptions',
+var toggleHeader_Options = {
+	view: 'toggle',  id: 'toggleHeader_Options',
 	type: 'icon', icon: 'tasks',
 	width: 30,	height: 30,
 	on:{
 		'onItemClick': function() { 
-		  if($$("frameRight").isVisible()) {
-		    $$("frameRight").hide();
+		  if($$('multiviewRight').isVisible()) {
+		    $$('multiviewRight').hide();
 		  } else {
-		    $$("frameRight").show();
-		    $$("frameRight_views_userprofile").show();
+		    $$('multiviewRight').show();
+		    $$('scrollviewRight_UserFilter').show();
 		  }	
 		}
 	}	
-	//label:"События",
-	//value:0,
-	//align:"right",
 };
 
-var mnuSegments = {
-  view: 'richselect', id:'mnuSegments',
+var richselectHeader_Segments = {
+  view: 'richselect', id:'richselectHeader_Segments',
 	width:300,
-	label: 'Сегменты', labelAlign:'right',
-	align:"left",
+	label:'Сегменты', labelAlign:'right',
+	align:'left',
 	value:1, options:[
-		{ id:1, value:"Профиль" }, 
-		{ id:2, value:"Группы" }, 
-		{ id:3, value:"Задачи" }, 
-		{ id:4, value:"Шаблоны" },
-		{ id:5, value:"Финансы" },
-		{ id:6, value:"Процессы" },
-		{ id:7, value:"Файлы" },
-		{ id:8, value:"Заметки" }
+		{ id:1, value:'Профиль' }, 
+		{ id:2, value:'Группы' }, 
+		{ id:3, value:'Задачи' }, 
+		{ id:4, value:'Шаблоны' },
+		{ id:5, value:'Финансы' },
+		{ id:6, value:'Процессы' },
+		{ id:7, value:'Файлы' },
+		{ id:8, value:'Заметки' }
 	],
 	on: {
     'onChange': function(newv, oldv) {
@@ -142,29 +136,27 @@ var mnuSegments = {
 	}
 };
 
-var searchMaster = {
-	view:"search",
-	//maxWidth:400,
-	placeholder:"Найти тут всё..."
+var searchHeader_Master = {
+	view:'search', id: 'searchHeader_Master',
+	placeholder:'Найти тут всё...'
 };
 
-App.Frame.frameHeader = {
-	view:"toolbar", id: 'frameHeader',
+App.Frame.toolbarHeader = {
+	view:"toolbar", id: 'toolbarHeader',
 	height:32, maxWidth:App.WinSize.windowWidth / 100 * 80,
-	elements:[btnMenu,
-	          lblInTask,
-	          searchMaster,
+	elements:[toggleHeader_Menu,
+	          labelHeader_InTask,
+	          searchHeader_Master,
 	          //{},
-	          mnuSegments,
-	          btnUser,
-	          btnOptions,	          
-	          mnuSettings
+	          richselectHeader_Segments,
+	          toggleHeader_User,
+	          toggleHeader_Options,
+	          menuHeader_Settings
 	         ]
 };
 
-App.Frame.slicegroups = {
-  id:'slicegroups',
-  view:'tree',
+App.Frame.treeSlices_Groups = {
+  view:'tree', id:'treeSlices_Groups',
   isolate:false, 
   select:true,
   autoheight:true,
@@ -172,20 +164,8 @@ App.Frame.slicegroups = {
   url: "GroupData->load"
 };
 
-App.Frame.sliceusers = {
-  id:'sliceusers',
-  view:'tree',
-  select:true,
-  data: [
-    //{ id:'viktor', value:'Виктор' },
-    //{ id:'lubov', value:'Любовь' },
-    //{ id:'denis', value:'Денис' }
-  ]
-};
-
-App.Frame.sliceprojects = {
-  id:'sliceprojects',
-  view:'tree',
+App.Frame.treeSlices_Projects = {
+  view:'tree', id:'treeSlices_Projects',
   select:'true',
   data: [
     { id:'Default', value:'Default' },
@@ -193,18 +173,16 @@ App.Frame.sliceprojects = {
     ]
 };
 
-App.Frame.slicetags = {
-  id:'slicetags',
-  view:'tree',
+App.Frame.treeSlices_Tags = {
+  view:'tree', id:'treeSlices_Tags',
   select:'true',
   data: [
     { id:'InTaskoid', value:'InTask.me' }
   ]
 };
 
-var frameLeft_views_slice = {
-  view:'scrollview', id:'frameLeft_views_slice',
-  //autoheight:true,
+var scrollviewLeft_Slices = {
+  view:'scrollview', id:'scrollviewLeft_Slices',
   borderless: true, scroll:'y', //vertical scrolling
   body:{
 		multi:false,
@@ -212,46 +190,43 @@ var frameLeft_views_slice = {
 		type:'space',
 		rows:[{ body: 'Task pull' },
 				  { view: 'resizer' },
-		      { header:'Группы', body: App.Frame.slicegroups,  autoheight:true},
-		      { header:'Люди', body: App.Frame.sliceusers },
-		      { header:'Проекты', body: App.Frame.sliceprojects },
-		      { header:'Тэги', body: App.Frame.slicetags }
+		      { header:'Группы', body: App.Frame.treeSlices_Groups },
+		      { header:'Проекты', body: App.Frame.treeSlices_Projects },
+		      { header:'Тэги', body: App.Frame.treeSlices_Tags }
 		      ]
   }
 };
 
-App.Frame.frameLeft = {
-  view:'multiview', id:'frameLeft',
+App.Frame.multiviewLeft = {
+  view:'multiview', id:'multiviewLeft',
 	width:250,
 	borderless: false,
-	cells:[frameLeft_views_slice]
+	cells:[scrollviewLeft_Slices]
 };
 
 //Фильтр в панели опции
-var frameRight_views_userprofile = {
-  view:'scrollview', id:'frameRight_views_userprofile', container:'frameRight_views_userprofile',
+var scrollviewRight_UserFilter = {
+  view:'scrollview', id:'scrollviewRight_UserFilter', container:'scrollviewRight_UserFilter',
   borderless: false, scroll:"y",
-  $init: function(config) { 
-    //$$('frameUserList_filter_country').hide(); 
-  },
+  $init: function(config) { },
   body:{
     rows:[
       { view:'template', template:'Пользователи', type:'section', align:'center' },
-      { view:'checkbox', id:'frameUserList_filter_myfriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
-      { view:'checkbox', id:'frameUserList_filter_online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
+      { view:'checkbox', id:'checkboxUserFilter_MyFriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
+      { view:'checkbox', id:'checkboxUserFilter_Online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
       { view:'template', template:'Регион', type:'section', align:'center' },
-      { view:'combo', id:'frameUserList_filter_country', suggest: 'CountrySuggest', value:'Выбор страны', relatedView:'frameUserList_filter_city', relatedAction:'snow' },
-      { view:'combo', id:'frameUserList_filter_city', suggest: 'CitySuggest', value:'Выбор города', hidden:true },
+      { view:'combo', id:'comboUserFilter_Country', suggest: 'suggestCountry', value:'Выбор страны', relatedView:'comboUserFilter_City', relatedAction:'snow' },
+      { view:'combo', id:'comboUserFilter_City', suggest: 'suggestCity', value:'Выбор города', hidden:true },
       { view:'template', template:'Возраст', type:'section', align:'center' },
       { cols:[
-        { view:'combo', id:'frameUserList_filter_fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
+        { view:'combo', id:'comboUserFilter_Fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
         {	view:'label', label:'-', width:10 },
-        { view:'combo', id:'frameUserList_filter_toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
+        { view:'combo', id:'comboUserFilter_Toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
       ]},
       { view:'template', template:'Пол', type:'section', align:'center' },
-      { view:"radio", id:'frameUserList_filter_gender', vertical:true, options:[{ value:"Любой", id:1 }, { value:"Мужской", id:2 }, { value:"Женский", id:3 }], value:1, autoheight:true },
+      { view:'radio', id:'radioUserFilter_Gender', vertical:true, options:[{ value:'Любой', id:0 }, { value:'Мужской', id:1 }, { value:'Женский', id:2 }], value:0, autoheight:true },
       { view:'template', template:'Семейное положение', type:'section', align:'center' },
-      { view:'richselect', id:'frameUserList_filter_familystatus', value:'Выбор статуса', yCount:3, options:'FamilyStatusSuggest' }, {}
+      { view:'richselect', id:'richselectUserFilter_Familystatus', value:'Выбор статуса', yCount:3, options:'suggestFamilyStatus' }, {}
   ]}
 };
 
@@ -263,10 +238,10 @@ var frameRight_views_tasks = {
   
 };
 
-App.Frame.frameRight = {
-  view:'multiview', id:"frameRight",
+App.Frame.multiviewRight = {
+  view:'multiview', id:'multiviewRight',
 	width:250,
-  cells:[frameRight_views_userprofile,
+  cells:[scrollviewRight_UserFilter,
   frameRight_views_groups,
   frameRight_views_tasks ]
 };
@@ -287,19 +262,16 @@ App.Frame.frameUserList = {
 //***************************************************************************
 //GROUP frames
 
-App.Frame.grouptoolframe = {
-  view:'toolbar',
-  id:'grouptoolframe',
+App.Frame.toolbarMyGroups_Groupstool = {
+  view:'toolbar', id:'toolbarMyGroups_Groupstool',
   cols:[
-    { view:'button', id:'grtlbtnAddMaster', value:'Добавить основную', width:140, align:'left', on:{
-      'onItemClick':function() { App.Collections.Groups.newGroup(0); }
-    } },
-    { view:'button', id:'grtlbtnAdd', value:'Добавить', width:100, align:"left", on:{
-		  'onItemClick':function() { App.Collections.Groups.newGroup(App.State.ingrid_Groupframe_ItemSelected); }
-    } },
-    { view:'button', id:'grtlbtnDlt', value:'Удалить', width:100, align:"left", on:{
-      'onItemClick':function() {
-        var selectedId = App.State.ingrid_Groupframe_ItemSelected;
+    { view:'button', id:'buttonGroupstool_AddRoot', value:'Добавить основную', width:140, align:'left', 
+      click: function() { App.Collections.Groups.newGroup(0); } },
+    { view:'button', id:'buttonGroupstool_Add', value:'Добавить', width:100, align:'left', 
+      click: function() { App.Collections.Groups.newGroup(App.State.groupstable_ItemSelected); } },
+    { view:'button', id:'buttonGroupstool_Delete', value:'Удалить', width:100, align:'left', 
+      click: function() {
+        var selectedId = App.State.groupstable_ItemSelected;
         if (selectedId !== 0) {
           var firstModels = App.Collections.Groups.findWhere( { parent_id: selectedId } );
           var text = '';
@@ -316,76 +288,69 @@ App.Frame.grouptoolframe = {
             type:'confirm-warning',
             text:text,
             callback: function(result) { 
-              if (result) { App.Collections.Groups.removeGroup(App.State.ingrid_Groupframe_ItemSelected); }
-              //App.Collections.Groups.get(selectedId)
+              if (result) { App.Collections.Groups.removeGroup(App.State.groupstable_ItemSelected); }
               }
           });
         }
       }
-    } },
-    { view:'button', id:'grtlbtnUp', value:'Вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'up'); }
-    } },
-    { view:'button', id:'grtlbtnDown', value:'Вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'down'); }
-    } },
-    { view:'button', id:'grtlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'uplevel'); }
-    } },
-    { view:'button', id:'grtlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Groups.moveGroup(App.State.ingrid_Groupframe_ItemSelected, 'downlevel'); }
-    } },
+    },
+    { view:'button', id:'buttonGroupstool_Up', value:'Вверх', width:100, align:'left', 
+      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'up'); } },
+    { view:'button', id:'buttonGroupstool_Down', value:'Вниз', width:100, align:'left', 
+      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'down'); } },
+    { view:'button', id:'buttonGroupstool_UpLevel', value:'На ур. вверх', width:100, align:'left', 
+      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'uplevel'); } },
+    { view:'button', id:'buttonGroupstool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
+      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'downlevel'); } },
     { }
   ]
 };
 
-App.Frame.ingrid_groupframe = {
-  id:'ingrid_groupframe',
-	view:'treetable', 
+App.Frame.treetableMyGroups_Groupstable = {
+  view:'treetable', id:'treetableMyGroups_Groupstable',
 	editable:true, 
 	autoheight:true, 
 	select: true,
 	drag:true,
 	columns:[
-		{ id:'id', header:'', css:{"text-align":"center"}, width:40 },
+		{ id:'id', header:'', css:{'text-align':'center'}, width:40 },
 		{ id:'name', editor:"text", header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 	],
 	on: {
-	  onItemClick:function() { App.State.ingrid_Groupframe_ItemSelected = this.getSelectedId().id; },
-    onBeforeDrop:function(context, event) {
+	  onItemClick: function() { App.State.groupstable_ItemSelected = this.getSelectedId().id; },
+    onBeforeDrop: function(context, event) {
       var id_conf = context.to.config.id;
-      if(id_conf === 'ingrid_groupframe') {
+      if(id_conf === 'treetableMyGroups_Groupstable') {
         App.Collections.Groups.moveGroup(context.start, 'jump', context.index, context.parent);
       }
   	 }
 	},
-	url: "GroupData->load"
+	url: 'GroupData->load'
 };
 
-App.Frame.frameCentral_Group = {
-	view:'tabview', id:'frameCentral_Group',
-	autowidth:true,
-	animate:'true',
+App.Frame.tabviewCentral_Groups = {
+	view:'tabview', id:'tabviewCentral_Groups',
+	autowidth: true,
+	animate: true,
 	tabbar : { optionWidth : 200 },
   cells:[
     {
-     header:'Мои группы',
-     body:{
-        id:'mygroups_groupframe',
+      header:'Мои группы',
+      body:{
+        id:'frameGroups_Mygroups',
         rows:[
-          App.Frame.grouptoolframe,
-          App.Frame.ingrid_groupframe]
-        }
-    },
+          App.Frame.toolbarMyGroups_Groupstool,
+          App.Frame.treetableMyGroups_Groupstable]
+      }
+    }, 
     {
-     header:'Общественные группы',
-     body:{
-        id:'communitygroups_groupframe',
+      header:'Общественные группы',
+      body:{
+        id:'frameGroups_Communitygroups',
         rows:[
-          //App.Frame.grouptoolframe,
           {}]        
-        }
+      }
     }
   ]
 };
@@ -393,19 +358,17 @@ App.Frame.frameCentral_Group = {
 //***************************************************************************
 //TASK frames
 
-App.Frame.tasktoolframe = {
+App.Frame.toolbarMytasks_Tasktool = {
   view:'toolbar',
-  id:'tasktoolframe',
+  id:'toolbarMytasks_Tasktool',
   cols:[
-    { view:'button', id:'tsktlbtnAddMaster', value:'Добавить основную', width:140, align:'left', on:{
-      'onItemClick':function() { App.Collections.Tasks.newTask(0); }
-    } },
-    { view:'button', id:'tsktlbtnAdd', value:'Добавить', width:100, align:"left", on:{
-		  'onItemClick':function() { App.Collections.Tasks.newTask(App.State.ingrid_Taskframe_ItemSelected); }
-    } },
-    { view:'button', id:'tsktlbtnDlt', value:'Удалить', width:100, align:"left", on:{
-      'onItemClick':function() {
-        var selectedId = App.State.ingrid_Taskframe_ItemSelected;
+    { view:'button', id:'buttonTasktool_AddRoot', value:'Добавить основную', width:140, align:'left', 
+      click: function() { App.Collections.Tasks.newTask(0); } },
+    { view:'button', id:'buttonTasktool_Add', value:'Добавить', width:100, align:'left', 
+      click: function() { App.Collections.Tasks.newTask(App.State.tasktable_ItemSelected); } },
+    { view:'button', id:'buttonTasktool_Delete', value:'Удалить', width:100, align:'left', 
+      click: function() {
+        var selectedId = App.State.tasktable_ItemSelected;
         if (selectedId !== 0) {
           var firstModels = App.Collections.Tasks.findWhere( { parent_id: selectedId } );
           var text = '';
@@ -422,30 +385,26 @@ App.Frame.tasktoolframe = {
             type:'confirm-warning',
             text:text,
             callback: function(result) { 
-              if (result) { App.Collections.Tasks.removeTask(App.State.ingrid_Taskframe_ItemSelected); }
+              if (result) { App.Collections.Tasks.removeTask(App.State.tasktable_ItemSelected); }
               }
           });
         }
       }
-    } },
-    { view:'button', id:'tsktlbtnUp', value:'Вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'up'); }
-    } },
-    { view:'button', id:'tsktlbtnDown', value:'Вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'down'); }
-    } },
-    { view:'button', id:'tsktlbtnUpLevel', value:'На ур. вверх', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'uplevel'); }
-    } },
-    { view:'button', id:'tsktlbtnDownLevel', value:'На ур. вниз', width:100, align:"left", on:{
-      'onItemClick':function() { App.Collections.Tasks.moveTask(App.State.ingrid_Taskframe_ItemSelected, 'downlevel'); }
-    } },
+    },
+    { view:'button', id:'buttonTasktool_Up', value:'Вверх', width:100, align:'left', 
+      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'up'); } },
+    { view:'button', id:'buttonTasktool_Down', value:'Вниз', width:100, align:'left', 
+      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'down'); } },
+    { view:'button', id:'buttonTasktool_UpLevel', value:'На ур. вверх', width:100, align:'left', 
+      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'uplevel'); } },
+    { view:'button', id:'buttonTasktool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
+      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'downlevel'); } },
     { }
   ]
 };
 
-App.Frame.ingrid_taskframe = {
-  id:'ingrid_taskframe',
+App.Frame.treetableMytasks_Tasktable = {
+  id:'treetableMytasks_Tasktable',
 	view:'treetable', 
 	editable:true, 
 	autoheight:true, 
@@ -456,10 +415,10 @@ App.Frame.ingrid_taskframe = {
 		{ id:'description', editor:"text", header:'Описание задачи', width:250, template:'{common.treetable()} #description#' }
 	],
 	on: {
-	  onItemClick:function() { App.State.ingrid_Taskframe_ItemSelected = this.getSelectedId().id; },
+	  onItemClick:function() { App.State.tasktable_ItemSelected = this.getSelectedId().id; },
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
-      if(id_conf === 'ingrid_taskframe') {
+      if(id_conf === 'treetableMytasks_Tasktable') {
         App.Collections.Tasks.moveTask(context.start, 'jump', context.index, context.parent);
       }
   	 }
@@ -467,9 +426,8 @@ App.Frame.ingrid_taskframe = {
 	url: "TaskData->load"
 };
 
-App.Frame.taskframe = {
-	id:'taskframe',
-	view:'tabview',
+App.Frame.tabviewCentral_Task = {
+	view:'tabview', id:'tabviewCentral_Task',
 	autowidth:true,
 	animate:'true',
 	tabbar : { optionWidth : 200 },
@@ -477,16 +435,16 @@ App.Frame.taskframe = {
     {
      header:'Мои',
      body:{
-        id:'mytasks_taskframe',
+        id:'frameTask_Mytasks',
         rows:[
-          App.Frame.tasktoolframe,
-          App.Frame.ingrid_taskframe]
+          App.Frame.toolbarMytasks_Tasktool,
+          App.Frame.treetableMytasks_Tasktable]
         }
     },
     {
      header:'Входящие',
      body:{
-        id:'incomingtasks_taskframe',
+        id:'frameTask_Incomingtasks',
         rows:[
           {}]        
         }
@@ -494,7 +452,7 @@ App.Frame.taskframe = {
     {
      header:'Порученные',
      body:{
-        id:'outcomingtasks_taskframe',
+        id:'frameTask_Outcomingtasks',
         rows:[
           {}]        
         }
@@ -505,20 +463,20 @@ App.Frame.taskframe = {
 //***************************************************************************
 //USER frames
 
-App.Frame.filluserframe = function(user_id) {
+App.Func.fillUserAttributes = function(user_id) {
   if(user_id === App.User.get('id')) {
-    $$('userframe_profile_section_name').setValue(App.User.get('username'));
-    $$('userframe_profile_section_email').setValue(App.User.get('email'));
-    $$('userframe_profile_section_country').setValue(App.User.get('country'));
-    $$('userframe_profile_section_city').setValue(App.User.get('city'));
-    $$('userframe_profile_section_dateofbirth').setValue(webix.i18n.dateFormatStr(App.User.get('dateofbirth')));
-    $$('userframe_profile_section_gender').setValue(App.User.get('gender'));
-    $$('userframe_profile_section_familystatus').setValue(App.User.get('familystatus'));
+    $$('textUserAttributes_Name').setValue(App.User.get('username'));
+    $$('textUserAttributes_Email').setValue(App.User.get('email'));
+    $$('comboUserAttributes_Country').setValue(App.User.get('country'));
+    $$('comboUserAttributes_City').setValue(App.User.get('city'));
+    $$('datepickerUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.User.get('dateofbirth')));
+    $$('radioUserAttributes_Gender').setValue(App.User.get('gender'));
+    $$('richselectUserAttributes_Familystatus').setValue(App.User.get('familystatus'));
   }
 };
 
-var userframe_profile_selector = {
-  view:'list', id:'userframe_profile_selector', css:'mainSelector',
+var listProfile_UserAttributesSelector = {
+  view:'list', id:'listProfile_UserAttributesSelector', css:'mainSelector',
 	borderless:true,  width:250, scroll:false,
 	template:'#value#',
 	type:{ height:50 },
@@ -532,24 +490,24 @@ var userframe_profile_selector = {
 	//}
 };
 
-var userframe_profile_section = {
-  view:"scrollview", id:"userframe_profile_section",
+var scrollviewProfile_UserAttributes = {
+  view:"scrollview", id:"scrollviewProfile_UserAttributes",
   borderless: true, scroll:"y", //vertical scrolling
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'userframe_profile_section_name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { App.User.set('username', this.getValue()) } } },
-      { view:'text', id:'userframe_profile_section_email', label:'Email', labelWidth:120, on:{'onChange': function() { App.User.set('email', this.getValue()) } } },
-      { view:'combo', id:'userframe_profile_section_country', label:"Страна", suggest: 'CountrySuggest', labelWidth:120 },
-      { view:'combo', id:'userframe_profile_section_city', label:'Город', suggest: 'CitySuggest', labelWidth:120 },
-      { view:'datepicker', id:'userframe_profile_section_dateofbirth', label:'Дата рождения', labelWidth:120 },
-      { view:"radio", id:'userframe_profile_section_gender', label:'Пол', vertical:true, options:[{ value:"Любой", id:0 }, { value:"Мужской", id:1 }, { value:"Женский", id:2 }], labelWidth:120 },
-      { view:'richselect', id:'userframe_profile_section_familystatus', label:'Семейное положение', suggest:'FamilyStatusSuggest', labelWidth:120 }
+      { view:'text', id:'textUserAttributes_Name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { App.User.set('username', this.getValue()) } } },
+      { view:'text', id:'textUserAttributes_Email', label:'Email', labelWidth:120, on:{'onChange': function() { App.User.set('email', this.getValue()) } } },
+      { view:'combo', id:'comboUserAttributes_Country', label:"Страна", suggest: 'suggestCountry', labelWidth:120 },
+      { view:'combo', id:'comboUserAttributes_City', label:'Город', suggest: 'suggestCity', labelWidth:120 },
+      { view:'datepicker', id:'datepickerUserAttributes_Dateofbirth', label:'Дата рождения', labelWidth:120 },
+      { view:"radio", id:'radioUserAttributes_Gender', label:'Пол', vertical:true, options:[{ value:"Любой", id:0 }, { value:"Мужской", id:1 }, { value:"Женский", id:2 }], labelWidth:120 },
+      { view:'richselect', id:'richselectUserAttributes_Familystatus', label:'Семейное положение', suggest:'suggestFamilyStatus', labelWidth:120 }
   ]}
 };
 
-var userframe_profile = {
-  id:'userframe_profile',
+var frameUser_Profile = {
+  id:'frameUser_Profile',
   borderless:false,
   cols:[
     { rows:[
@@ -562,9 +520,9 @@ var userframe_profile = {
         },
         { height:10 },
         { cols:[
-            userframe_profile_selector,
+            listProfile_UserAttributesSelector,
             { width:10 },
-            userframe_profile_section
+            scrollviewProfile_UserAttributes
           ]
         },
       ]
@@ -572,8 +530,8 @@ var userframe_profile = {
   ]  
 };
 
-var userframe_albums = {
-  id:'userframe_albums',
+var frameUser_Albums = {
+  id:'frameUser_Albums',
   rows:[
     {},
     {
@@ -587,8 +545,8 @@ var userframe_albums = {
   ]
 };
 
-var userframe_achievements = {
-  id:'userframe_achievements',
+var frameUser_Achievements = {
+  id:'frameUser_Achievements',
   rows:[
     {},
     {
@@ -602,8 +560,8 @@ var userframe_achievements = {
   ]
 };
 
-var userframe_events = {
-  id:'userframe_events',
+var frameUser_Events = {
+  id:'frameUser_Events',
   rows:[
     {},
     {
@@ -617,8 +575,8 @@ var userframe_events = {
   ]
 };
 
-var userframe_message = {
-  id:'userframe_message',
+var frameUser_Message = {
+  id:'frameUser_Message',
   rows:[
     {},
     {
@@ -632,36 +590,36 @@ var userframe_message = {
   ]
 };
 
-App.Frame.frameCentral_User = {
-  view:'tabview', id:'frameCentral_User',
+App.Frame.tabviewCentral_User = {
+  view:'tabview', id:'tabviewCentral_User',
   autoheight:true, autowidth:true,
   animate:true,
   tabbar : { optionWidth : 200 },
   cells:[
     {
       header: 'Профиль',
-      body: userframe_profile
+      body: frameUser_Profile
     },
     {
       header: 'Альбомы',
-      body: userframe_albums
+      body: frameUser_Albums
     },
     {
       header: 'Достижения',
-      body: userframe_achievements
+      body: frameUser_Achievements
     },
     {
       header: 'События',
-      body: userframe_events
+      body: frameUser_Events
     },
     {
       header: 'Сообщения',
-      body: userframe_message
+      body: frameUser_Message
     },    
   ]
 };
 
-//***************************************************************************
+//**************************************************************************************************
 //OTHER frames
 var reglogResponse = function(text, data) {
   App.User.set({'usrLogged': true}, {silent: true});
@@ -670,9 +628,9 @@ var reglogResponse = function(text, data) {
 };
 
 App.Func.Register = function() {
-  var promise = webix.ajax().post('api/register', { email:$$('reg_email').getValue(), 
-	                                                  username:$$('reg_username').getValue(), 
-	                                                  password:$$('reg_password').getValue()}, reglogResponse);
+  var promise = webix.ajax().post('api/register', { email:$$('textRegistration_Email').getValue(), 
+	                                                  username:$$('textRegistration_Username').getValue(), 
+	                                                  password:$$('textRegistration_Password').getValue()}, reglogResponse);
 	        
   promise.then(function(realdata){}).fail(function(err) {
     webix.message({type:"error", text:err.responseText});
@@ -680,40 +638,39 @@ App.Func.Register = function() {
 };
 
 App.Func.Login = function() {
-  var promise = webix.ajax().post('api/login', { email:$$('log_email').getValue(), 
-	                                               password:$$('log_password').getValue()}, reglogResponse);
+  var promise = webix.ajax().post('api/login', { email:$$('textLogin_Email').getValue(), 
+	                                               password:$$('textLogin_Password').getValue()}, reglogResponse);
 	        
   promise.then(function(realdata){}).fail(function(err){
     webix.message({type:"error", text:err.responseText});
   });
 };
 
-var registrationForm = {
-  view:'form',
+var formRegistration = {
+  view:'form', id:'formRegistration',
   width:350,
   elements:[
     { view:'template', template:'Регистрация', type:'header', align:'center' },
-    { view:'text', label:'Email', id:'reg_email'},
-    { view:'text', label:'Имя пользователя', id:'reg_username'},
-    { view:'text', type:'password', label:'Пароль', id:'reg_password'},
+    { view:'text', id:'textRegistration_Email', label:'Email' },
+    { view:'text', id:'textRegistration_Username', label:'Имя пользователя' },
+    { view:'text', id:'textRegistration_Password', type:'password', label:'Пароль' },
     { margin:5, cols:[
-      { view:'button', value:'Зарегистрировать', type:'form', click: App.Func.Register },
-      { view:'button', value:'Отменить', click:function() { App.Router.navigate('', {trigger: true} ); } }
+      { view:'button', id:'buttonRegistration_Enter', value:'Зарегистрировать', type:'form', click: App.Func.Register },
+      { view:'button', id:'buttonRegistration_Cancel', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
     ]}          
   ]
 };
 
-var loginForm = {
-  id:'loginForm',
-  view:'form',
+var formLogin = {
+  view:'form', id:'formLogin',
   width:350,
   elements:[
     { view:'template', template:'login', type:'header', align:'center' },
-    { view:'text', label:'Email', id:'log_email'},
-    { view:'text', type:'password', label:'Пароль', id:'log_password'},
+    { view:'text', id:'textLogin_Email', label:'Email' },
+    { view:'text', id:'textLogin_Password', type:'password', label:'Пароль' },
     { margin:5, cols:[
-      { view:'button', value:'Войти', type:'form', click: App.Func.Login },
-      { view:'button', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
+      { view:'button', id:'buttonLogin_Enter', value:'Войти', type:'form', click: App.Func.Login },
+      { view:'button', id:'buttonLogin_Cancel', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
     ]}          
   ]
 };
@@ -726,7 +683,7 @@ App.Frame.frameCentral_Register = {
     {
       cols:[
       {},
-      registrationForm,      
+      formRegistration,
       {}
       ]
     },
@@ -742,7 +699,7 @@ App.Frame.frameCentral_Login = {
     {
       cols:[
       {},
-      loginForm,      
+      formLogin,      
       {}
       ]
     },
@@ -760,44 +717,34 @@ App.Frame.frameCentral_Greeting = {
   { 
     cols:[{},
     {
-      view:'button', id:'btnTry',
+      view:'button', id:'buttonGreeting_Try',
 	    height: 45, width: 100,
 	    value:'Попробовать',
-	    on:{
-	      'onItemClick':function() {
-	        App.User.set({'thisTry': true});
-        }
-      }
+	    on:{ 'onItemClick':function() { App.User.set({'thisTry': true}); } }
     },
     {
-      view:"button", id:"btnRegister",
+      view:"button", id:"buttonGreeting_Register",
       height: 45, width: 130,
 	    value:"Зарегистрировать",
-	    on:{
-		    'onItemClick': function() { 
-		      App.Router.navigate('register', {trigger:true} );
-		    }
-      }
+	    on:{ 'onItemClick': function() { App.Router.navigate('register', {trigger:true} ); } }
     },
     {
-      view:"button", id:"btnLogin",
+      view:"button", id:"buttonGreeting_Login",
 	    height: 45, width: 100,
 	    value:"Войти",
-	    on:{
-		    'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); }
-      }
-    },{}]
+	    on:{ 'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); } }
+    }, {}]
   }
   ]
 };
 
-App.Frame.frameCentral = {
-  view:"multiview", id:'frameCentral', container:'frameCentral',
+App.Frame.multiviewCentral = {
+  view:"multiview", id:'multiviewCentral', container:'multiviewCentral',
   cells:[App.Frame.frameCentral_Greeting,
-  App.Frame.frameCentral_Group,
-  App.Frame.taskframe,
+  App.Frame.tabviewCentral_Groups,
+  App.Frame.tabviewCentral_Task,
   App.Frame.frameCentral_Register,
   App.Frame.frameCentral_Login,
-  App.Frame.frameCentral_User],
+  App.Frame.tabviewCentral_User],
   fitBiggest:true
 };

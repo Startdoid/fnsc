@@ -8,42 +8,42 @@ var implementFunction = (function() {
     $init: function() {
       this.segment                  = 'users';
       this.group                    = 0;
-      this.ingrid_Groupframe_ItemSelected   = 0;
-      this.ingrid_Groupframe_ItemEdited     = null;
-      this.ingrid_Taskframe_ItemSelected    = 0;
-      this.ingrid_Taskframe_ItemEdited      = null;
+      this.groupstable_ItemSelected = 0;
+      this.groupstable_ItemEdited   = null;
+      this.tasktable_ItemSelected   = 0;
+      this.tasktable_ItemEdited     = null;
     },
     segment           : 'users',  //groups, tasks, templates, finances, process, files, notes
     group             : 0,        //Выбранная группа, по которой фильтруются задачи
     //флаги состояния приложения this_view_action
-    ingrid_Groupframe_ItemSelected    : 0,    //выделенный элемент в области конструктора групп
-    ingrid_Groupframe_ItemEdited      : null, //редактируемый элемент в области конструктора групп
-    ingrid_Taskframe_ItemSelected     : 0,    //выделенный элемент в области конструктора задач
-    ingrid_Taskframe_ItemEdited       : null  //редактируемый элемент в области конструктора задач
+    groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
+    groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
+    tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
+    tasktable_ItemEdited      : null  //редактируемый элемент в области конструктора задач
   };
   
-  var CountryData = new webix.DataCollection({ 
+  var dataCountry = new webix.DataCollection({ 
     url:'api/country'
   });
 
-  var CityData = new webix.DataCollection({
+  var dataCity = new webix.DataCollection({
     url:'api/city'
   });
   
-  var FamilyStatusData = new webix.DataCollection({
+  var dataFamilyStatus = new webix.DataCollection({
     url:'api/familystatus'
   });
 
   webix.ui({
-		id:'CountrySuggest', view:'suggest', data:CountryData
+		id:'suggestCountry', view:'suggest', data:dataCountry
 	});
 	
 	webix.ui({
-	  id:'CitySuggest', view:'suggest', data:CityData
+	  id:'suggestCity', view:'suggest', data:dataCity
 	});
 	
 	webix.ui({
-	  id:'FamilyStatusSuggest', view:'suggest', data:FamilyStatusData
+	  id:'suggestFamilyStatus', view:'suggest', data:dataFamilyStatus
 	});
 	
 	webix.proxy.GroupData = {
@@ -71,8 +71,8 @@ var implementFunction = (function() {
   };
 
   var showInterface = function(enable) {
-    if(enable) $$("frameHeader").enable(); else $$("frameHeader").disable();
-    $$("frameHeader").refresh();
+    if(enable) $$("toolbarHeader").enable(); else $$("toolbarHeader").disable();
+    $$("toolbarHeader").refresh();
   };
   
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
@@ -120,7 +120,7 @@ var implementFunction = (function() {
 		},
 		login:function() {
 	    $$('frameCentral_Login').show();
-	    webix.UIManager.setFocus("loginForm");
+	    //webix.UIManager.setFocus("formLogin");
 		},
 		logout:function() {
       var promise = webix.ajax().put("api/logout", { id: App.User.id });
@@ -142,16 +142,16 @@ var implementFunction = (function() {
   var showUserDataAfterFetch = function(User, response, options) {
     showInterface(true);
     
-    $$('frameCentral_User').show();
-    $$("frameCentral_User").hideProgress();
+    $$('tabviewCentral_User').show();
+    $$("tabviewCentral_User").hideProgress();
     
     if($$("frameUserList").getSelectedId() === '') {
       $$('frameUserList').select($$('frameUserList').getFirstId());
-      App.Frame.filluserframe(App.User.get('id'));
+      App.Func.fillUserAttributes(App.User.get('id'));
     } else if ($$("frameUserList").getSelectedId() === $$('frameUserList').getFirstId()) {
-      App.Frame.filluserframe(App.User.get('id'));
+      App.Func.fillUserAttributes(App.User.get('id'));
     } else {
-      App.Frame.filluserframe($$("frameUserList").getSelectedId());
+      App.Func.fillUserAttributes($$("frameUserList").getSelectedId());
     }
     
     App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
@@ -160,14 +160,14 @@ var implementFunction = (function() {
   var showGroupDataAfterFetch = function(Groups, response, options) {
     App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
     
-    $$('ingrid_groupframe').load('GroupData->load');
-    $$('slicegroups').load('GroupData->load');
+    $$('treetableMyGroups_Groupstable').load('GroupData->load');
+    $$('treeSlices_Groups').load('GroupData->load');
   };
 
   var showTaskDataAfterFetch = function(Tasks, response, options) {
     App.Trees.TaskTree.treeBuild(App.Collections.Tasks.models);
     
-    $$('ingrid_taskframe').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
+    $$('treetableMytasks_Tasktable').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
   };
 
   //***************************************************************************
@@ -179,7 +179,7 @@ var implementFunction = (function() {
   	  showInterface(true);
   	  switch(App.State.segment) {
         case 'users':
-       	  $$("frameCentral_User").showProgress({
+       	  $$("tabviewCentral_User").showProgress({
             type:"icon",
             delay:500
           });
@@ -190,11 +190,11 @@ var implementFunction = (function() {
           break;
         case 'groups':
           App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
-          $$('frameCentral_Group').show();
+          $$('tabviewCentral_Groups').show();
           break;
         case 'tasks':
           App.Collections.Tasks.fetch({ success: showTaskDataAfterFetch });
-          $$('taskframe').show();
+          $$('tabviewCentral_Task').show();
           break;
         case 'templates':
           // code
@@ -298,12 +298,16 @@ var implementFunction = (function() {
     delete App.Collections.Tasks;
     TaskModelInit();
     
-    $$('ingrid_taskframe').clearAll();
+    $$('treetableMytasks_Tasktable').clearAll();
     
-    $$('ingrid_groupframe').clearAll();
-    $$('slicegroups').clearAll();
+    $$('treetableMyGroups_Groupstable').clearAll();
+    $$('treeSlices_Groups').clearAll();
     
-    $$('mnuSegments').setValue(1);
+    $$('richselectHeader_Segments').setValue(1);
+    
+    $$('multiviewLeft').hide();
+    $$('frameUserList').hide();
+    $$('multiviewRight').hide();
   };
   
   //***************************************************************************
@@ -466,15 +470,15 @@ var implementFunction = (function() {
   //описание внизу модуля
   var frameBase = new webix.ui({
     id:"frameBase",
-    rows:[App.Frame.frameHeader, 
-      { cols: [App.Frame.frameLeft, App.Frame.frameCentral,  App.Frame.frameUserList, App.Frame.frameRight] }
+    rows:[App.Frame.toolbarHeader, 
+      { cols: [App.Frame.multiviewLeft, App.Frame.multiviewCentral,  App.Frame.frameUserList, App.Frame.multiviewRight] }
     ]
   });
 
-  webix.extend($$("frameCentral_User"), webix.ProgressBar);
+  webix.extend($$("tabviewCentral_User"), webix.ProgressBar);
   
-  $$("frameLeft").hide();
-  $$("frameRight").hide();
+  $$("multiviewLeft").hide();
+  $$("multiviewRight").hide();
   $$("frameUserList").hide();
   
   webix.UIManager.addHotKey('enter', function() { 
@@ -485,39 +489,39 @@ var implementFunction = (function() {
     }
   });
   
-  $$('ingrid_groupframe').attachEvent('onAfterEditStart', function(id) {
-    App.State.ingrid_Groupframe_ItemEdited = id;
+  $$('treetableMyGroups_Groupstable').attachEvent('onAfterEditStart', function(id) {
+    App.State.groupstable_ItemEdited = id;
   });
 
-  $$('ingrid_groupframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
-    var ItemEdited = App.State.ingrid_Groupframe_ItemEdited;
-    var ItemSelected = App.State.ingrid_Groupframe_ItemSelected;
+  $$('treetableMyGroups_Groupstable').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+    var ItemEdited = App.State.groupstable_ItemEdited;
+    var ItemSelected = App.State.groupstable_ItemSelected;
     if (editor.column === 'name') {
       if(ItemEdited != ItemSelected) {
         this.getItem(ItemEdited).name = state.old;
         this.updateItem(ItemEdited);
-        App.State.ingrid_Groupframe_ItemEdited = null;
+        App.State.groupstable_ItemEdited = null;
       } else {
-        var selectGroup = App.Collections.Groups.get(App.State.ingrid_Groupframe_ItemEdited);
+        var selectGroup = App.Collections.Groups.get(App.State.groupstable_ItemEdited);
         selectGroup.set({ 'name': state.value });
       }
     }
   });
   
-  $$('ingrid_taskframe').attachEvent('onAfterEditStart', function(id) {
-    App.State.ingrid_Taskframe_ItemEdited = id;
+  $$('treetableMytasks_Tasktable').attachEvent('onAfterEditStart', function(id) {
+    App.State.tasktable_ItemEdited = id;
   });
 
-  $$('ingrid_taskframe').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
-    var ItemEdited = App.State.ingrid_Taskframe_ItemEdited;
-    var ItemSelected = App.State.ingrid_Taskframe_ItemSelected;
+  $$('treetableMytasks_Tasktable').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+    var ItemEdited = App.State.tasktable_ItemEdited;
+    var ItemSelected = App.State.tasktable_ItemSelected;
     if (editor.column === 'name') {
       if(ItemEdited != ItemSelected) {
         this.getItem(ItemEdited).name = state.old;
         this.updateItem(ItemEdited);
-        App.State.ingrid_Taskframe_ItemEdited = null;
+        App.State.tasktable_ItemEdited = null;
       } else {
-        var selectTask = App.Collections.Tasks.get(App.State.ingrid_Taskframe_ItemEdited);
+        var selectTask = App.Collections.Tasks.get(App.State.tasktable_ItemEdited);
         selectTask.set({ 'name': state.value });
       }
     }
