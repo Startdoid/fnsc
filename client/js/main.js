@@ -161,7 +161,6 @@ var implementFunction = (function() {
     App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
     
     $$('treetableMyGroups_Groupstable').load('GroupData->load');
-    $$('treeSlices_Groups').load('GroupData->load');
   };
 
   var showTaskDataAfterFetch = function(Tasks, response, options) {
@@ -301,9 +300,8 @@ var implementFunction = (function() {
     $$('treetableMytasks_Tasktable').clearAll();
     
     $$('treetableMyGroups_Groupstable').clearAll();
-    $$('treeSlices_Groups').clearAll();
-    
-    $$('richselectHeader_Segments').setValue(1);
+
+    $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
     
     $$('multiviewLeft').hide();
     $$('frameUserList').hide();
@@ -528,7 +526,7 @@ var implementFunction = (function() {
   });
   
   showInterface(false);
-
+  
   webix.i18n.parseFormatDate = webix.Date.strToDate("%Y/%m/%d");
   webix.event(window, "resize", function() { frameBase.adjust(); });
   Backbone.history.start({pushState: true, root: "/"});
