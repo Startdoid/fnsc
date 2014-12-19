@@ -11,7 +11,8 @@ var toggleHeader_Menu = {
 		    $$('multiviewLeft').hide();
 		  } else {
 		    $$('multiviewLeft').show();
-		    $$('scrollviewLeft_Slices').show();
+		    $$('scrollviewLeft_Segments').show();
+		    $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
 		  }	
 		}
 	}
@@ -86,56 +87,6 @@ var toggleHeader_Options = {
 	}	
 };
 
-var richselectHeader_Segments = {
-  view: 'richselect', id:'richselectHeader_Segments',
-	width:300,
-	label:'Сегменты', labelAlign:'right',
-	align:'left',
-	value:1, options:[
-		{ id:1, value:'Профиль' }, 
-		{ id:2, value:'Группы' }, 
-		{ id:3, value:'Задачи' }, 
-		{ id:4, value:'Шаблоны' },
-		{ id:5, value:'Финансы' },
-		{ id:6, value:'Процессы' },
-		{ id:7, value:'Файлы' },
-		{ id:8, value:'Заметки' }
-	],
-	on: {
-    'onChange': function(newv, oldv) {
-      switch(newv) {
-        case 1:
-          App.State.segment = 'users';
-          App.Router.navigate('users', {trigger:true} );
-          break;
-        case 2:
-          App.State.segment = 'groups';
-          App.Router.navigate('groups', {trigger:true} );
-          break;
-        case 3:
-          App.State.segment = 'tasks';
-          App.Router.navigate('tasks', {trigger:true} );
-          break;
-        case 4:
-          App.State.segment = 'templates';
-          break;
-        case 5:
-          App.State.segment = 'finances';
-          break;
-        case 6:
-          App.State.segment = 'process';
-          break;
-        case 7:
-          App.State.segment = 'files';
-          break;
-        case 8:
-          App.State.segment = 'notes';
-          break;          
-      }
-    }
-	}
-};
-
 var searchHeader_Master = {
 	view:'search', id: 'searchHeader_Master',
 	placeholder:'Найти тут всё...'
@@ -148,41 +99,72 @@ App.Frame.toolbarHeader = {
 	          labelHeader_InTask,
 	          searchHeader_Master,
 	          //{},
-	          richselectHeader_Segments,
 	          toggleHeader_User,
 	          toggleHeader_Options,
 	          menuHeader_Settings
 	         ]
 };
 
-App.Frame.treeSlices_Groups = {
-  view:'tree', id:'treeSlices_Groups',
-  isolate:false, 
-  select:true,
-  autoheight:true,
-	template:'{common.icon()}{common.folder()}<span>#name#</span>',
-  url: "GroupData->load"
+var listSegments_SegmentsSelector = { 
+  view:'list', id:'listSegments_SegmentsSelector', css:'mainSelector',
+	borderless:true,  width:250, scroll:true,
+	template:'#value#',
+	type:{ height:50 },
+	select:true,
+	data:[
+		{ id:'listitemSegmentsSelector_MyProfile', value:'Мой профиль', count:0 },
+		{ id:'listitemSegmentsSelector_AllUsers', value:'Все пользователи', count:0 },
+		{ id:'listitemSegmentsSelector_AllGroups', value:'Все группы', count:0 },
+		{ id:'listitemSegmentsSelector_AllTasks', value:'Все задачи', count:0 },
+		{ id:'listitemSegmentsSelector_AllProjects', value:'Все проекты', count:0 },
+		{ id:'listitemSegmentsSelector_Templates', value:'Шаблоны', count:0 },
+		{ id:'listitemSegmentsSelector_Finances', value:'Финансы', count:0 },
+		{ id:'listitemSegmentsSelector_Notes', value:'Заметки', count:0 },
+		{ id:'listitemSegmentsSelector_Events', value:'События', count:1 },
+		{ id:'listitemSegmentsSelector_Messages', value:'Сообщения', count:3 }
+	],
+	on:{"onAfterSelect": function(id){
+    switch(id) {
+      case 'listitemSegmentsSelector_MyProfile':
+        App.State.segment = 'users';//profile
+        App.Router.navigate('users', {trigger:true} );
+        break;
+      case 'listitemSegmentsSelector_AllUsers':
+        App.State.segment = 'users';
+        App.Router.navigate('users', {trigger:true} );
+        break;
+      case 'listitemSegmentsSelector_AllGroups':
+        App.State.segment = 'groups';
+        App.Router.navigate('groups', {trigger:true} );
+        break;
+      case 'listitemSegmentsSelector_AllTasks':
+        App.State.segment = 'tasks';
+        App.Router.navigate('tasks', {trigger:true} );
+        break;
+      case 'listitemSegmentsSelector_AllProjects':
+        App.State.segment = 'projects';
+        break;
+      case 'listitemSegmentsSelector_Templates':
+        App.State.segment = 'templates';
+        break;
+      case 'listitemSegmentsSelector_Finances':
+        App.State.segment = 'finances';
+        break;
+      case 'listitemSegmentsSelector_Notes':
+        App.State.segment = 'notes';
+        break;
+      case 'listitemSegmentsSelector_Events':
+        App.State.segment = 'events';
+        break;          
+      case 'listitemSegmentsSelector_Messages':
+        App.State.segment = 'messages';
+        break;          
+    }
+	}}
 };
 
-App.Frame.treeSlices_Projects = {
-  view:'tree', id:'treeSlices_Projects',
-  select:'true',
-  data: [
-    { id:'Default', value:'Default' },
-    { id:'InTaskoid', value:'InTask.me' }
-    ]
-};
-
-App.Frame.treeSlices_Tags = {
-  view:'tree', id:'treeSlices_Tags',
-  select:'true',
-  data: [
-    { id:'InTaskoid', value:'InTask.me' }
-  ]
-};
-
-var scrollviewLeft_Slices = {
-  view:'scrollview', id:'scrollviewLeft_Slices',
+var scrollviewLeft_Segments = {
+  view:'scrollview', id:'scrollviewLeft_Segments',
   borderless: true, scroll:'y', //vertical scrolling
   body:{
 		multi:false,
@@ -190,10 +172,8 @@ var scrollviewLeft_Slices = {
 		type:'space',
 		rows:[{ body: 'Task pull' },
 				  { view: 'resizer' },
-		      { header:'Группы', body: App.Frame.treeSlices_Groups },
-		      { header:'Проекты', body: App.Frame.treeSlices_Projects },
-		      { header:'Тэги', body: App.Frame.treeSlices_Tags }
-		      ]
+		      { body: listSegments_SegmentsSelector }
+		]
   }
 };
 
@@ -201,7 +181,7 @@ App.Frame.multiviewLeft = {
   view:'multiview', id:'multiviewLeft',
 	width:250,
 	borderless: false,
-	cells:[scrollviewLeft_Slices]
+	cells:[scrollviewLeft_Segments]
 };
 
 //Фильтр в панели опции
