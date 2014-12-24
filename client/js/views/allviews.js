@@ -6,13 +6,13 @@ var toggleHeader_Menu = {
 	type:'icon', icon:'bars', 
 	width:30,	height:30,
 	on:{
-		'onItemClick': function() { 
+		'onItemClick': function() {
 		  if($$('multiviewLeft').isVisible()) {
 		    $$('multiviewLeft').hide();
 		  } else {
 		    $$('multiviewLeft').show();
 		    $$('scrollviewLeft_Segments').show();
-		    $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
+		    $$('listSegments_SegmentsSelector').refresh();
 		  }	
 		}
 	}
@@ -29,48 +29,6 @@ var labelHeader_InTask = {
 	}
 };
 
-var menuHeader_Settings = {
-	view:'menu', id:'menuHeader_Settings',
-	width:35,
-	borderless: true,
-	align:'right',
-  data:[
-    { id:'1', value: 'Настройки', submenu:[
-    	{id: '1.1', value: 'Персональные настройки'},
-    	{id: '1.2', value: 'Регистрация'},
-      {id: '1.3', value: 'Сменить учетную запись'},
-      {id: '1.4', value: 'Выйти'}]},
-  ],
-  on:{
-        onMenuItemClick:function(id) {
-          switch(id) {
-            case '1.4':
-              App.Router.navigate('logout', {trigger:true} );
-              break;
-          }
-        }
-      },
-  template:function(obj) {
-    return "<span class='webix_icon fa-cogs'"+obj.value+"</span>";
-  }
-};
-
-var toggleHeader_User = {
-	view: 'toggle', id: 'toggleHeader_User',
-	type: 'icon', icon: 'group',
-	width: 30,	height: 30,
-	on:{
-		'onItemClick': function() { 
-		  if($$('frameUserList').isVisible()) {
-		    $$('frameUserList').hide();
-		  } else {
-		    $$('frameUserList').show();
-		    //$$("scrollviewRight_UserFilter").show();
-		  }	
-		}
-	}
-};
-
 var toggleHeader_Options = {
 	view: 'toggle',  id: 'toggleHeader_Options',
 	type: 'icon', icon: 'tasks',
@@ -81,7 +39,6 @@ var toggleHeader_Options = {
 		    $$('multiviewRight').hide();
 		  } else {
 		    $$('multiviewRight').show();
-		    $$('scrollviewRight_UserFilter').show();
 		  }	
 		}
 	}	
@@ -99,17 +56,15 @@ App.Frame.toolbarHeader = {
 	          labelHeader_InTask,
 	          searchHeader_Master,
 	          //{},
-	          toggleHeader_User,
-	          toggleHeader_Options,
-	          menuHeader_Settings
+	          toggleHeader_Options
 	         ]
 };
 
 var listSegments_SegmentsSelector = { 
   view:'list', id:'listSegments_SegmentsSelector', css:'mainSelector',
-	borderless:true,  width:250, scroll:true,
+	borderless:true,  width:250, scroll:false,
 	template:'#value#',
-	type:{ height:50 },
+	type:{ height:40 },
 	select:true,
 	data:[
 		{ id:'listitemSegmentsSelector_MyProfile', value:'Мой профиль', count:0 },
@@ -126,39 +81,54 @@ var listSegments_SegmentsSelector = {
 	on:{"onAfterSelect": function(id){
     switch(id) {
       case 'listitemSegmentsSelector_MyProfile':
-        App.State.segment = 'users';//profile
-        App.Router.navigate('users', {trigger:true} );
+        App.Router.navigate('user', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_AllUsers':
-        App.State.segment = 'users';
         App.Router.navigate('users', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_AllGroups':
-        App.State.segment = 'groups';
         App.Router.navigate('groups', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_AllTasks':
-        App.State.segment = 'tasks';
         App.Router.navigate('tasks', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_AllProjects':
-        App.State.segment = 'projects';
+        App.Router.navigate('projects', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_Templates':
-        App.State.segment = 'templates';
+        App.Router.navigate('templates', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_Finances':
-        App.State.segment = 'finances';
+        App.Router.navigate('finances', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_Notes':
-        App.State.segment = 'notes';
+        App.Router.navigate('notes', {trigger:true} );
         break;
       case 'listitemSegmentsSelector_Events':
-        App.State.segment = 'events';
+        App.Router.navigate('events', {trigger:true} );
         break;          
       case 'listitemSegmentsSelector_Messages':
-        App.State.segment = 'messages';
+        App.Router.navigate('messages', {trigger:true} );
         break;          
+    }
+	}}
+};
+
+var listSegments_OptionsSelector = {
+  view:'list', id:'listSegments_OptionsSelector', css:'mainSelector',
+	borderless:true,  width:250, scroll:false,
+	template:'#value#',
+	type:{ height:40 },
+	select:true,
+	data:[
+		{ id:'listSegments_OptionsSelector_PersonalOptions', value:'Персональные настройки' },
+		{ id:'listSegments_OptionsSelector_Exit', value:'Выйти' }
+	],
+	on:{"onAfterSelect": function(id){
+    switch(id) {
+      case 'listSegments_OptionsSelector_Exit':
+      App.Router.navigate('logout', {trigger:true} );
+      break;
     }
 	}}
 };
@@ -169,24 +139,26 @@ var scrollviewLeft_Segments = {
   body:{
 		multi:false,
 		//view:'accordion',
-		type:'space',
-		rows:[{ body: 'Task pull' },
-				  { view: 'resizer' },
-		      { body: listSegments_SegmentsSelector }
+		//type:'space',
+		rows:[//{ body: 'Task pull', autoheight:true,  },
+				  //{ view: 'resizer' },
+		      { body: listSegments_SegmentsSelector },
+		      { view: 'resizer' },
+		      { body: listSegments_OptionsSelector }
 		]
   }
 };
 
 App.Frame.multiviewLeft = {
   view:'multiview', id:'multiviewLeft',
-	width:250,
+	autowidth:true,
 	borderless: false,
 	cells:[scrollviewLeft_Segments]
 };
 
 //Фильтр в панели опции
-var scrollviewRight_UserFilter = {
-  view:'scrollview', id:'scrollviewRight_UserFilter', container:'scrollviewRight_UserFilter',
+var scrollviewRight_UsersFilter = {
+  view:'scrollview', id:'scrollviewRight_UsersFilter', container:'scrollviewRight_UsersFilter',
   borderless: false, scroll:"y",
   $init: function(config) { },
   body:{
@@ -210,31 +182,34 @@ var scrollviewRight_UserFilter = {
   ]}
 };
 
-var frameRight_views_groups = {
-  
+var scrollviewRight_UserFilter = {
+  view:'scrollview', id:'scrollviewRight_UserFilter',
+  borderless: false, scroll:"y",
+  $init: function(config) { },
+  body:{
+    rows:[
+      { view:'template', template:'Пользователь', type:'section', align:'center' }
+    ]
+  }
 };
 
-var frameRight_views_tasks = {
-  
+var scrollviewRight_GroupsFilter = {
+  view:'scrollview', id:'scrollviewRight_GroupsFilter',
+  borderless: false, scroll:"y",
+  $init: function(config) { },
+  body:{
+    rows:[
+      { view:'template', template:'Группы', type:'section', align:'center' }
+    ]
+  }
 };
 
 App.Frame.multiviewRight = {
   view:'multiview', id:'multiviewRight',
-	width:250,
-  cells:[scrollviewRight_UserFilter,
-  frameRight_views_groups,
-  frameRight_views_tasks ]
-};
-
-App.Frame.frameUserList = {
-  view:'dataview', id:'frameUserList',
-  width:300,
-  borderless:false, scroll:'y',  xCount:1,
-  type:{ height: 80, width:300 },
-  template:'html->frameUserList_template',
-	//select:1,
-	autowidth:true,
-	url:'api/userlist'
+	width:250, animate: false,
+  cells:[scrollviewRight_UsersFilter,
+  scrollviewRight_UserFilter,
+  scrollviewRight_GroupsFilter ]
 };
 
 //webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
@@ -462,8 +437,11 @@ var listProfile_UserAttributesSelector = {
 	type:{ height:50 },
 	select:true,
 	data:[
-		{ id:'all', 		value:'Все', count:0 },
-		{ id:'personal',	value:'Персональные', count:0 }
+		{ id:'listitemUserAtributesSelector_Users', value:'Друзья' },
+		{ id:'listitemUserAtributesSelector_Groups',	value:'Группы' },
+		{ id:'listitemUserAtributesSelector_Tasks',	value:'Задачи' },
+		{ id:'listitemUserAtributesSelector_Projects',	value:'Проекты' },
+		{ id:'listitemUserAtributesSelector_Tags',	value:'Теги' }
 	]
 	//on:{"onAfterSelect": function(){
 		//app.trigger("filterIssues");
@@ -599,6 +577,27 @@ App.Frame.tabviewCentral_User = {
   ]
 };
 
+var dataviewCentral_Users = {
+  view:'dataview', id:'dataviewCentral_Users',
+  borderless:false, scroll:'y', xCount:1,
+  type:{ height: 80, width:450 },
+  template:'html->dataviewCentral_Users_template',
+	//select:1,
+	autowidth:true,
+	url:'api/userlist'
+};
+
+App.Frame.frameCentral_Users = {
+  id:'frameCentral_Users',
+  autoheight:true, autowidth:true,
+  cols:[
+    {},
+
+      dataviewCentral_Users,
+    
+    {}
+  ]
+};
 //**************************************************************************************************
 //OTHER frames
 var reglogResponse = function(text, data) {
@@ -721,10 +720,11 @@ App.Frame.frameCentral_Greeting = {
 App.Frame.multiviewCentral = {
   view:"multiview", id:'multiviewCentral', container:'multiviewCentral',
   cells:[App.Frame.frameCentral_Greeting,
-  App.Frame.tabviewCentral_Groups,
-  App.Frame.tabviewCentral_Task,
-  App.Frame.frameCentral_Register,
-  App.Frame.frameCentral_Login,
-  App.Frame.tabviewCentral_User],
+    App.Frame.tabviewCentral_Groups,
+    App.Frame.tabviewCentral_Task,
+    App.Frame.frameCentral_Register,
+    App.Frame.frameCentral_Login,
+    App.Frame.tabviewCentral_User,
+    App.Frame.frameCentral_Users],
   fitBiggest:true
 };

@@ -6,14 +6,16 @@ var implementFunction = (function() {
   
   App.State = {
     $init: function() {
-      this.segment                  = 'users';
+      this.defaultState             = true;
+      this.segment                  = 'user';
       this.group                    = 0;
       this.groupstable_ItemSelected = 0;
       this.groupstable_ItemEdited   = null;
       this.tasktable_ItemSelected   = 0;
       this.tasktable_ItemEdited     = null;
     },
-    segment           : 'users',  //groups, tasks, templates, finances, process, files, notes
+    defaultState      : true,
+    segment           : 'user',  //user, users, groups, tasks, templates, finances, process, files, notes
     group             : 0,        //Выбранная группа, по которой фильтруются задачи
     //флаги состояния приложения this_view_action
     groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
@@ -70,24 +72,20 @@ var implementFunction = (function() {
     }
   };
 
-  var showInterface = function(enable) {
-    if(enable) $$("toolbarHeader").enable(); else $$("toolbarHeader").disable();
-    $$("toolbarHeader").refresh();
-  };
-  
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
 	App.Router = new (Backbone.Router.extend({
 	  //слева роут, косая в скобках означает, что роут может быть как с косой чертой на конце, так и без нее
 	  //справа функция, которая вызовется для соответствующего роута
 		routes:{
-			"login(/)":"login",
-			"logout(/)":"logout",
-			"register(/)":"register",
-			"groups(/)":"groups",
-			"tasks(/)":"tasks",
-			"users(/)":"users",
-			'home(/)':"home",
-			'':"index"
+			'login(/)':'login',
+			'logout(/)':'logout',
+			'register(/)':'register',
+			'groups(/)':'groups',
+			'tasks(/)':'tasks',
+			'user(/)':'user',
+			'users(/)':'users',
+			'home(/)':'home',
+			'':'index'
 		},
 		//home выбрасывает в корень
 		home:function() {
@@ -110,48 +108,59 @@ var implementFunction = (function() {
 		  }
 		},
 		groups:function() {
+		  App.State.segment = 'groups';
 		  this.navigate('', {trigger: true});
 		},
 		tasks:function() {
+		  App.State.segment = 'tasks';
 		  this.navigate('', {trigger: true});
 		},
 		users:function() {
+		  App.State.segment = 'users';
+		  this.navigate('', {trigger: true});
+		},
+		user:function() {
+		  App.State.segment = 'user';
 		  this.navigate('', {trigger: true});
 		},
 		login:function() {
-	    $$('frameCentral_Login').show();
-	    //webix.UIManager.setFocus("formLogin");
+		  if(!App.User.get('usrLogged')) {
+		    $$('frameCentral_Login').show();
+		  } else {
+		    App.Router.navigate('', {trigger: true});
+		  }
 		},
 		logout:function() {
       var promise = webix.ajax().put("api/logout", { id: App.User.id });
 	        
       promise.then(function(realdata) {
-        defaultState();
         App.Router.navigate('', {trigger: true});
       }).fail(function(err){
         connectionErrorShow(err);
       });
 		},
 		register:function() {
-	    $$('frameCentral_Register').show();
+		  if(!App.User.get('usrLogged')) {
+		    $$('frameCentral_Register').show();
+		  } else {
+		    App.Router.navigate('', {trigger: true});
+		  }
 		}
 	}))();
 	
 	//***************************************************************************
 	//AFTER FETCH FUNCTIONs
   var showUserDataAfterFetch = function(User, response, options) {
-    showInterface(true);
-    
     $$('tabviewCentral_User').show();
     $$("tabviewCentral_User").hideProgress();
     
-    if($$("frameUserList").getSelectedId() === '') {
-      $$('frameUserList').select($$('frameUserList').getFirstId());
+    if($$("dataviewCentral_Users").getSelectedId() === '') {
+      $$('dataviewCentral_Users').select($$('dataviewCentral_Users').getFirstId());
       App.Func.fillUserAttributes(App.User.get('id'));
-    } else if ($$("frameUserList").getSelectedId() === $$('frameUserList').getFirstId()) {
+    } else if ($$("dataviewCentral_Users").getSelectedId() === $$('dataviewCentral_Users').getFirstId()) {
       App.Func.fillUserAttributes(App.User.get('id'));
     } else {
-      App.Func.fillUserAttributes($$("frameUserList").getSelectedId());
+      App.Func.fillUserAttributes($$("dataviewCentral_Users").getSelectedId());
     }
     
     App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
@@ -174,24 +183,53 @@ var implementFunction = (function() {
   var interfaceSelector = function() {
     //если пользователь залогинился
   	if(App.User.get('usrLogged')) {
+  	  //Выставим флаг того, что состояние по-умолчанию сброшено
+  	  App.State.defaultState = false;
+  	  
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
-  	  showInterface(true);
+  	  $$('toolbarHeader').enable();
+  	  $$('toolbarHeader').refresh();
+  	  
   	  switch(App.State.segment) {
-        case 'users':
-       	  $$("tabviewCentral_User").showProgress({
-            type:"icon",
+        case 'user':
+       	  $$('tabviewCentral_User').showProgress({
+            type:'icon',
             delay:500
           });
   
+  		    if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+            $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
+	  	    }
+	  	    
+	  	    $$('scrollviewRight_UserFilter').show();
+	  	    
           App.User.url = '/api/users/' + App.User.get('id');
           App.User.fetch({ success: showUserDataAfterFetch, silent:true });
-  		        
+  		    
+          break;  	    
+        case 'users':
+          if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+            $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
+          }
+          
+          $$('frameCentral_Users').show();
+          $$('scrollviewRight_UsersFilter').show();
+          
           break;
         case 'groups':
+          if('listitemSegmentsSelector_AllGroups' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+            $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllGroups');
+          }
+
           App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
+          
           $$('tabviewCentral_Groups').show();
+          $$('scrollviewRight_GroupsFilter').show();
+          
           break;
         case 'tasks':
+          $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllTasks');
+          
           App.Collections.Tasks.fetch({ success: showTaskDataAfterFetch });
           $$('tabviewCentral_Task').show();
           break;
@@ -211,15 +249,19 @@ var implementFunction = (function() {
           break;
   	  }
   	} else {
-  	  showInterface(false);
+  	  //если флаг состояния по-умолчанию не сброшен, то произведен сброс всех системных параметров и
+  	  //очистку всех значений в памяти, приведем систем в порядок начальных значений, флаг необходим
+  	  //для исключения ситуаций повторных сбросов системы
+  	  if(!App.State.defaultState)
+  	    defaultState();
   	  $$('frameCentral_Greeting').show();
   	} //if(App.User.usrLogged)    
   };
   
   var connectionErrorShow = function(err) {
     if(err.status === 434) {
-      defaultState();
-      App.Router.navigate('', {trigger: true});
+      //defaultState();
+      //App.Router.navigate('', {trigger: true});
     }
     webix.message({type:"error", text:err.responseText});
   };
@@ -254,7 +296,7 @@ var implementFunction = (function() {
   
     App.Collections.Groups.on('change', function(model, options) {
       App.Trees.GroupTree.treeChange(model);
-      model.save();
+      model.save(); 
     });
     
     App.Collections.Groups.on('move', function(currentPosId, newPosId, parentId) {
@@ -297,169 +339,11 @@ var implementFunction = (function() {
     delete App.Collections.Tasks;
     TaskModelInit();
     
-    $$('treetableMytasks_Tasktable').clearAll();
-    
-    $$('treetableMyGroups_Groupstable').clearAll();
+    App.State.$init();
 
-    $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
-    
-    $$('multiviewLeft').hide();
-    $$('frameUserList').hide();
-    $$('multiviewRight').hide();
+    offState();
   };
   
-  //***************************************************************************
-  //TREE MANAGER
-  //объект организует работу с деревьями, для того что бы линейную бэкбоновскую коллекцию
-  //разворачивать в древовидную структуру и выводить в webix-овые вьюхи
-	var treeManager = function (collection) {
-	  //древовидный массив
-	  var tree = [];
-	  var views = [];
-
-    //рекурсивный перебор
-    var treeRecursively = function(branch, list) {
-      if (typeof branch === 'undefined') return null;
-      var tr = [];
-      for(var i=0; i<branch.length; i++)      
-      {
-          branch[i].data = treeRecursively(list[ branch[i].id ], list);
-          tr.push(branch[i]);
-      }
-      return tr;
-    };
-
-    //функция рекурсивного обхода дерева, корень дерева представлен, как branch
-    //ветка дерева содержится в массиве data корня branch т.е. branch->data[branch->data[branch->data]] и т.д.
-    var recursively = function(branch, element, oper) {
-      //проверка на то что корень является данными типа - объект
-      if (typeof branch === 'undefined') return false;
-      //проверка на то что корень не обнулен
-      if (branch === null) return false;
-      
-      //Если родитель корневой элемент, то добавим в корень
-      if ((oper === 'add') && (element.parent_id === 0)) {
-        branch.push(element);
-        return true;        
-      } 
-
-      for (var i = 0; i<branch.length; i++) {
-        if (branch[i] === null) continue;
-        
-        if (oper === 'add') {
-          if (element.parent_id === branch[i].id) {
-            if ((branch[i].data === null) || (typeof branch[i].data === 'undefined')) {
-              branch[i].data = [];
-            }
-            branch[i].data.push(element);
-            return true;
-          } else {
-            if(recursively(branch[i].data, element, oper)) { return true }
-          }
-        } else {
-          if (element.id === branch[i].id) {
-            //var deletedElements = this.models.splice(delElementIndex, 1); ПОПРОБУЙ
-            branch[i] = null;
-            //delete branch[i];
-            return true;
-          }
-          else
-          {
-            if(recursively(branch[i].data, element, oper)) { return true }
-          }
-        }
-      }
-    };
-
-    this.treeBuild = function(collection) {
-	    //преобразуем в линейный массив бэкбоновскую коллекцию (разворачиваем атрибуты объекта)
-      var maplist = collection.map(function(object) { return object.attributes });
-      if(maplist.length > 0) {
-        //сгруппируем элементы массива по родителю
-        var list = _.groupBy(maplist, 'parent_id');
-        //рекурсивно перебирая сгруппированный массив построим дерево
-        tree = treeRecursively(list[0], list);
-      } else {
-        tree = [];
-      }
-    };
-    
-    //добавление элемента в дерево, автоматическое обновление элементов во вьюхах из массива views
-    this.treeAdd = function(element) {
-      var result = recursively(tree, webix.copy(element.attributes), 'add');
-      if(result) {
-        //var currentItem = views[0].getItem(element.attributes.parent_id);
-        //views[0].data.sync(tree);
-        for (var i = views.length; i--; ) {
-          //var insertIndex = tree.getIndexById(element.attributes.parent_id);
-          views[i].add(webix.copy(element.attributes), -1, element.attributes.parent_id);
-          views[i].refresh();
-        }
-      }
-    };
-    
-    this.treeRemove = function(element) {
-      var result = recursively(tree, element.attributes, 'delete');
-      if(result) {
-        for (var i = views.length; i--; ) {
-          views[i].remove(element.attributes.id);
-          views[i].refresh();
-        }
-      }
-    };
-    
-    this.treeChange = function(element) {
-      for (var i = views.length; i--; ) {
-        var record = views[i].getItem(element.get('id'));
-        var chgAtr = element.changedAttributes();
-        var keysArr = _.keys(chgAtr);
-        var valuesArr = _.values(chgAtr);
-        for (var j = keysArr.length; j--; ) {
-          record[keysArr[j]] = valuesArr[j];
-        }
-        views[i].refresh();
-      }
-    };
-    
-    this.move = function(currentPosId, newPosId, parentId) {
-      for (var i = views.length; i--; ) {
-        //var newPosIndex = views[i].getBranchIndex(newPosId, views[i].getParentId(newPosId));
-        //views[i].move(currentPosId, newPosIndex, null, { parent: views[i].getParentId(newPosId) });
-        //views[i].refresh();
-        var newPosIndex = views[i].getBranchIndex(newPosId, parentId);
-        views[i].move(currentPosId, newPosIndex, null, { parent: parentId });
-        views[i].refresh();
-      }      
-    };
-    
-    //добавление вьюхи в массив для датабиндинга
-    this.viewsAdd = function(view) {
-      if (typeof view === 'object')
-      {
-        //добавим в массив, если нет такой
-        if(views.indexOf(view) === -1) {
-          views.push(view);
-          
-          //обновим вновь добавленную вьюху информцией из дерева
-          view.clearAll();
-          view.parse(JSON.stringify(tree));
-        }
-      }
-    };
-    
-    //удаление вьюхи из массива датабиндинга
-    this.viewsDelete = function(view) {
-      console.log('view delete');
-    };
-    
-    //если при создании объекта передан не пустой параметр, то формируется дерево
-	  if (typeof collection !== 'undefined')
-	  {
-	    this.treeBuild(collection);
-	  }
-  };
-
-  //_.extend(App.Collections.Groups, Backbone.Events);
   UserModelInit();
   GroupModelInit();
   TaskModelInit();
@@ -469,16 +353,26 @@ var implementFunction = (function() {
   var frameBase = new webix.ui({
     id:"frameBase",
     rows:[App.Frame.toolbarHeader, 
-      { cols: [App.Frame.multiviewLeft, App.Frame.multiviewCentral,  App.Frame.frameUserList, App.Frame.multiviewRight] }
+      { cols: [App.Frame.multiviewLeft, App.Frame.multiviewCentral, App.Frame.multiviewRight] }
     ]
   });
 
+  var offState = function() {
+    $$("multiviewLeft").hide();
+    $$("multiviewRight").hide();
+
+    $$('treetableMytasks_Tasktable').clearAll();
+    $$('treetableMyGroups_Groupstable').clearAll();
+    
+    $$('toggleHeader_Menu').setValue(0);
+    $$('toggleHeader_Options').setValue(0);
+    
+    $$("toolbarHeader").disable();
+    $$("toolbarHeader").refresh();
+  }();
+
   webix.extend($$("tabviewCentral_User"), webix.ProgressBar);
-  
-  $$("multiviewLeft").hide();
-  $$("multiviewRight").hide();
-  $$("frameUserList").hide();
-  
+
   webix.UIManager.addHotKey('enter', function() { 
     if($$('frameCentral_Register').isVisible()) {
       App.Func.Register();
@@ -486,7 +380,9 @@ var implementFunction = (function() {
       App.Func.Login();
     }
   });
-  
+
+  //************************************************************************************************
+  //Обработчики событий
   $$('treetableMyGroups_Groupstable').attachEvent('onAfterEditStart', function(id) {
     App.State.groupstable_ItemEdited = id;
   });
@@ -524,8 +420,6 @@ var implementFunction = (function() {
       }
     }
   });
-  
-  showInterface(false);
   
   webix.i18n.parseFormatDate = webix.Date.strToDate("%Y/%m/%d");
   webix.event(window, "resize", function() { frameBase.adjust(); });
