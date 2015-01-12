@@ -13,6 +13,7 @@
     <link href="codebase/skins/compact.css" rel="stylesheet" type="text/css">
     
     <script type="text/javascript" src="js/main.js"></script>
+    
   </head>
   
   <style>
@@ -161,6 +162,10 @@
         window.App.WinSize = { 'pageWidth':pageWidth, 'pageHeight':pageHeight, 'windowWidth':windowWidth, 'windowHeight':windowHeight };
       }();
 
+      window.template = function(id) {
+        return _.template( $('#' + id).html() );
+      };
+      
       webix.ui.fullScreen();
 			webix.ready(implementFunction);
     </script>

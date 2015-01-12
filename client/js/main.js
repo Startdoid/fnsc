@@ -6,16 +6,106 @@ var implementFunction = (function() {
   
   App.State = {
     $init: function() {
-      this.defaultState             = true;
+      //this.defaultState             = true;
       this.segment                  = 'user';
       this.group                    = 0;
       this.groupstable_ItemSelected = 0;
       this.groupstable_ItemEdited   = null;
       this.tasktable_ItemSelected   = 0;
       this.tasktable_ItemEdited     = null;
+      this.serverRoute              = '';
+      
+      if(this.groupTreeManager != null) { delete this.groupTreeManager; this.groupTreeManager = null; }
+      this.groupTreeManager = new treeManager();
+      
+      if(this.taskTreeManager != null) { delete this.taskTreeManager; this.taskTreeManager = null; }
+      this.taskTreeManager = new treeManager();
+      
+      if(this.user != null) { delete this.user; this.user = null; }
+      this.user = this.userModelInit();
+      
+      if(this.currentUser != null) { delete this.currentUser; this.currentUser = null; }
+      this.currentUser = this.userModelInit();
+      
+      if(this.groups != null) { delete this.groups; this.groups = null; }
+      this.groups = this.groupsModelInit();
+
+      if(this.tasks != null) { delete this.tasks; this.tasks = null; }
+      this.tasks = this.tasksModelInit();
     },
-    defaultState      : true,
-    segment           : 'user',  //user, users, groups, tasks, templates, finances, process, files, notes
+    segmentChange: function () {
+		  if(this.user.get('id') === 0) {
+        var promise = webix.ajax().get('api/logged', {}, interfaceSelector);
+	        
+        promise.then(function(realdata){}).fail(function(err) {
+          connectionErrorShow(err);
+        });
+		  } else {
+		    interfaceSelector('null');
+		  }
+
+    },
+    userModelInit: function() {
+      //Инициализируем глобальный объект пользователя со всеми настройками приложения
+      var user = new App.Models.User();
+  	  user.on('change:thisTry', function() { });
+      user.on('change', function(eventName) { this.save(this.changedAttributes()); }); ///проверить вызов THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      return user;
+    },
+    groupsModelInit: function() {
+  	  var groups = new collectionGroups();
+  
+    	groups.on('add', function(grp) {
+    	  App.State.groupTreeManager.treeAdd(grp);
+    	});
+  	
+    	groups.on('remove', function(ind) {
+    	  App.State.groupTreeManager.treeRemove(ind);
+    	});
+  
+      groups.on('change', function(model, options) {
+        App.State.groupTreeManager.treeChange(model);
+        model.save(); 
+      });
+      
+      groups.on('move', function(currentPosId, newPosId, parentId) {
+        App.State.groupTreeManager.move(currentPosId, newPosId, parentId);
+      });
+      
+      return groups;
+    },
+    tasksModelInit: function() {
+      var tasks = new collectionTasks();
+      
+      tasks.on('add', function(tsk) {
+        App.State.taskTreeManager.treeAdd(tsk);
+      });
+      
+    	tasks.on('remove', function(ind) {
+    	  App.State.taskTreeManager.treeRemove(ind);
+    	});
+    
+      tasks.on('change', function(model, options) {
+        App.State.taskTreeManager.treeChange(model);
+        model.save();
+      });
+      
+      tasks.on('move', function(currentPosId, newPosId, parentId) {
+        App.State.taskTreeManager.move(currentPosId, newPosId, parentId);
+      });
+      
+      return tasks;
+    },
+    user              : null,     //Пользователь системы
+    currentUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
+    groupTreeManager  : null,     //менеджер дерева для групп
+    taskTreeManager   : null,     //менеджер дерева для задач
+    groups            : null,     //коллекция групп пользователя системы
+    tasks             : null,     //коллекция задач пользователя системы
+    serverRoute       : '',
+    //defaultState      : true,     //флаг того, что состояние по-умолчанию сброшено
+    segment           : 'user',   //user, users, groups, tasks, templates, finances, process, files, notes
     group             : 0,        //Выбранная группа, по которой фильтруются задачи
     //флаги состояния приложения this_view_action
     groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
@@ -56,7 +146,7 @@ var implementFunction = (function() {
     load: function(view, callback) {
       //Добавляем id вебиксовых вьюх для синхронизации с данными
   	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-      App.Trees.GroupTree.viewsAdd($$(view.config.id));
+      App.State.groupTreeManager.viewsAdd($$(view.config.id));
     }
   };
   
@@ -68,7 +158,7 @@ var implementFunction = (function() {
     load: function(view, callback) {
       //Добавляем id вебиксовых вьюх для синхронизации с данными
   	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-      App.Trees.TaskTree.viewsAdd($$(view.config.id));
+      App.State.taskTreeManager.viewsAdd($$(view.config.id));
     }
   };
 
@@ -93,57 +183,46 @@ var implementFunction = (function() {
 		},
 		//корень приложения
 		index:function() {
-		  if(App.User.get('id') === 0) {
-        var promise = webix.ajax().get('api/logged', {}, function(text, data) {
-          App.User.set({'usrLogged': data.json().usrLogged}, {silent: true});
-          App.User.set({'id': data.json().id}, {silent: true});
-          interfaceSelector();
-	      });
-	        
-        promise.then(function(realdata){}).fail(function(err) {
-          connectionErrorShow(err);
-        });
-		  } else {
-		    interfaceSelector();
-		  }
+		  App.State.segmentChange();
 		},
 		groups:function() {
 		  App.State.segment = 'groups';
-		  this.navigate('', {trigger: true});
+		  App.State.segmentChange();
 		},
 		tasks:function() {
 		  App.State.segment = 'tasks';
-		  this.navigate('', {trigger: true});
+		  App.State.segmentChange();
 		},
 		users:function() {
 		  App.State.segment = 'users';
-		  this.navigate('', {trigger: true});
+		  App.State.segmentChange();
 		},
 		user:function() {
 		  App.State.segment = 'user';
-		  this.navigate('', {trigger: true});
+		  App.State.segmentChange();
 		},
 		login:function() {
-		  if(!App.User.get('usrLogged')) {
+		  if(!App.State.user.get('usrLogged')) {
 		    $$('frameCentral_Login').show();
 		  } else {
-		    App.Router.navigate('', {trigger: true});
+		    App.Router.navigate('user', {trigger: true});
 		  }
 		},
 		logout:function() {
-      var promise = webix.ajax().put("api/logout", { id: App.User.id });
+      var promise = webix.ajax().put('api/logout', { id: App.State.user.id });
 	        
       promise.then(function(realdata) {
+        App.State.user.set('usrLogged', false);
         App.Router.navigate('', {trigger: true});
       }).fail(function(err){
         connectionErrorShow(err);
       });
 		},
 		register:function() {
-		  if(!App.User.get('usrLogged')) {
+		  if(!App.State.user.get('usrLogged')) {
 		    $$('frameCentral_Register').show();
 		  } else {
-		    App.Router.navigate('', {trigger: true});
+		    App.Router.navigate('user', {trigger: true});
 		  }
 		}
 	}))();
@@ -156,35 +235,49 @@ var implementFunction = (function() {
     
     if($$("dataviewCentral_Users").getSelectedId() === '') {
       $$('dataviewCentral_Users').select($$('dataviewCentral_Users').getFirstId());
-      App.Func.fillUserAttributes(App.User.get('id'));
+      App.Func.fillUserAttributes(App.State.user.get('id'));
     } else if ($$("dataviewCentral_Users").getSelectedId() === $$('dataviewCentral_Users').getFirstId()) {
-      App.Func.fillUserAttributes(App.User.get('id'));
+      App.Func.fillUserAttributes(App.State.user.get('id'));
     } else {
       App.Func.fillUserAttributes($$("dataviewCentral_Users").getSelectedId());
     }
     
-    App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
+    App.State.groups.fetch({ success: showGroupDataAfterFetch });
   };
 	
   var showGroupDataAfterFetch = function(Groups, response, options) {
-    App.Trees.GroupTree.treeBuild(App.Collections.Groups.models);
+    App.State.groupTreeManager.treeBuild(App.State.groups.models);
     
     $$('treetableMyGroups_Groupstable').load('GroupData->load');
   };
 
   var showTaskDataAfterFetch = function(Tasks, response, options) {
-    App.Trees.TaskTree.treeBuild(App.Collections.Tasks.models);
+    App.State.taskTreeManager.treeBuild(App.State.tasks.models);
     
     $$('treetableMytasks_Tasktable').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
   };
 
   //***************************************************************************
   //INTERFACE MANIPULATION
-  var interfaceSelector = function() {
+  var interfaceSelector = function(text, data) {
+    var user = App.State.user;
+    if(text === 'null') {
+      //user.set({ 'usrLogged': false }, { silent: true });
+    } else {
+      user.set({ 'usrLogged': data.json().usrLogged }, { silent: true });
+      user.set({ 'id': data.json().id }, { silent: true });
+      
+      //App.State.serverRoute = data.json().serverRoute;
+      if(data.json().serverRoute !== '') {
+        return App.Router.navigate(data.json().serverRoute, {trigger: true});
+      }
+    }
+
     //если пользователь залогинился
-  	if(App.User.get('usrLogged')) {
+  	if(user.get('usrLogged')) {
   	  //Выставим флаг того, что состояние по-умолчанию сброшено
-  	  App.State.defaultState = false;
+  	  //App.State.defaultState = false;
+  	  console.log('interfaceSelector: user logged');
   	  
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
   	  $$('toolbarHeader').enable();
@@ -192,22 +285,25 @@ var implementFunction = (function() {
   	  
   	  switch(App.State.segment) {
         case 'user':
+          console.log('interfaceSelector: user');
        	  $$('tabviewCentral_User').showProgress({
             type:'icon',
             delay:500
           });
   
+          //Надо подумать как решить этот вопрос.... при выделении пункта меню снова вызывается роутер
   		    if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
             $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
 	  	    }
 	  	    
 	  	    $$('scrollviewRight_UserFilter').show();
 	  	    
-          App.User.url = '/api/users/' + App.User.get('id');
-          App.User.fetch({ success: showUserDataAfterFetch, silent:true });
+          user.url = '/api/users/' + user.get('id');
+          user.fetch({ success: showUserDataAfterFetch, silent:true });
   		    
           break;  	    
         case 'users':
+          console.log('interfaceSelector: users');
           if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
             $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
           }
@@ -221,7 +317,7 @@ var implementFunction = (function() {
             $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllGroups');
           }
 
-          App.Collections.Groups.fetch({ success: showGroupDataAfterFetch });
+          App.State.groups.fetch({ success: showGroupDataAfterFetch });
           
           $$('tabviewCentral_Groups').show();
           $$('scrollviewRight_GroupsFilter').show();
@@ -230,7 +326,7 @@ var implementFunction = (function() {
         case 'tasks':
           $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllTasks');
           
-          App.Collections.Tasks.fetch({ success: showTaskDataAfterFetch });
+          App.State.tasks.fetch({ success: showTaskDataAfterFetch });
           $$('tabviewCentral_Task').show();
           break;
         case 'templates':
@@ -252,10 +348,13 @@ var implementFunction = (function() {
   	  //если флаг состояния по-умолчанию не сброшен, то произведен сброс всех системных параметров и
   	  //очистку всех значений в памяти, приведем систем в порядок начальных значений, флаг необходим
   	  //для исключения ситуаций повторных сбросов системы
-  	  if(!App.State.defaultState)
-  	    defaultState();
+  	  //if(!App.State.defaultState) {
+  	  console.log('interfaceSelector: user not logged');
+  	    App.State.$init();
+  	    offState();
+  	  //}
   	  $$('frameCentral_Greeting').show();
-  	} //if(App.User.usrLogged)    
+  	} //if(App.State.user.usrLogged)    
   };
   
   var connectionErrorShow = function(err) {
@@ -266,90 +365,9 @@ var implementFunction = (function() {
     webix.message({type:"error", text:err.responseText});
   };
 
-  //***************************************************************************
-  //INIT FUNCTIONs
-  var UserModelInit = function() {
-    //Инициализируем глобальный объект пользователя со всеми настройками приложения
-  	App.User = new App.Models.User();
-  	
-  	App.User.on('change:thisTry', function() {
-  	  //App.Router.navigate('home', {trigger:true} );
-  	});
-  	
-    App.User.on('change', function(eventName) {
-      App.User.save(App.User.changedAttributes());
-    });  	
-  };
-  
-  var GroupModelInit = function() {
-  	App.Trees.GroupTree = new treeManager();
-    
-  	App.Collections.Groups = new collectionGroups();
-  
-  	App.Collections.Groups.on('add', function(grp) {
-  	  App.Trees.GroupTree.treeAdd(grp);
-  	});
-  	
-  	App.Collections.Groups.on('remove', function(ind) {
-  	  App.Trees.GroupTree.treeRemove(ind);
-  	});
-  
-    App.Collections.Groups.on('change', function(model, options) {
-      App.Trees.GroupTree.treeChange(model);
-      model.save(); 
-    });
-    
-    App.Collections.Groups.on('move', function(currentPosId, newPosId, parentId) {
-      App.Trees.GroupTree.move(currentPosId, newPosId, parentId);
-    });
-  };
-  
-  var TaskModelInit = function() {
-    App.Trees.TaskTree = new treeManager();
-    
-    App.Collections.Tasks = new collectionTasks();
-    
-    App.Collections.Tasks.on('add', function(tsk) {
-      App.Trees.TaskTree.treeAdd(tsk);
-    });
-    
-  	App.Collections.Tasks.on('remove', function(ind) {
-  	  App.Trees.TaskTree.treeRemove(ind);
-  	});
-  
-    App.Collections.Tasks.on('change', function(model, options) {
-      App.Trees.TaskTree.treeChange(model);
-      model.save();
-    });
-    
-    App.Collections.Tasks.on('move', function(currentPosId, newPosId, parentId) {
-      App.Trees.TaskTree.move(currentPosId, newPosId, parentId);
-    });    
-  };
-  
-  var defaultState = function() {
-    delete App.User;
-    UserModelInit();
-      
-    delete App.Trees.GroupTree;
-    delete App.Collections.Groups;
-    GroupModelInit();
-    
-    delete App.Trees.TaskTree;
-    delete App.Collections.Tasks;
-    TaskModelInit();
-    
-    App.State.$init();
-
-    offState();
-  };
-  
-  UserModelInit();
-  GroupModelInit();
-  TaskModelInit();
+  App.State.$init();
 
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
-  //описание внизу модуля
   var frameBase = new webix.ui({
     id:"frameBase",
     rows:[App.Frame.toolbarHeader, 
@@ -369,7 +387,9 @@ var implementFunction = (function() {
     
     $$("toolbarHeader").disable();
     $$("toolbarHeader").refresh();
-  }();
+  };
+
+  offState();
 
   webix.extend($$("tabviewCentral_User"), webix.ProgressBar);
 
@@ -396,7 +416,7 @@ var implementFunction = (function() {
         this.updateItem(ItemEdited);
         App.State.groupstable_ItemEdited = null;
       } else {
-        var selectGroup = App.Collections.Groups.get(App.State.groupstable_ItemEdited);
+        var selectGroup = App.State.groups.get(App.State.groupstable_ItemEdited);
         selectGroup.set({ 'name': state.value });
       }
     }
@@ -415,7 +435,7 @@ var implementFunction = (function() {
         this.updateItem(ItemEdited);
         App.State.tasktable_ItemEdited = null;
       } else {
-        var selectTask = App.Collections.Tasks.get(App.State.tasktable_ItemEdited);
+        var selectTask = App.State.tasks.get(App.State.tasktable_ItemEdited);
         selectTask.set({ 'name': state.value });
       }
     }
@@ -423,5 +443,6 @@ var implementFunction = (function() {
   
   webix.i18n.parseFormatDate = webix.Date.strToDate("%Y/%m/%d");
   webix.event(window, "resize", function() { frameBase.adjust(); });
-  Backbone.history.start({pushState: true, root: "/"});
+  //Backbone.history.start({pushState: true, root: "/"});
+  Backbone.history.start( { pushState: true } );
 });

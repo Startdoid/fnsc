@@ -37,14 +37,15 @@ db.once('open', function callback () {
 
 	app.configure(function() {
 	 	app.use(express.logger('dev')); 						// log every request to the console
-	 	app.use(express.static(path.join(__dirname, 'client'))); 		// set the static files location /client/img will be /img for users
+	 	app.use(express.cookieParser());
+	 	app.use(express.favicon(path.join(__dirname, '/client/img/favicon.ico')));
+	 	app.use(express.cookieSession({ secret: process.env.COOKIE_SECRET || "Superdupersecret" }));
 	 	app.use(express.bodyParser()); 							// pull information from html in POST
 	 	app.use(express.methodOverride()); 					// simulate DELETE and PUT
-	 	app.use(express.cookieParser());
-	 	//app.use(express.favicon(path.join(__dirname, 'client/img/favicon.ico')));
-	 	app.use(express.cookieSession({ secret: process.env.COOKIE_SECRET || "Superdupersecret" }));
+	 	//app.use(express.static(path.join(__dirname, '/client'))); 		// set the static files location /client/img will be /img for users
+	 	app.use(express.static(__dirname + '/client'));
 	 	app.use(passport.initialize());
-		app.use(passport.session());
+	 	app.use(passport.session());
 	});
 	
 	app.configure('development', 'production', function() {

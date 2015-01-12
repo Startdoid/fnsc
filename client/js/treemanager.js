@@ -11,10 +11,11 @@ var treeManager = function (collection) {
   var treeRecursively = function(branch, list) {
     if (typeof branch === 'undefined') return null;
     var tr = [];
-    for(var i=0; i<branch.length; i++)      
-    {
+    for(var i = 0; i < branch.length; i++) {
+      if(branch.length > 1) {
         branch[i].data = treeRecursively(list[ branch[i].id ], list);
-        tr.push(branch[i]);
+      }
+      tr.push(branch[i]);
     }
     return tr;
   };

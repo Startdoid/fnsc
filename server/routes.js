@@ -5,6 +5,13 @@ var userModel = require('./models/user');
 var groupModel = require('./models/group');
 var passport = require('passport');
 
+var serverRoute = '';
+var routeExclude = ['/img/avatars/',
+  '/js/jquery.min.map',
+  '/favicon.ico',
+  '/codebase/skins/fonts/PTS-webfont.ttf',
+  '/codebase/skins/fonts/PTS-webfont.woff'];
+
 var routes = [
   // Views
   {
@@ -109,9 +116,7 @@ var routes = [
   {
     path: '/*',
     httpMethod: 'GET',
-    middleware: [function(req, res) {
-      res.redirect('/');
-    }]
+    middleware: [throwInRoot]
   }
 ];
 
@@ -135,7 +140,7 @@ module.exports = function(app) {
         break;
       default:
         throw new Error('Invalid HTTP method specified for route ' + route.path);
-        break;
+        //break;
       }
   });
 };
@@ -175,15 +180,14 @@ function register(req, res, next) {
 
 function login(req, res, next) {
   passport.authenticate('local', function(err, user) {
+    if(err)     { return next(err); }
+    if(!user)   { return res.send(400); }
 
-  if(err)     { return next(err); }
-  if(!user)   { return res.send(400); }
+    req.logIn(user, function(err) {
+      if(err) return next(err);
 
-  req.logIn(user, function(err) {
-    if(err) return next(err);
-
-    if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
-    res.json(200, { id: user.id, usrLogged: true });
+      if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
+      res.json(200, { id: user.id, usrLogged: true });
     });
   })(req, res, next);
 }
@@ -192,6 +196,12 @@ function logout(req, res, next) {
   if(req.isAuthenticated()) req.logout();
   if(userModel.model != null) userModel.logoutUser();
   res.send(200);
+}
+
+function throwInRoot(req, res, next) {
+  if(routeExclude.indexOf(req.url) != -1) return next();
+  serverRoute = req.path;
+  res.redirect('/');
 }
 
 function getuser(req, res, next) {
@@ -224,7 +234,7 @@ function getLoggedUser(req, res, next) {
   var loggedUser = userModel.getLoggedUser();
   if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
   
-  res.json(200, { id: loggedUser.id, usrLogged: true });
+  res.json(200, { 'id': loggedUser.id, 'usrLogged': true, 'serverRoute': serverRoute });
 }
 
 function getgroup(req, res, next) {

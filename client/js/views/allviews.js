@@ -221,14 +221,14 @@ App.Frame.toolbarMyGroups_Groupstool = {
   view:'toolbar', id:'toolbarMyGroups_Groupstool',
   cols:[
     { view:'button', id:'buttonGroupstool_AddRoot', value:'Добавить основную', width:140, align:'left', 
-      click: function() { App.Collections.Groups.newGroup(0); } },
+      click: function() { App.State.groups.newGroup(0); } },
     { view:'button', id:'buttonGroupstool_Add', value:'Добавить', width:100, align:'left', 
-      click: function() { App.Collections.Groups.newGroup(App.State.groupstable_ItemSelected); } },
+      click: function() { App.State.groups.newGroup(App.State.groupstable_ItemSelected); } },
     { view:'button', id:'buttonGroupstool_Delete', value:'Удалить', width:100, align:'left', 
       click: function() {
         var selectedId = App.State.groupstable_ItemSelected;
         if (selectedId !== 0) {
-          var firstModels = App.Collections.Groups.findWhere( { parent_id: selectedId } );
+          var firstModels = App.State.groups.findWhere( { parent_id: selectedId } );
           var text = '';
           if (typeof firstModels === 'undefined') {
             text = 'Вы пожелали удалить выбранную группу?';
@@ -243,20 +243,20 @@ App.Frame.toolbarMyGroups_Groupstool = {
             type:'confirm-warning',
             text:text,
             callback: function(result) { 
-              if (result) { App.Collections.Groups.removeGroup(App.State.groupstable_ItemSelected); }
+              if (result) { App.State.groups.removeGroup(App.State.groupstable_ItemSelected); }
               }
           });
         }
       }
     },
     { view:'button', id:'buttonGroupstool_Up', value:'Вверх', width:100, align:'left', 
-      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'up'); } },
+      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'up'); } },
     { view:'button', id:'buttonGroupstool_Down', value:'Вниз', width:100, align:'left', 
-      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'down'); } },
+      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'down'); } },
     { view:'button', id:'buttonGroupstool_UpLevel', value:'На ур. вверх', width:100, align:'left', 
-      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'uplevel'); } },
+      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'uplevel'); } },
     { view:'button', id:'buttonGroupstool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
-      click: function() { App.Collections.Groups.moveGroup(App.State.groupstable_ItemSelected, 'downlevel'); } },
+      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'downlevel'); } },
     { }
   ]
 };
@@ -277,7 +277,7 @@ App.Frame.treetableMyGroups_Groupstable = {
     onBeforeDrop: function(context, event) {
       var id_conf = context.to.config.id;
       if(id_conf === 'treetableMyGroups_Groupstable') {
-        App.Collections.Groups.moveGroup(context.start, 'jump', context.index, context.parent);
+        App.State.groups.moveGroup(context.start, 'jump', context.index, context.parent);
       }
   	 }
 	},
@@ -318,14 +318,14 @@ App.Frame.toolbarMytasks_Tasktool = {
   id:'toolbarMytasks_Tasktool',
   cols:[
     { view:'button', id:'buttonTasktool_AddRoot', value:'Добавить основную', width:140, align:'left', 
-      click: function() { App.Collections.Tasks.newTask(0); } },
+      click: function() { App.State.tasks.newTask(0); } },
     { view:'button', id:'buttonTasktool_Add', value:'Добавить', width:100, align:'left', 
-      click: function() { App.Collections.Tasks.newTask(App.State.tasktable_ItemSelected); } },
+      click: function() { App.State.tasks.newTask(App.State.tasktable_ItemSelected); } },
     { view:'button', id:'buttonTasktool_Delete', value:'Удалить', width:100, align:'left', 
       click: function() {
         var selectedId = App.State.tasktable_ItemSelected;
         if (selectedId !== 0) {
-          var firstModels = App.Collections.Tasks.findWhere( { parent_id: selectedId } );
+          var firstModels = App.State.tasks.findWhere( { parent_id: selectedId } );
           var text = '';
           if (typeof firstModels === 'undefined') {
             text = 'Вы пожелали удалить выбранную задачу?';
@@ -340,20 +340,20 @@ App.Frame.toolbarMytasks_Tasktool = {
             type:'confirm-warning',
             text:text,
             callback: function(result) { 
-              if (result) { App.Collections.Tasks.removeTask(App.State.tasktable_ItemSelected); }
+              if (result) { App.State.tasks.removeTask(App.State.tasktable_ItemSelected); }
               }
           });
         }
       }
     },
     { view:'button', id:'buttonTasktool_Up', value:'Вверх', width:100, align:'left', 
-      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'up'); } },
+      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'up'); } },
     { view:'button', id:'buttonTasktool_Down', value:'Вниз', width:100, align:'left', 
-      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'down'); } },
+      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'down'); } },
     { view:'button', id:'buttonTasktool_UpLevel', value:'На ур. вверх', width:100, align:'left', 
-      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'uplevel'); } },
+      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'uplevel'); } },
     { view:'button', id:'buttonTasktool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
-      click: function() { App.Collections.Tasks.moveTask(App.State.tasktable_ItemSelected, 'downlevel'); } },
+      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'downlevel'); } },
     { }
   ]
 };
@@ -374,7 +374,7 @@ App.Frame.treetableMytasks_Tasktable = {
     onBeforeDrop:function(context, event) {
       var id_conf = context.to.config.id;
       if(id_conf === 'treetableMytasks_Tasktable') {
-        App.Collections.Tasks.moveTask(context.start, 'jump', context.index, context.parent);
+        App.State.tasks.moveTask(context.start, 'jump', context.index, context.parent);
       }
   	 }
 	},
@@ -419,14 +419,14 @@ App.Frame.tabviewCentral_Task = {
 //USER frames
 
 App.Func.fillUserAttributes = function(user_id) {
-  if(user_id === App.User.get('id')) {
-    $$('textUserAttributes_Name').setValue(App.User.get('username'));
-    $$('textUserAttributes_Email').setValue(App.User.get('email'));
-    $$('comboUserAttributes_Country').setValue(App.User.get('country'));
-    $$('comboUserAttributes_City').setValue(App.User.get('city'));
-    $$('datepickerUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.User.get('dateofbirth')));
-    $$('radioUserAttributes_Gender').setValue(App.User.get('gender'));
-    $$('richselectUserAttributes_Familystatus').setValue(App.User.get('familystatus'));
+  if(user_id === App.State.user.get('id')) {
+    $$('textUserAttributes_Name').setValue(App.State.user.get('username'));
+    $$('textUserAttributes_Email').setValue(App.State.user.get('email'));
+    $$('comboUserAttributes_Country').setValue(App.State.user.get('country'));
+    $$('comboUserAttributes_City').setValue(App.State.user.get('city'));
+    $$('datepickerUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.State.user.get('dateofbirth')));
+    $$('radioUserAttributes_Gender').setValue(App.State.user.get('gender'));
+    $$('richselectUserAttributes_Familystatus').setValue(App.State.user.get('familystatus'));
   }
 };
 
@@ -442,10 +442,27 @@ var listProfile_UserAttributesSelector = {
 		{ id:'listitemUserAtributesSelector_Tasks',	value:'Задачи' },
 		{ id:'listitemUserAtributesSelector_Projects',	value:'Проекты' },
 		{ id:'listitemUserAtributesSelector_Tags',	value:'Теги' }
-	]
-	//on:{"onAfterSelect": function(){
-		//app.trigger("filterIssues");
-	//}
+	],
+	on:{"onAfterSelect": function(id) {
+    switch(id) {
+      case 'listitemUserAtributesSelector_Users':
+        App.Router.navigate('users', {trigger:true} );
+        break;
+      case 'listitemUserAtributesSelector_Groups':
+        App.Router.navigate('groups', {trigger:true} );
+        break;
+      case 'listitemUserAtributesSelector_Tasks':
+        App.Router.navigate('tasks', {trigger:true} );
+        break;
+      case 'listitemUserAtributesSelector_Projects':
+        App.Router.navigate('projects', {trigger:true} );
+        break;
+      case 'listitemUserAtributesSelector_Tags':
+        App.Router.navigate('tags', {trigger:true} );
+        break;
+      }
+	  }
+	}
 };
 
 var scrollviewProfile_UserAttributes = {
@@ -454,8 +471,8 @@ var scrollviewProfile_UserAttributes = {
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'textUserAttributes_Name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { App.User.set('username', this.getValue()) } } },
-      { view:'text', id:'textUserAttributes_Email', label:'Email', labelWidth:120, on:{'onChange': function() { App.User.set('email', this.getValue()) } } },
+      { view:'text', id:'textUserAttributes_Name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { App.State.user.set('username', this.getValue()) } } },
+      { view:'text', id:'textUserAttributes_Email', label:'Email', labelWidth:120, on:{'onChange': function() { App.State.user.set('email', this.getValue()) } } },
       { view:'combo', id:'comboUserAttributes_Country', label:"Страна", suggest: 'suggestCountry', labelWidth:120 },
       { view:'combo', id:'comboUserAttributes_City', label:'Город', suggest: 'suggestCity', labelWidth:120 },
       { view:'datepicker', id:'datepickerUserAttributes_Dateofbirth', label:'Дата рождения', labelWidth:120 },
@@ -587,23 +604,38 @@ var dataviewCentral_Users = {
 	url:'api/userlist'
 };
 
+var labelToolbarCentral_Users = {
+	view: 'label', id:'labelToolbarCentral_Users',
+	width:100,
+	label:'Назад',
+	on:{
+		'onItemClick': function() { 
+		  App.Router.navigate('home', {trigger:true} ); 
+		}
+	}
+};
+
+var toolbarCentral_Users = {
+	view:"toolbar", id: 'toolbarCentral_Users',
+	height:32,
+	elements:[{}, labelToolbarCentral_Users]
+};
+
 App.Frame.frameCentral_Users = {
   id:'frameCentral_Users',
   autoheight:true, autowidth:true,
   cols:[
     {},
-
-      dataviewCentral_Users,
-    
+    { rows:[toolbarCentral_Users, dataviewCentral_Users] },
     {}
   ]
 };
 //**************************************************************************************************
 //OTHER frames
 var reglogResponse = function(text, data) {
-  App.User.set({'usrLogged': true}, {silent: true});
-  App.User.set({'id': data.json().id}, {silent: true});
-  App.Router.navigate('', {trigger: true});
+  App.State.user.set({'usrLogged': true}, {silent: true});
+  App.State.user.set({'id': data.json().id}, {silent: true});
+  App.Router.navigate('user', {trigger: true});
 };
 
 App.Func.Register = function() {
@@ -699,7 +731,7 @@ App.Frame.frameCentral_Greeting = {
       view:'button', id:'buttonGreeting_Try',
 	    height: 45, width: 100,
 	    value:'Попробовать',
-	    on:{ 'onItemClick':function() { App.User.set({'thisTry': true}); } }
+	    on:{ 'onItemClick':function() { App.State.user.set({'thisTry': true}); } }
     },
     {
       view:"button", id:"buttonGreeting_Register",
