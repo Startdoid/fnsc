@@ -114,6 +114,14 @@ var routes = [
     middleware: [register]
   },
   {
+    path: '/img/avatars',
+    httpMethod: 'GET',
+    middleware:[function (req, res) {
+      //var requestedView = path.join('./', req.url);
+      res.type('image/png').status(304).end();
+    }] 
+  },
+  {
     path: '/*',
     httpMethod: 'GET',
     middleware: [throwInRoot]
@@ -163,17 +171,17 @@ function register(req, res, next) {
     userModel.validate(req.body);
   }
   catch(err) {
-    return res.send(432, err.message);
+    return res.status(432).send(err.message);
   }
 
   userModel.addUser(req.body.username, req.body.password, req.body.email, function(err, usr) {
-    if(err === 'UserAlreadyExists') return res.send(432, "User already exists");
-    else if(err === 'UserDbError') return res.send(433, "DB can't add user");
-    else if(err) return res.send(400);
+    if(err === 'UserAlreadyExists') return res.status(432).send("User already exists");
+    else if(err === 'UserDbError') return res.status(433).send("DB can't add user");
+    else if(err) return res.status(400).end();
 
     req.logIn(usr, function(err) {
       if(err) return next(err); 
-      else return res.json(200, usr); 
+      else return res.status(200).json(usr); 
     });
   });
 }
@@ -181,13 +189,13 @@ function register(req, res, next) {
 function login(req, res, next) {
   passport.authenticate('local', function(err, user) {
     if(err)     { return next(err); }
-    if(!user)   { return res.send(400); }
+    if(!user)   { return res.status(400).end(); }
 
     req.logIn(user, function(err) {
       if(err) return next(err);
 
       if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
-      res.json(200, { id: user.id, usrLogged: true });
+      res.status(200).json({ id: user.id, usrLogged: true });
     });
   })(req, res, next);
 }
@@ -195,7 +203,7 @@ function login(req, res, next) {
 function logout(req, res, next) {
   if(req.isAuthenticated()) req.logout();
   if(userModel.model != null) userModel.logoutUser();
-  res.send(200);
+  res.status(200).end();
 }
 
 function throwInRoot(req, res, next) {
@@ -205,60 +213,60 @@ function throwInRoot(req, res, next) {
 }
 
 function getuser(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
 
   userModel.getUserById(req.params.user_id, function(err, usr) {
-    if(err === 'UserDbError') return res.send(433, "DB can't add user");
-    else if(err === 'NoUser') return res.send(434, 'User not found');
-    else if(err) return res.send(400);
+    if(err === 'UserDbError') return res.status(433).send("DB can't add user");
+    else if(err === 'NoUser') return res.status(434).send('User not found');
+    else if(err) return res.status(400).end();
     
-    res.json(200, usr);
+    res.status(200).json(usr);
   });
 }
 
 function setuser(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
   
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
 
   var body = req.body;
   console.log(body);
   
-  return res.send(200);
+  return res.status(200).end();
 }
 
 function getLoggedUser(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
   
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
   
-  res.json(200, { 'id': loggedUser.id, 'usrLogged': true, 'serverRoute': serverRoute });
+  res.status(200).json({ 'id': loggedUser.id, 'usrLogged': true, 'serverRoute': serverRoute });
 }
 
 function getgroup(req, res, next) {
-  res.send(200);
+  res.status(200).end();
 }
 
 function getgroups(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
   
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
   
   groupModel.getGroups(loggedUser, null, function(err, groups) {
-    if(err) return res.send(400, err);
+    if(err) return res.status(400).send(err);
     
-    res.json(groups);
+    res.status(200).json(groups);
   });
 }
 
 function savegroup(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
   
   var arrGrId = loggedUser.grouplist.map(function(object) { return object.groupId });
   var index = arrGrId.indexOf(Number(req.params.group_id));
@@ -272,20 +280,20 @@ function savegroup(req, res, next) {
   delete req.body._id;
   delete req.body.__v;
   groupModel.model.findOneAndUpdate({id : Number(req.params.group_id)}, req.body, {upsert:true}, function(err, group) {
-    if (err) { res.send(err); }
-    res.send(200);
+    if (err) { res.status(400).send(err); }
+    res.status(200).end();
   });
 }
 
 function deletegroup(req, res, next) {
-  res.send(400);
+  res.status(400).end();
 }
 
 function gettasks(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
 
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
 
@@ -293,34 +301,34 @@ function gettasks(req, res, next) {
   //если идентификатор пустой, тогда делается выборка по всем личным группам
 
   groupModel.getGroupById(req.params.group_id, function(err, grp) {
-    if(err === 'GroupDbError') return res.send(433, "DB group error");
-    else if(err === 'NoGroup') return res.send(434, 'Group not found');
-    else if(err) return res.send(400);
+    if(err === 'GroupDbError') return res.status(433).send("DB group error");
+    else if(err === 'NoGroup') return res.status(434).send('Group not found');
+    else if(err) return res.status(400).end();
 
     var arrTaskId = grp.tasklist.map(function(object) { return object.taskId });
     taskModel.model.find({ id: { $in: arrTaskId } }, function(err, tasks) {
-      if (err) { res.send(err); return; }
-      res.json(tasks);
+      if (err) { res.status(400).send(err); return; }
+      res.status(200).json(tasks);
     });
   });
 }
 
 function gettask(req, res, next) {
-  res.send(400);
+  res.status(400).end();
 }
 
 function savetask(req, res, next) {
-  if(!req.isAuthenticated()) return res.send(200, { id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.send(200, { id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
   
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
   
   groupModel.getGroupById(req.params.group_id, function(err, grp) {
-    if(err === 'GroupDbError') return res.send(433, "DB group error");
-    else if(err === 'NoGroup') return res.send(434, 'Group not found');
-    else if(err) return res.send(400);
+    if(err === 'GroupDbError') return res.status(433).send("DB group error");
+    else if(err === 'NoGroup') return res.status(434).send('Group not found');
+    else if(err) return res.status(400).end();
 
     var arrTaskId = grp.tasklist.map(function(object) { return object.taskId });
     var index = arrTaskId.indexOf(Number(req.params.task_id));
@@ -334,14 +342,14 @@ function savetask(req, res, next) {
     delete req.body._id;
     delete req.body.__v;
     taskModel.model.findOneAndUpdate({id : Number(req.params.task_id)}, req.body, {upsert:true}, function(err, task) {
-      if (err) { res.send(err); }
-      res.send(200);
+      if (err) { res.status(200).send(err); }
+      res.status(200).end();
     });
   });  
 }
 
 function deletetask(req, res, next) {
-  res.send(400);
+  res.status(400).end();
 }
 
 function userlist(req, res, next) {
@@ -365,7 +373,7 @@ function userlist(req, res, next) {
     for (var i = 0; i < count; i++) {
       json.data.push({ img:'1.jpg', name:'bru'+(start*1+(i+1)), email:'bru@bru.bru' });
     }
-    res.send(json);
+    res.status(200).send(json);
   }
   
   //  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
@@ -385,7 +393,7 @@ function getcountry(req, res, next) {
     {id:8, value:'Грузия'},
     {id:9, value:'Израиль'}
   ];
-  res.send(country);
+  res.status(200).send(country);
 }
 
 function getcity(req, res, next) {
@@ -394,7 +402,7 @@ function getcity(req, res, next) {
     {id:2, value:'Красноярск'},
     {id:3, value:'Москва'}
   ];
-  res.send(city);
+  res.status(200).send(city);
 }
 
 function getfamilystatus(req, res, next) {
@@ -407,7 +415,7 @@ function getfamilystatus(req, res, next) {
     {id:6, value:'Женат'},
     {id:7, value:'Влюблен'}
   ];
-  res.send(familystatus);
+  res.status(200).send(familystatus);
 }
 //432 - Autorization error
 //433 - User db error
