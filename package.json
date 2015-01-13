@@ -1,6 +1,6 @@
 {
   "name"         : "InTask.me",
-  "version"      : "0.3.0",
+  "version"      : "0.5.9",
   "description"  : "InTask.me prototype",
   "main"         : "server.js",
   "author"       : "bruian, iceflash",
