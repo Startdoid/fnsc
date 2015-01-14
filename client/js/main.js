@@ -6,7 +6,6 @@ var implementFunction = (function() {
   
   App.State = {
     $init: function() {
-      //this.defaultState             = true;
       this.segment                  = 'user';
       this.group                    = 0;
       this.groupstable_ItemSelected = 0;
@@ -14,6 +13,8 @@ var implementFunction = (function() {
       this.tasktable_ItemSelected   = 0;
       this.tasktable_ItemEdited     = null;
       this.serverRoute              = '';
+      this.segmentUserId            = null;
+      this.usrCRC                   = null;
       
       if(this.groupTreeManager != null) { delete this.groupTreeManager; this.groupTreeManager = null; }
       this.groupTreeManager = new treeManager();
@@ -24,8 +25,8 @@ var implementFunction = (function() {
       if(this.user != null) { delete this.user; this.user = null; }
       this.user = this.userModelInit();
       
-      if(this.currentUser != null) { delete this.currentUser; this.currentUser = null; }
-      this.currentUser = this.userModelInit();
+      if(this.viewedUser != null) { delete this.viewedUser; this.viewedUser = null; }
+      this.viewedUser = this.userModelInit();
       
       if(this.groups != null) { delete this.groups; this.groups = null; }
       this.groups = this.groupsModelInit();
@@ -33,23 +34,51 @@ var implementFunction = (function() {
       if(this.tasks != null) { delete this.tasks; this.tasks = null; }
       this.tasks = this.tasksModelInit();
     },
-    segmentChange: function () {
-		  if(this.user.get('id') === 0) {
-        var promise = webix.ajax().get('api/logged', {}, interfaceSelector);
-	        
-        promise.then(function(realdata){}).fail(function(err) {
-          connectionErrorShow(err);
-        });
-		  } else {
-		    interfaceSelector('null');
-		  }
-
+    $userfetch: function(user, response, options) {
+      //переключим сегменты уже только после загрузки данных пользователя
+      segmentSelector();
+    },
+    $loadstate: function(text, data) {
+      //обработка состояния полученного сервера
+      
+      //фиксируем полученный от пользователя URL на сервере, после обработки состояния приложение
+      //перейдет по данному URL
+      App.State.serverRoute = data.json().serverRoute;
+      
+      //1. сравниваем авторизации на клиенет и сервере; 2. Хэш суммы пользователя на клиенте и сервере
+      //и если не совпадает одно из условий, производим загрузку данных пользователя с сервера
+      if( (App.State.user.get('usrLogged') !== data.json().usrLogged) || 
+          (App.State.usrCRC !== data.json().usrCRC)) {
+        App.State.user.set('usrLogged', data.json().usrLogged);
+        if(data.json().usrLogged) {
+		      App.State.user.url = '/api/users/' + data.json().id;
+          App.State.user.fetch({ success: App.State.$userfetch, silent:true });
+        }
+      } else {
+        //если никаких изменений в состоянии клиента и сервер не произошло, то переключим сегмены 
+        //в соответсвии с роутом
+        segmentSelector();
+      }
+    },
+    $autonomestate: function(err) {
+      //заглушечка
+    },
+    segmentChange: function() {
+      //при смене сегментов происходит запрос с сервера состояния приложения
+      //в состоянии содержится информация об измененных объектах, о состоянии пользователя и т.п.
+      
+      //если ответ от сервера получен, то переходим к функции обработки состояния
+      var promise = webix.ajax().get('api/state', {}, this.$loadstate);
+      //если ответ от сервера не получен, то переходим в автономный режим
+      promise.then(function(realdata){}).fail(this.$autonomestate);
     },
     userModelInit: function() {
       //Инициализируем глобальный объект пользователя со всеми настройками приложения
       var user = new App.Models.User();
   	  user.on('change:thisTry', function() { });
-      user.on('change', function(eventName) { this.save(this.changedAttributes()); }); ///проверить вызов THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      user.on('change', function(eventName) { 
+        this.save(this.changedAttributes()); 
+      }); ///проверить вызов THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       return user;
     },
@@ -98,14 +127,15 @@ var implementFunction = (function() {
       return tasks;
     },
     user              : null,     //Пользователь системы
-    currentUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
+    viewedUser        : null,     //текущий пользователь, выбранный в списке пользователей или друзей
     groupTreeManager  : null,     //менеджер дерева для групп
     taskTreeManager   : null,     //менеджер дерева для задач
     groups            : null,     //коллекция групп пользователя системы
     tasks             : null,     //коллекция задач пользователя системы
     serverRoute       : '',
-    //defaultState      : true,     //флаг того, что состояние по-умолчанию сброшено
     segment           : 'user',   //user, users, groups, tasks, templates, finances, process, files, notes
+    segmentUserId     : null,
+    usrCRC            : null,
     group             : 0,        //Выбранная группа, по которой фильтруются задачи
     //флаги состояния приложения this_view_action
     groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
@@ -172,7 +202,7 @@ var implementFunction = (function() {
 			'register(/)':'register',
 			'groups(/)':'groups',
 			'tasks(/)':'tasks',
-			'user(/)':'user',
+			'id:id(/)':'user',
 			'users(/)':'users',
 			'home(/)':'home',
 			'':'index'
@@ -197,19 +227,20 @@ var implementFunction = (function() {
 		  App.State.segment = 'users';
 		  App.State.segmentChange();
 		},
-		user:function() {
+		user:function(id) {
 		  App.State.segment = 'user';
+		  App.State.segmentUserId = id;
 		  App.State.segmentChange();
 		},
 		login:function() {
 		  if(!App.State.user.get('usrLogged')) {
 		    $$('frameCentral_Login').show();
 		  } else {
-		    App.Router.navigate('user', {trigger: true});
+		    App.Router.navigate('id' + App.State.user.get('id'), {trigger: true});
 		  }
 		},
 		logout:function() {
-      var promise = webix.ajax().put('api/logout', { id: App.State.user.id });
+      var promise = webix.ajax().put('api/logout', { id: App.State.user.get('id') });
 	        
       promise.then(function(realdata) {
         App.State.user.set('usrLogged', false);
@@ -222,27 +253,29 @@ var implementFunction = (function() {
 		  if(!App.State.user.get('usrLogged')) {
 		    $$('frameCentral_Register').show();
 		  } else {
-		    App.Router.navigate('user', {trigger: true});
+		    App.Router.navigate('id' + App.State.user.get('id'), {trigger: true});
 		  }
 		}
 	}))();
 	
 	//***************************************************************************
 	//AFTER FETCH FUNCTIONs
-  var showUserDataAfterFetch = function(User, response, options) {
+  var showUserDataAfterFetch = function(user, response, options) {
     $$('tabviewCentral_User').show();
-    $$("tabviewCentral_User").hideProgress();
+    $$('tabviewCentral_User').hideProgress();
     
-    if($$("dataviewCentral_Users").getSelectedId() === '') {
-      $$('dataviewCentral_Users').select($$('dataviewCentral_Users').getFirstId());
-      App.Func.fillUserAttributes(App.State.user.get('id'));
-    } else if ($$("dataviewCentral_Users").getSelectedId() === $$('dataviewCentral_Users').getFirstId()) {
-      App.Func.fillUserAttributes(App.State.user.get('id'));
+    //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
+    if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
+      $$('listProfile_UserAttributesSelector').unselectAll();
+      $$('frameProfile_user').show();
     } else {
-      App.Func.fillUserAttributes($$("dataviewCentral_Users").getSelectedId());
+      $$('listProfile_viewedUserAttributesSelector').unselectAll();
+      $$('frameProfile_viewedUser').show();
     }
-    
-    App.State.groups.fetch({ success: showGroupDataAfterFetch });
+
+    App.Func.fillUserAttributes();
+
+    //App.State.groups.fetch({ success: showGroupDataAfterFetch });
   };
 	
   var showGroupDataAfterFetch = function(Groups, response, options) {
@@ -257,35 +290,45 @@ var implementFunction = (function() {
     $$('treetableMytasks_Tasktable').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
   };
 
+  var srvUrlChanged = function(text, data) {
+    var sr = App.State.serverRoute;
+    App.State.serverRoute = '';
+    App.Router.navigate(sr, {trigger: true});
+  };
+
   //***************************************************************************
   //INTERFACE MANIPULATION
-  var interfaceSelector = function(text, data) {
+  //segmentSelector переключает состояние интерфейса в соответствии с теми сегментами, которые были
+  //установлены при обратке роутов в backbone App.Router, смена сегментов всегда сопровождается вызовом
+  //следующих функций segmengChange()->опрос состояния сервера->segmentSelector()->перерисовка интерфейса
+  var segmentSelector = function() {
     var user = App.State.user;
-    if(text === 'null') {
-      //user.set({ 'usrLogged': false }, { silent: true });
-    } else {
-      user.set({ 'usrLogged': data.json().usrLogged }, { silent: true });
-      user.set({ 'id': data.json().id }, { silent: true });
-      
-      //App.State.serverRoute = data.json().serverRoute;
-      if(data.json().serverRoute !== '') {
-        return App.Router.navigate(data.json().serverRoute, {trigger: true});
-      }
-    }
-
-    //если пользователь залогинился
+    var viewedUser = App.State.viewedUser;
+    
+    //если пользователь залогинился (получаем при опросе состояния сервера)
   	if(user.get('usrLogged')) {
-  	  //Выставим флаг того, что состояние по-умолчанию сброшено
-  	  //App.State.defaultState = false;
-  	  console.log('interfaceSelector: user logged');
+  	  //при опросе состояния сервера мы получили url, который пользователь ввел отправляя запрос на сервер
+  	  //но клиентское приложение имеет самостоятельный роут, поэтому мы должны сообщить url пользователя этому роуту
+  	  //и если пользователь авторизирован, перейти по этому урлу, после чего сообщить серверу, что урл обработан
+      if(App.State.serverRoute !== '') {
+    	  var promise = webix.ajax().post('api/state', { serverRoute: '' }, srvUrlChanged);
+  	        
+        promise.then(function(realdata){}).fail(function(err) {
+          webix.message({type:"error", text:err.responseText});
+        });
+      }  	  
+
+	    console.log('segmentSelector: user logged');
+  	  
+  	  if(!$$('toolbarHeader').isEnabled()) {
+  	    $$('toolbarHeader').enable();
+  	    $$('toolbarHeader').refresh();
+  	  }
   	  
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
-  	  $$('toolbarHeader').enable();
-  	  $$('toolbarHeader').refresh();
-  	  
   	  switch(App.State.segment) {
         case 'user':
-          console.log('interfaceSelector: user');
+          console.log('segmentSelector: user');
        	  $$('tabviewCentral_User').showProgress({
             type:'icon',
             delay:500
@@ -298,12 +341,12 @@ var implementFunction = (function() {
 	  	    
 	  	    $$('scrollviewRight_UserFilter').show();
 	  	    
-          user.url = '/api/users/' + user.get('id');
-          user.fetch({ success: showUserDataAfterFetch, silent:true });
-  		    
+          viewedUser.url = '/api/users/' + App.State.segmentUserId;
+          viewedUser.fetch({ success: showUserDataAfterFetch, silent:true });
+
           break;  	    
         case 'users':
-          console.log('interfaceSelector: users');
+          console.log('segmentSelector: users');
           if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
             $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
           }
@@ -349,7 +392,7 @@ var implementFunction = (function() {
   	  //очистку всех значений в памяти, приведем систем в порядок начальных значений, флаг необходим
   	  //для исключения ситуаций повторных сбросов системы
   	  //if(!App.State.defaultState) {
-  	  console.log('interfaceSelector: user not logged');
+  	  console.log('segmentSelector: user not logged');
   	    App.State.$init();
   	    offState();
   	  //}

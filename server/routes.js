@@ -5,7 +5,13 @@ var userModel = require('./models/user');
 var groupModel = require('./models/group');
 var passport = require('passport');
 
-var serverRoute = '';
+var state = {
+  id: 0,
+  usrLogged: false,
+  usrCRC: null,
+  serverRoute: ''
+};
+  
 var routeExclude = ['/img/avatars/',
   '/js/jquery.min.map',
   '/favicon.ico',
@@ -79,10 +85,15 @@ var routes = [
     middleware: [userlist]
   },
   {
-    path: '/api/logged',
+    path: '/api/state',
     httpMethod: 'GET',
-    middleware: [getLoggedUser]
+    middleware: [getState]
   },
+  {
+    path: '/api/state',
+    httpMethod: 'POST',
+    middleware: [setState]
+  },  
   {
     path: '/api/country',
     httpMethod: 'GET',
@@ -121,6 +132,11 @@ var routes = [
       res.type('image/png').status(304).end();
     }] 
   },
+  {
+    path: '/codebase/skins/fonts/*',
+    httpMethod: 'GET',
+    middleware:[sendFonts]
+  },  
   {
     path: '/*',
     httpMethod: 'GET',
@@ -166,6 +182,46 @@ function ensureAuthorized(req, res, next) {
   //if(!(accessLevel.bitMask & role.bitMask)) return res.send(403);
 }
 
+function sendFonts(req, res, next) {
+  res.type('application/x-font-woff');
+  //var options = {
+  //  root: __dirname + '/public/',
+  //  dotfiles: 'deny',
+  //  headers: {
+  //    'x-timestamp': Date.now(),
+  //    'x-sent': true
+  //  }
+  //};
+
+  var fileName = req.params[0];
+  res.sendFile(path.join(__dirname, '../client/codebase/fonts', fileName), function (err) {
+    if (err) {
+      console.log(err);
+      res.status(err.status).end();
+    }
+  });
+}
+
+function getState(req, res, next) {
+  if(req.isAuthenticated()) {
+    var loggedUser = userModel.getLoggedUser();
+    if(loggedUser !== null) {
+      state.id = loggedUser.id;
+      state.usrLogged = true;
+    }
+  }
+  
+  res.status(200).json(state);
+}
+
+function setState(req, res, next) {
+  if(req.body.serverRoute !== 'undefined') {
+    state.serverRoute = req.body.serverRoute;
+  }
+  
+  res.status(200).end();
+}
+
 function register(req, res, next) {
   try {
     userModel.validate(req.body);
@@ -208,7 +264,7 @@ function logout(req, res, next) {
 
 function throwInRoot(req, res, next) {
   if(routeExclude.indexOf(req.url) != -1) return next();
-  serverRoute = req.path;
+  state.serverRoute = req.path;
   res.redirect('/');
 }
 
@@ -230,19 +286,10 @@ function setuser(req, res, next) {
   var loggedUser = userModel.getLoggedUser();
   if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
 
-  var body = req.body;
-  console.log(body);
+  //var body = req.body;
+  //console.log(body);
   
   return res.status(200).end();
-}
-
-function getLoggedUser(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
-  
-  var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
-  
-  res.status(200).json({ 'id': loggedUser.id, 'usrLogged': true, 'serverRoute': serverRoute });
 }
 
 function getgroup(req, res, next) {

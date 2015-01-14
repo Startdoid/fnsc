@@ -81,7 +81,7 @@ var listSegments_SegmentsSelector = {
 	on:{"onAfterSelect": function(id){
     switch(id) {
       case 'listitemSegmentsSelector_MyProfile':
-        App.Router.navigate('user', {trigger:true} );
+        App.Router.navigate('id' + App.State.user.get('id'), {trigger:true} );
         break;
       case 'listitemSegmentsSelector_AllUsers':
         App.Router.navigate('users', {trigger:true} );
@@ -418,8 +418,12 @@ App.Frame.tabviewCentral_Task = {
 //***************************************************************************
 //USER frames
 
-App.Func.fillUserAttributes = function(user_id) {
-  if(user_id === App.State.user.get('id')) {
+App.Func.fillUserAttributes = function() {
+  var user = App.State.user;
+  var viewedUser = App.State.viewedUser;
+  
+  //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
+  if(user.get('id') === viewedUser.get('id')) {
     $$('textUserAttributes_Name').setValue(App.State.user.get('username'));
     $$('textUserAttributes_Email').setValue(App.State.user.get('email'));
     $$('comboUserAttributes_Country').setValue(App.State.user.get('country'));
@@ -427,6 +431,7 @@ App.Func.fillUserAttributes = function(user_id) {
     $$('datepickerUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.State.user.get('dateofbirth')));
     $$('radioUserAttributes_Gender').setValue(App.State.user.get('gender'));
     $$('richselectUserAttributes_Familystatus').setValue(App.State.user.get('familystatus'));
+  } else {
   }
 };
 
@@ -465,9 +470,44 @@ var listProfile_UserAttributesSelector = {
 	}
 };
 
+var listProfile_viewedUserAttributesSelector = {
+  view:'list', id:'listProfile_viewedUserAttributesSelector', css:'mainSelector',
+	borderless:true,  width:250, scroll:false,
+	template:'#value#',
+	type:{ height:50 },
+	select:true,
+	data:[
+		{ id:'listitemViewedUserAtributesSelector_Users', value:'Друзья' },
+		{ id:'listitemViewedUserAtributesSelector_Groups',	value:'Группы' },
+		{ id:'listitemViewedUserAtributesSelector_Tasks',	value:'Задачи' },
+		{ id:'listitemViewedUserAtributesSelector_Projects',	value:'Проекты' },
+		{ id:'listitemViewedUserAtributesSelector_Tags',	value:'Теги' }
+	],
+	on:{"onAfterSelect": function(id) {
+    switch(id) {
+      case 'listitemViewedUserAtributesSelector_Users':
+        App.Router.navigate('users', {trigger:true} );
+        break;
+      case 'listitemViewedUserAtributesSelector_Groups':
+        App.Router.navigate('groups', {trigger:true} );
+        break;
+      case 'listitemViewedUserAtributesSelector_Tasks':
+        App.Router.navigate('tasks', {trigger:true} );
+        break;
+      case 'listitemViewedUserAtributesSelector_Projects':
+        App.Router.navigate('projects', {trigger:true} );
+        break;
+      case 'listitemViewedUserAtributesSelector_Tags':
+        App.Router.navigate('tags', {trigger:true} );
+        break;
+      }
+	  }
+	}
+};
+
 var scrollviewProfile_UserAttributes = {
-  view:"scrollview", id:"scrollviewProfile_UserAttributes",
-  borderless: true, scroll:"y", //vertical scrolling
+  view:'scrollview', id:'scrollviewProfile_UserAttributes',
+  borderless: true, scroll:'y', //vertical scrolling
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
@@ -481,12 +521,45 @@ var scrollviewProfile_UserAttributes = {
   ]}
 };
 
+var scrollviewProfile_viewedUserAttributes = {
+  view:'scrollview', id:'scrollviewProfile_viewedUserAttributes',
+  borderless: true, scroll:'y', //vertical scrolling
+  body:{
+    rows:[
+      { view:'template', template:'Персональные', type:'section', align:'center' },
+  ]}
+};
+
+var frameProfile_user = {
+  id: 'frameProfile_user',
+  cols:[
+    listProfile_UserAttributesSelector,
+    { width:10 },
+    scrollviewProfile_UserAttributes
+  ]
+};
+
+var frameProfile_viewedUser = {
+  id: 'frameProfile_viewedUser',
+  cols:[
+    listProfile_viewedUserAttributesSelector,
+    { width:10 },
+    scrollviewProfile_viewedUserAttributes
+  ]
+};
+
+var multiviewUser_Profile = {
+ view:'multiview', id:'multiviewUser_Profile', container:'multiviewUser_Profile',
+  cells:[ frameProfile_user, frameProfile_viewedUser]
+  //fitBiggest:true
+};
+
 var frameUser_Profile = {
   id:'frameUser_Profile',
   borderless:false,
   cols:[
     { rows:[
-        { view:'template', template:'bru', type:'header', align:'center' },
+        { view:'template', template:'#value#', type:'header', align:'center', data: [ { value: 'bru' } ] },
         { cols:[
             { view:'template', template:"<img src='img/avatars/2.png'>", width: 250 },
             { width:10 },
@@ -494,12 +567,7 @@ var frameUser_Profile = {
           ], height:250
         },
         { height:10 },
-        { cols:[
-            listProfile_UserAttributesSelector,
-            { width:10 },
-            scrollviewProfile_UserAttributes
-          ]
-        },
+        multiviewUser_Profile
       ]
     }
   ]  
@@ -630,12 +698,13 @@ App.Frame.frameCentral_Users = {
     {}
   ]
 };
+
 //**************************************************************************************************
 //OTHER frames
 var reglogResponse = function(text, data) {
-  App.State.user.set({'usrLogged': true}, {silent: true});
-  App.State.user.set({'id': data.json().id}, {silent: true});
-  App.Router.navigate('user', {trigger: true});
+  //App.State.user.set({'usrLogged': true}, {silent: true});
+  //App.State.user.set({'id': data.json().id}, {silent: true});
+  App.Router.navigate('id' + data.json().id, {trigger: true});
 };
 
 App.Func.Register = function() {
