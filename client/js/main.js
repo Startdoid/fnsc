@@ -5,8 +5,24 @@ var implementFunction = (function() {
   var Backbone = window.Backbone;
   
   App.State = {
+    user              : null,     //Пользователь системы
+    viewedUser        : null,     //текущий пользователь, выбранный в списке пользователей или друзей
+    groupTreeManager  : null,     //менеджер дерева для групп
+    taskTreeManager   : null,     //менеджер дерева для задач
+    groups            : null,     //коллекция групп пользователя системы
+    tasks             : null,     //коллекция задач пользователя системы
+    serverRoute       : '',
+    segment           : '',   //user, users, groups, tasks, templates, finances, process, files, notes
+    segmentUserId     : null,
+    usrCRC            : null,
+    group             : 0,        //Выбранная группа, по которой фильтруются задачи
+    //флаги состояния приложения this_view_action
+    groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
+    groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
+    tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
+    tasktable_ItemEdited      : null,  //редактируемый элемент в области конструктора задач
     $init: function() {
-      this.segment                  = 'user';
+      this.segment                  = '';
       this.group                    = 0;
       this.groupstable_ItemSelected = 0;
       this.groupstable_ItemEdited   = null;
@@ -125,23 +141,7 @@ var implementFunction = (function() {
       });
       
       return tasks;
-    },
-    user              : null,     //Пользователь системы
-    viewedUser        : null,     //текущий пользователь, выбранный в списке пользователей или друзей
-    groupTreeManager  : null,     //менеджер дерева для групп
-    taskTreeManager   : null,     //менеджер дерева для задач
-    groups            : null,     //коллекция групп пользователя системы
-    tasks             : null,     //коллекция задач пользователя системы
-    serverRoute       : '',
-    segment           : 'user',   //user, users, groups, tasks, templates, finances, process, files, notes
-    segmentUserId     : null,
-    usrCRC            : null,
-    group             : 0,        //Выбранная группа, по которой фильтруются задачи
-    //флаги состояния приложения this_view_action
-    groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
-    groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
-    tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
-    tasktable_ItemEdited      : null  //редактируемый элемент в области конструктора задач
+    }
   };
   
   var dataCountry = new webix.DataCollection({ 
@@ -264,6 +264,13 @@ var implementFunction = (function() {
     $$('tabviewCentral_User').show();
     $$('tabviewCentral_User').hideProgress();
     
+    //Надо подумать как решить этот вопрос.... при выделении пункта меню снова вызывается роутер
+    if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+       $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
+    }
+
+    $$('scrollviewRight_UserFilter').show();
+    
     //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
       $$('listProfile_UserAttributesSelector').unselectAll();
@@ -272,7 +279,7 @@ var implementFunction = (function() {
       $$('listProfile_viewedUserAttributesSelector').unselectAll();
       $$('frameProfile_viewedUser').show();
     }
-
+    
     App.Func.fillUserAttributes();
 
     //App.State.groups.fetch({ success: showGroupDataAfterFetch });
@@ -316,10 +323,15 @@ var implementFunction = (function() {
         promise.then(function(realdata){}).fail(function(err) {
           webix.message({type:"error", text:err.responseText});
         });
-      }  	  
-
-	    console.log('segmentSelector: user logged');
-  	  
+        
+        return;
+      } else {
+        if(App.State.segment === '') {
+          App.Router.navigate('id' + App.State.user.get('id'), {trigger: true});
+          return;
+        }
+      }
+    
   	  if(!$$('toolbarHeader').isEnabled()) {
   	    $$('toolbarHeader').enable();
   	    $$('toolbarHeader').refresh();
@@ -334,13 +346,6 @@ var implementFunction = (function() {
             delay:500
           });
   
-          //Надо подумать как решить этот вопрос.... при выделении пункта меню снова вызывается роутер
-  		    if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-            $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
-	  	    }
-	  	    
-	  	    $$('scrollviewRight_UserFilter').show();
-	  	    
           viewedUser.url = '/api/users/' + App.State.segmentUserId;
           viewedUser.fetch({ success: showUserDataAfterFetch, silent:true });
 

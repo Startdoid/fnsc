@@ -419,11 +419,10 @@ App.Frame.tabviewCentral_Task = {
 //USER frames
 
 App.Func.fillUserAttributes = function() {
-  var user = App.State.user;
-  var viewedUser = App.State.viewedUser;
-  
-  //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
-  if(user.get('id') === viewedUser.get('id')) {
+  if($$('frameProfile_user').isVisible()) {
+    $$('barProfile_user').data.value = App.State.viewedUser.get('username');
+    $$('barProfile_user').refresh();
+    
     $$('textUserAttributes_Name').setValue(App.State.user.get('username'));
     $$('textUserAttributes_Email').setValue(App.State.user.get('email'));
     $$('comboUserAttributes_Country').setValue(App.State.user.get('country'));
@@ -432,6 +431,16 @@ App.Func.fillUserAttributes = function() {
     $$('radioUserAttributes_Gender').setValue(App.State.user.get('gender'));
     $$('richselectUserAttributes_Familystatus').setValue(App.State.user.get('familystatus'));
   } else {
+    $$('barProfile_vieweduser').data.value = App.State.viewedUser.get('username');
+    $$('barProfile_vieweduser').refresh();
+    
+    $$('labelviewedUserAttributes_Name').setValue(App.State.viewedUser.get('username'));
+    $$('labelviewedUserAttributes_Email').setValue(App.State.viewedUser.get('email'));
+    $$('labelviewedUserAttributes_Country').setValue(App.State.viewedUser.get('country'));
+    $$('labelviewedUserAttributes_City').setValue(App.State.viewedUser.get('city'));
+    $$('labelviewedUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.State.viewedUser.get('dateofbirth')));
+    $$('labelviewedUserAttributes_Gender').setValue(App.State.viewedUser.get('gender'));
+    $$('labelviewedUserAttributes_Familystatus').setValue(App.State.viewedUser.get('familystatus'));
   }
 };
 
@@ -527,50 +536,54 @@ var scrollviewProfile_viewedUserAttributes = {
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
+      { cols:[ { view:'label', label:'Имя пользователя', width:120}, {view:'label', id:'labelviewedUserAttributes_Name'}] },
+      { cols:[ { view:'label', label:'Email', width:120}, {view:'label', id:'labelviewedUserAttributes_Email'}] },
+      { cols:[ { view:'label', label:'Страна', width:120}, {view:'label', id:'labelviewedUserAttributes_Country'}] },
+      { cols:[ { view:'label', label:'Город', width:120}, {view:'label', id:'labelviewedUserAttributes_City'}] },
+      { cols:[ { view:'label', label:'Дата рождения', width:120}, {view:'label', id:'labelviewedUserAttributes_Dateofbirth'}] },
+      { cols:[ { view:'label', label:'Пол', width:120}, {view:'label', id:'labelviewedUserAttributes_Gender'}] },
+      { cols:[ { view:'label', label:'Семейное положение', width:120}, {view:'label', id:'labelviewedUserAttributes_Familystatus'}] }
   ]}
 };
 
 var frameProfile_user = {
   id: 'frameProfile_user',
-  cols:[
-    listProfile_UserAttributesSelector,
-    { width:10 },
-    scrollviewProfile_UserAttributes
+  rows:[
+    { view:'template', id:'barProfile_user', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { height:3 },
+    { cols:[
+      { rows: [
+        { view:'template', template:"<img src='img/avatars/2.png'>", width:250, height:250, borderless:true },
+        { height:10 },
+        listProfile_UserAttributesSelector
+      ]},
+      { width:10 },
+      scrollviewProfile_UserAttributes
+    ]}
   ]
 };
 
 var frameProfile_viewedUser = {
   id: 'frameProfile_viewedUser',
-  cols:[
-    listProfile_viewedUserAttributesSelector,
-    { width:10 },
-    scrollviewProfile_viewedUserAttributes
+  rows:[
+    { view:'template', id:'barProfile_vieweduser', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { height:3 },
+    { cols:[
+      { rows: [
+        { view:'template', template:"<img src='img/avatars/2.png'>", width:250, height:250, borderless:true },
+        { height:10 },
+        listProfile_viewedUserAttributesSelector
+      ]},
+      { width:10 },
+      scrollviewProfile_viewedUserAttributes
+    ]}
   ]
 };
 
-var multiviewUser_Profile = {
- view:'multiview', id:'multiviewUser_Profile', container:'multiviewUser_Profile',
-  cells:[ frameProfile_user, frameProfile_viewedUser]
-  //fitBiggest:true
-};
-
 var frameUser_Profile = {
-  id:'frameUser_Profile',
-  borderless:false,
-  cols:[
-    { rows:[
-        { view:'template', template:'#value#', type:'header', align:'center', data: [ { value: 'bru' } ] },
-        { cols:[
-            { view:'template', template:"<img src='img/avatars/2.png'>", width: 250 },
-            { width:10 },
-            { view:'template', template:"carousel" }
-          ], height:250
-        },
-        { height:10 },
-        multiviewUser_Profile
-      ]
-    }
-  ]  
+  view:'multiview', id:'frameUser_Profile', container:'frameUser_Profile',
+  borderless:false, animate:false,
+  cells:[ frameProfile_user, frameProfile_viewedUser]
 };
 
 var frameUser_Albums = {
@@ -818,14 +831,20 @@ App.Frame.frameCentral_Greeting = {
   ]
 };
 
+App.Frame.frameBlank = {
+  id:'frameBlank'
+};
+
 App.Frame.multiviewCentral = {
   view:"multiview", id:'multiviewCentral', container:'multiviewCentral',
-  cells:[App.Frame.frameCentral_Greeting,
+  cells:[App.Frame.frameBlank,
+    App.Frame.frameCentral_Greeting,
     App.Frame.tabviewCentral_Groups,
     App.Frame.tabviewCentral_Task,
     App.Frame.frameCentral_Register,
     App.Frame.frameCentral_Login,
     App.Frame.tabviewCentral_User,
     App.Frame.frameCentral_Users],
-  fitBiggest:true
+  fitBiggest:true,
+  animate:false
 };
