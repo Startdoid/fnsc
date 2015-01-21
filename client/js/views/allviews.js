@@ -4,7 +4,7 @@ var webix = window.webix;
 var toggleHeader_Menu = {
 	view:'toggle', id:'toggleHeader_Menu',
 	type:'icon', icon:'bars', 
-	width:30,	height:30,
+	width:30,	//height:30,
 	on:{
 		'onItemClick': function() {
 		  if($$('multiviewLeft').isVisible()) {
@@ -32,7 +32,7 @@ var labelHeader_InTask = {
 var toggleHeader_Options = {
 	view: 'toggle',  id: 'toggleHeader_Options',
 	type: 'icon', icon: 'tasks',
-	width: 30,	height: 30,
+	width: 30,	//height: 30,
 	on:{
 		'onItemClick': function() { 
 		  if($$('multiviewRight').isVisible()) {
@@ -50,8 +50,8 @@ var searchHeader_Master = {
 };
 
 App.Frame.toolbarHeader = {
-	view:"toolbar", id: 'toolbarHeader',
-	height:32, maxWidth:App.WinSize.windowWidth / 100 * 80,
+	view:'toolbar', id: 'toolbarHeader',
+	//height:32, //maxWidth:App.WinSize.windowWidth / 100 * 80,
 	elements:[toggleHeader_Menu,
 	          labelHeader_InTask,
 	          searchHeader_Master,
@@ -417,30 +417,42 @@ App.Frame.tabviewCentral_Task = {
 
 //***************************************************************************
 //USER frames
-
-App.Func.fillUserAttributes = function() {
+var _ignoreSaveUserAttributes;
+App.Func.loadUserAttributes = function() {
+  var mydate = new Date();
+  
   if($$('frameProfile_user').isVisible()) {
+    mydate = strIsoToDate(App.State.user.get('dateofbirth'));
     $$('barProfile_user').data.value = App.State.viewedUser.get('username');
     $$('barProfile_user').refresh();
     
+    _ignoreSaveUserAttributes = true;
     $$('textUserAttributes_Name').setValue(App.State.user.get('username'));
     $$('textUserAttributes_Email').setValue(App.State.user.get('email'));
-    $$('comboUserAttributes_Country').setValue(App.State.user.get('country'));
-    $$('comboUserAttributes_City').setValue(App.State.user.get('city'));
-    $$('datepickerUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.State.user.get('dateofbirth')));
+    $$('richselectUserAttributes_Country').setValue(App.State.user.get('country'));
+    $$('richselectUserAttributes_City').setValue(App.State.user.get('city'));
+    $$('datepickerUserAttributes_Dateofbirth').setValue(mydate);
     $$('radioUserAttributes_Gender').setValue(App.State.user.get('gender'));
     $$('richselectUserAttributes_Familystatus').setValue(App.State.user.get('familystatus'));
+    _ignoreSaveUserAttributes = false;
   } else {
+    mydate = strIsoToDate(App.State.user.get('dateofbirth'));
     $$('barProfile_vieweduser').data.value = App.State.viewedUser.get('username');
     $$('barProfile_vieweduser').refresh();
     
     $$('labelviewedUserAttributes_Name').setValue(App.State.viewedUser.get('username'));
     $$('labelviewedUserAttributes_Email').setValue(App.State.viewedUser.get('email'));
-    $$('labelviewedUserAttributes_Country').setValue(App.State.viewedUser.get('country'));
-    $$('labelviewedUserAttributes_City').setValue(App.State.viewedUser.get('city'));
-    $$('labelviewedUserAttributes_Dateofbirth').setValue(webix.i18n.dateFormatStr(App.State.viewedUser.get('dateofbirth')));
-    $$('labelviewedUserAttributes_Gender').setValue(App.State.viewedUser.get('gender'));
-    $$('labelviewedUserAttributes_Familystatus').setValue(App.State.viewedUser.get('familystatus'));
+    $$('labelviewedUserAttributes_Country').setValue($$('suggestCountry').getItemText(App.State.viewedUser.get('country')));
+    $$('labelviewedUserAttributes_City').setValue($$('suggestCity').getItemText(App.State.viewedUser.get('city')));
+    $$('labelviewedUserAttributes_Dateofbirth').setValue(mydate);
+    if(App.State.viewedUser.get('gender') === 0) {
+      $$('labelviewedUserAttributes_Gender').setValue('Пол не выбран');
+    } else if(App.State.viewedUser.get('gender') === 1) {
+      $$('labelviewedUserAttributes_Gender').setValue('Мужской');
+    } else if(App.State.viewedUser.get('gender') === 2) {
+      $$('labelviewedUserAttributes_Gender').setValue('Женский');
+    }
+    $$('labelviewedUserAttributes_Familystatus').setValue($$('suggestFamilyStatus').getItemText(App.State.viewedUser.get('familystatus')));
   }
 };
 
@@ -514,25 +526,73 @@ var listProfile_viewedUserAttributesSelector = {
 	}
 };
 
+var saveUserAttributes = function(newv, oldv) {
+  if(_ignoreSaveUserAttributes) return;
+  //получаем идентификатор атрибута в котором изменились данные
+  var atrID = this.config.id;
+  
+  //произведем валидацию атрибута
+  try {
+    switch (atrID) {
+      case 'textUserAttributes_Name':
+        check(newv, 'Имя пользователя должно содержать от 1 до 20 символов').len(1, 20);
+        check(newv, 'Такое имя пользователя не подходит').not(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
+        
+        App.State.user.set('username', newv);
+        $$('barProfile_user').data.value = newv;
+        $$('barProfile_user').refresh();
+
+        break;
+      case 'richselectUserAttributes_Country':
+        App.State.user.set('country', newv);
+
+        break;
+      case 'richselectUserAttributes_City':
+        App.State.user.set('city', newv);
+
+        break;
+      case 'richselectUserAttributes_Familystatus':
+        App.State.user.set('familystatus', newv);
+
+        break;
+      case 'datepickerUserAttributes_Dateofbirth':
+        App.State.user.set('dateofbirth', newv);
+
+        break;
+      case 'radioUserAttributes_Gender':
+        App.State.user.set('gender', newv);
+
+        break;
+      default:
+        // code
+    }
+  } catch(e) {
+    webix.message({type: 'error', text: e.message, expire: 10000});
+    this.blockEvent();
+    this.setValue(oldv);
+    this.unblockEvent();
+  }
+};
+
 var scrollviewProfile_UserAttributes = {
   view:'scrollview', id:'scrollviewProfile_UserAttributes',
-  borderless: true, scroll:'y', //vertical scrolling
+  borderless: true, scroll:'y',
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'textUserAttributes_Name', label:'Имя пользователя', labelWidth:120, on:{'onChange': function() { App.State.user.set('username', this.getValue()) } } },
-      { view:'text', id:'textUserAttributes_Email', label:'Email', labelWidth:120, on:{'onChange': function() { App.State.user.set('email', this.getValue()) } } },
-      { view:'combo', id:'comboUserAttributes_Country', label:"Страна", suggest: 'suggestCountry', labelWidth:120 },
-      { view:'combo', id:'comboUserAttributes_City', label:'Город', suggest: 'suggestCity', labelWidth:120 },
-      { view:'datepicker', id:'datepickerUserAttributes_Dateofbirth', label:'Дата рождения', labelWidth:120 },
-      { view:"radio", id:'radioUserAttributes_Gender', label:'Пол', vertical:true, options:[{ value:"Любой", id:0 }, { value:"Мужской", id:1 }, { value:"Женский", id:2 }], labelWidth:120 },
-      { view:'richselect', id:'richselectUserAttributes_Familystatus', label:'Семейное положение', suggest:'suggestFamilyStatus', labelWidth:120 }
+      { view:'text', id:'textUserAttributes_Name', label:'Имя пользователя', labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'text', id:'textUserAttributes_Email', label:'Email', labelWidth:150, disabled:true },
+      { view:'richselect', id:'richselectUserAttributes_Country', label:'Страна', suggest: 'suggestCountry', labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'richselect', id:'richselectUserAttributes_City', label:'Город', suggest: 'suggestCity', labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'datepicker', id:'datepickerUserAttributes_Dateofbirth', stringResult:true, label:'Дата рождения', labelWidth:150, format:'%d %M %Y', on:{'onChange': saveUserAttributes } },
+      { view:'radio', id:'radioUserAttributes_Gender', label:'Пол', vertical:true, options:[{ value:"Любой", id:0 }, { value:"Мужской", id:1 }, { value:"Женский", id:2 }], labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'richselect', id:'richselectUserAttributes_Familystatus', label:'Семейное положение', suggest:'suggestFamilyStatus', labelWidth:150, on:{'onChange': saveUserAttributes } }
   ]}
 };
 
 var scrollviewProfile_viewedUserAttributes = {
   view:'scrollview', id:'scrollviewProfile_viewedUserAttributes',
-  borderless: true, scroll:'y', //vertical scrolling
+  borderless: true, scroll:'y',
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
@@ -682,7 +742,7 @@ var dataviewCentral_Users = {
   template:'html->dataviewCentral_Users_template',
 	//select:1,
 	autowidth:true,
-	url:'api/userlist'
+	url:'api/v1/userlist'
 };
 
 var labelToolbarCentral_Users = {
@@ -697,7 +757,7 @@ var labelToolbarCentral_Users = {
 };
 
 var toolbarCentral_Users = {
-	view:"toolbar", id: 'toolbarCentral_Users',
+	view:'toolbar', id: 'toolbarCentral_Users',
 	height:32,
 	elements:[{}, labelToolbarCentral_Users]
 };
@@ -721,21 +781,39 @@ var reglogResponse = function(text, data) {
 };
 
 App.Func.Register = function() {
-  var promise = webix.ajax().post('api/register', { email:$$('textRegistration_Email').getValue(), 
-	                                                  username:$$('textRegistration_Username').getValue(), 
-	                                                  password:$$('textRegistration_Password').getValue()}, reglogResponse);
-	        
+  var email = $$('textRegistration_Email').getValue();
+  var swd = $$('textRegistration_Password').getValue();
+  var uname = $$('textRegistration_Username').getValue();
+  try {
+    check(uname, 'Имя пользователя должно содержать от 1 до 20 символов').len(1, 20);
+    check(uname, 'Такое имя пользователя не подходит').not(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
+    check(email, 'Ваш email не корректен, попробуйте ввести повторно').len(4,64).isEmail();
+    check(swd, 'Пароль должен быть не короче 5 и не длиннее 60 символов').len(5, 60);
+  } catch (e) {
+    $$('frameCentralRegister_authenticateError').setValues({ src:e.message });
+    return;
+  }
+
+  var promise = webix.ajax().post('api/v1/register', { email: email, username: uname, password: swd }, reglogResponse);
   promise.then(function(realdata){}).fail(function(err) {
-    webix.message({type:"error", text:err.responseText});
+    $$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
   });
 };
 
 App.Func.Login = function() {
-  var promise = webix.ajax().post('api/login', { email:$$('textLogin_Email').getValue(), 
-	                                               password:$$('textLogin_Password').getValue()}, reglogResponse);
-	        
-  promise.then(function(realdata){}).fail(function(err){
-    webix.message({type:"error", text:err.responseText});
+  var email = $$('textLogin_Email').getValue();
+  var swd = $$('textLogin_Password').getValue();
+  try {
+    check(email, 'Ваш email не корректен, попробуйте ввести повторно').len(4,64).isEmail();
+    check(swd, 'Пароль должен быть не короче 5 и не длиннее 60 символов').len(5, 60);
+  } catch (e) {
+    $$('frameCentralLogin_authenticateError').setValues({src:e.message});
+    return;
+  }
+  
+  var promise = webix.ajax().post('api/v1/login', { email: email, password: swd }, reglogResponse);
+  promise.then(function(realdata){}).fail(function(err) {
+    $$('frameCentralLogin_authenticateError').setValues({src:err.responseText});
   });
 };
 
@@ -745,7 +823,7 @@ var formRegistration = {
   elements:[
     { view:'template', template:'Регистрация', type:'header', align:'center' },
     { view:'text', id:'textRegistration_Email', label:'Email' },
-    { view:'text', id:'textRegistration_Username', label:'Имя пользователя' },
+    { view:'text', id:'textRegistration_Username', label:'Имя' },
     { view:'text', id:'textRegistration_Password', type:'password', label:'Пароль' },
     { margin:5, cols:[
       { view:'button', id:'buttonRegistration_Enter', value:'Зарегистрировать', type:'form', click: App.Func.Register },
@@ -758,8 +836,8 @@ var formLogin = {
   view:'form', id:'formLogin',
   width:350,
   elements:[
-    { view:'template', template:'login', type:'header', align:'center' },
-    { view:'text', id:'textLogin_Email', label:'Email' },
+    { view:'template', template:'Вход', type:'header', align:'center' },
+    { view:'text', id:'textLogin_Email', label:'Email', placeholder:'email@email.me' },
     { view:'text', id:'textLogin_Password', type:'password', label:'Пароль' },
     { margin:5, cols:[
       { view:'button', id:'buttonLogin_Enter', value:'Войти', type:'form', click: App.Func.Login },
@@ -780,6 +858,17 @@ App.Frame.frameCentral_Register = {
       {}
       ]
     },
+    { height:5 },
+    { cols:[
+      {},
+      { view:'template', id:'frameCentralRegister_authenticateError', borderless:true, autoheight: true, width:350, 
+        data:{ src:'' }, css:'authenticateError', template:function(obj) {
+          return '<span>'+obj.src+'</span>'; 
+        } 
+      },
+      {}
+      ]
+    },
     {}
   ]
 };
@@ -792,7 +881,18 @@ App.Frame.frameCentral_Login = {
     {
       cols:[
       {},
-      formLogin,      
+      formLogin,
+      {}
+      ]
+    },
+    { height:5 },
+    { cols:[
+      {},
+      { view:'template', id:'frameCentralLogin_authenticateError', borderless:true, autoheight:true, width:350, 
+        data:{ src:'' }, css:'authenticateError', template:function(obj) {
+          return '<span>'+obj.src+'</span>'; 
+        } 
+      },
       {}
       ]
     },
@@ -802,41 +902,37 @@ App.Frame.frameCentral_Login = {
 
 App.Frame.frameCentral_Greeting = {
   id:'frameCentral_Greeting', container:'frameCentral_Greeting',
-  rows:[
-  {
-    view:'htmlform',
-    template: 'http->greeting.html'
-  },
-  { 
-    cols:[{},
-    {
-      view:'button', id:'buttonGreeting_Try',
-	    height: 45, width: 100,
-	    value:'Попробовать',
-	    on:{ 'onItemClick':function() { App.State.user.set({'thisTry': true}); } }
-    },
-    {
-      view:"button", id:"buttonGreeting_Register",
-      height: 45, width: 130,
-	    value:"Зарегистрировать",
-	    on:{ 'onItemClick': function() { App.Router.navigate('register', {trigger:true} ); } }
-    },
-    {
-      view:"button", id:"buttonGreeting_Login",
-	    height: 45, width: 100,
-	    value:"Войти",
-	    on:{ 'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); } }
-    }, {}]
-  }
-  ]
+  view:'htmlform',
+  template: 'http->greeting.html'
 };
 
 App.Frame.frameBlank = {
   id:'frameBlank'
 };
 
+App.Frame.toolbarAutorisation = {
+	view:'toolbar', id: 'toolbarAutorisation',
+	//height:32, 
+	elements:[{ view:'toggle', type:'icon', icon:'bars', width:30, height:30, disabled:true },
+	          { view: 'label', label:'InTask.me', width:100 },
+	          {},
+	          { view:'button', id:'buttonAutorisationLogin', label:'Войти', type:'icon', icon:'sign-in', width: 100, 
+	            on:{ 'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); } } },
+	          { view:'button', id:'buttonAutorisationRegister', label:'Регистрация', type:'icon', icon:'user', width: 120,
+	            on:{ 'onItemClick': function() { App.Router.navigate('register', {trigger:true} ); } } },
+	          {},
+	          { width: 100 },
+	          { view:'toggle', type:'icon', icon:'tasks',	width:30,	height:30, disabled:true }]
+};
+
+App.Frame.multiviewToolbar = {
+  view:'multiview', id:'multiviewToolbar', container:'multiviewToolbar',
+  cells:[App.Frame.toolbarAutorisation, App.Frame.toolbarHeader],
+  animate:false
+};
+
 App.Frame.multiviewCentral = {
-  view:"multiview", id:'multiviewCentral', container:'multiviewCentral',
+  view:'multiview', id:'multiviewCentral', container:'multiviewCentral',
   cells:[App.Frame.frameBlank,
     App.Frame.frameCentral_Greeting,
     App.Frame.tabviewCentral_Groups,

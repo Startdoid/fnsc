@@ -15,7 +15,7 @@
     "method-override": "*",
     "connect-fonts" : "*",
     "connect-fonts-opensans" : "*",
-    "mongoose"   : "~3.8.1",
+    "mongoose"   : "~3.8.21",
     "underscore" : "~1.5.2",
     "validator"  : "~1.1.1",
     "passport"   : "*",

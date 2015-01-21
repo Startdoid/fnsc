@@ -6,5 +6,5 @@ App.Models.Task = Backbone.Model.extend({
     done: false
   },
  
-  urlRoot: '/api/tasks'
+  urlRoot: '/api/v1/tasks'
 });

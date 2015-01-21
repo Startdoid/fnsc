@@ -1,6 +1,6 @@
 collectionTasks = Backbone.Collection.extend({
   model: App.Models.Task,
-  url:"/api/tasks",
+  url:'/api/v1/tasks',
   //создает новую задачу вложенную в родительскую
   //parentId - id родительского элемента, в котором создается задача
   newTask: function(parentId) {
@@ -31,7 +31,7 @@ collectionTasks = Backbone.Collection.extend({
   getInnerTask: function(parentId) {
     var listTask = [this.get(parentId)];
     for (var i = 0; i < this.models.length; i++) {
-      for (var c = 0; c < listGroup.length; c++) {
+      for (var c = 0; c < listTask.length; c++) {
         if (this.models[i].get('parent_id') === listTask[c].id) {
           listTask.push(this.models[i]);
         }

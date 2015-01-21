@@ -1,19 +1,19 @@
 <!doctype html>
 <html>
   <head>
-    <meta content="charset=UTF-8" />
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <meta content='charset=UTF-8' />
     <title>InTask.me</title>
     
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-		<script type="text/javascript" src="js/underscore.js"></script>
-		<script type="text/javascript" src="js/backbone.js"></script>
+    <script type='text/javascript' src='js/jquery.min.js'></script>
+		<script type='text/javascript' src='js/underscore.js'></script>
+		<script type='text/javascript' src='js/backbone.js'></script>
+		<script type='text/javascript' src='js/validator-min.js'></script>
     
-    <script type="text/javascript" src="codebase/webix_debug.js" charset="utf-8"></script>
-    <link href="codebase/skins/compact.css" rel="stylesheet" type="text/css">
+    <script type='text/javascript' src='codebase/webix_debug.js' charset='utf-8'></script>
+    <link href='codebase/skins/compact.css' rel='stylesheet' type='text/css'></link>
+    <link href='css/style.css' rel='stylesheet' type='text/css'></link>
     
     <script type="text/javascript" src="js/main.js"></script>
-    
   </head>
   
   <style>
@@ -41,6 +41,9 @@
     .bless {
       border: none;
     }
+    .authenticateError {
+      font-style: italic;
+    }
     /*.webix_tab_filler {*/
     /*  background-color: #ececec;*/
     /*}*/
@@ -58,7 +61,11 @@
   <body>
 	  <div id='frameBase'></div>
 	    <div id='frameBlank'></div>
-      <div id='toolbarHeader'></div>
+	    <div id='multiviewToolbar'></div>
+        <div id='toolbarHeader'></div>
+        <div id='toolbarAutorisation'></div>
+          <div id='buttonAutorisationLogin'></div>
+          <div id='buttonAutorisationRegister'></div>
   		<div id='multiviewLeft'></div>
   		  <div id='scrollviewLeft_Segments'></div>
   		    <div id='listSegments_SegmentsSelector'></div>
@@ -107,6 +114,8 @@
   		  <div id='scrollviewRight_UsersFilter'></div>
   		  <div id='scrollviewRight_UserFilter'></div>
   		  <div id='scrollviewRight_GroupsFilter'></div>
+  	<div id='frameCentralLogin_authenticateError'></div>
+  	<div id='frameCentralRegister_authenticateError'></div>
 
     <script type="text/javascript" charset="utf-8">
       var webix = window.webix;
@@ -174,6 +183,7 @@
       webix.ui.fullScreen();
 			webix.ready(implementFunction);
     </script>
+    <script type="text/javascript" src='js/datefunctions.js'></script>
     <script type="text/javascript" src='js/models/task.js'></script>
     <script type="text/javascript" src='js/models/user.js'></script>
     <script type="text/javascript" src='js/models/group.js'></script>

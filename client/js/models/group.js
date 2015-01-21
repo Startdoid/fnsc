@@ -8,7 +8,7 @@ App.Models.Group = Backbone.Model.extend({
     numUsers: 1,
     numTask: 0
   },
-  urlRoot: '/api/groups'
+  urlRoot: '/api/v1/groups'
   // initialize: function(data) {
   //   this.data = new collectionGroups();
   //   this.parse(data);

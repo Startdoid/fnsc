@@ -3,6 +3,7 @@ var path = require('path');
 var taskModel = require('./models/task');
 var userModel = require('./models/user');
 var groupModel = require('./models/group');
+var errors = require('./errors');
 var passport = require('passport');
 
 var state = {
@@ -30,97 +31,102 @@ var routes = [
     }]
   },
   {
-    path: '/api/groups',
+    path: '/api/v1/groups',
     httpMethod: 'GET',
     middleware: [getgroups]
   },
   {
-    path: '/api/groups/:group_id',
+    path: '/api/v1/groups/:group_id',
     httpMethod: 'GET',
     middleware: [getgroup]
   },
   {
-    path: '/api/groups/:group_id',
+    path: '/api/v1/groups/:group_id',
     httpMethod: 'PUT',
     middleware: [savegroup]
   },
   {
-    path: '/api/groups/:group_id',
+    path: '/api/v1/groups/:group_id',
     httpMethod: 'DELETE',
     middleware: [deletegroup]
   },
   {
-    path: '/api/tasks',
+    path: '/api/v1/tasks',
     httpMethod: 'GET',
     middleware: [gettasks]
   },
   {
-    path: '/api/tasks/:task_id',
+    path: '/api/v1/tasks/:task_id',
     httpMethod: 'GET',
     middleware: [gettask]
   },
   {
-    path: '/api/tasks/:task_id',
+    path: '/api/v1/tasks/:task_id',
     httpMethod: 'PUT',
     middleware: [savetask]
   },
 	{
-    path: '/api/tasks/:task_id',
+    path: '/api/v1/tasks/:task_id',
     httpMethod: 'DELETE',
     middleware: [deletetask]
   },
   {
-    path: '/api/users/:user_id',
+    path: '/api/v1/users/:user_id',
     httpMethod: 'GET',
-    middleware: [getuser]
+    middleware: [getUser]
   },
   {
-    path: '/api/users/:user_id',
+    path: '/api/v1/users/:user_id',
     httpMethod: 'PUT',
-    middleware: [setuser]
+    middleware: [saveUser]
+  },
+  {
+    path: '/api/v1/users/:user_id',
+    httpMethod: 'POST',
+    middleware: [saveUser]
   },  
   {
-    path: '/api/userlist',
+    path: '/api/v1/userlist',
     httpMethod: 'GET',
     middleware: [userlist]
   },
   {
-    path: '/api/state',
+    path: '/api/v1/state',
     httpMethod: 'GET',
     middleware: [getState]
   },
   {
-    path: '/api/state',
+    path: '/api/v1/state',
     httpMethod: 'POST',
     middleware: [setState]
   },  
   {
-    path: '/api/country',
+    path: '/api/v1/country',
     httpMethod: 'GET',
     middleware: [getcountry]
   },
   {
-    path: '/api/city',
+    path: '/api/v1/city',
     httpMethod: 'GET',
     middleware: [getcity]
   },
   {
-    path: '/api/familystatus',
+    path: '/api/v1/familystatus',
     httpMethod: 'GET',
     middleware: [getfamilystatus]
   },
   {
-    path: '/api/login',
+    path: '/api/v1/login',
     httpMethod: 'POST',
     middleware: [login]
   },
   {
-    path: '/api/logout',
+    path: '/api/v1/logout',
     httpMethod: 'PUT',
     middleware: [logout]
   },
   {
-    path: '/api/register',
+    path: '/api/v1/register',
     httpMethod: 'POST',
     middleware: [register]
   },
@@ -196,7 +202,7 @@ function sendFonts(req, res, next) {
   var fileName = req.params[0];
   res.sendFile(path.join(__dirname, '../client/codebase/fonts', fileName), function (err) {
     if (err) {
-      console.log(err);
+      console.log('sendFonts:'+err);
       res.status(err.status).end();
     }
   });
@@ -209,17 +215,20 @@ function getState(req, res, next) {
       state.id = loggedUser.id;
       state.usrLogged = true;
     }
+  } else {
+    state.id = 0;
+    state.usrLogged = false;
   }
   
-  res.status(200).json(state);
+  res.status(errors.restStat_isOk).json(state);
 }
 
 function setState(req, res, next) {
   if(req.body.serverRoute !== 'undefined') {
-    state.serverRoute = req.body.serverRoute;
+    state.serverRoute = '';//req.body.serverRoute;
   }
   
-  res.status(200).end();
+  res.status(errors.restStat_isOk).send('');
 }
 
 function register(req, res, next) {
@@ -227,31 +236,29 @@ function register(req, res, next) {
     userModel.validate(req.body);
   }
   catch(err) {
-    return res.status(432).send(err.message);
+    return res.status(errors.restStat_UserValidationError).send(err.message);
   }
 
   userModel.addUser(req.body.username, req.body.password, req.body.email, function(err, usr) {
-    if(err === 'UserAlreadyExists') return res.status(432).send("User already exists");
-    else if(err === 'UserDbError') return res.status(433).send("DB can't add user");
-    else if(err) return res.status(400).end();
+    if(err !== null) return res.status(err.status).send(err.message);
 
     req.logIn(usr, function(err) {
       if(err) return next(err); 
-      else return res.status(200).json(usr); 
+      if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
+      return res.status(errors.restStat_isOk).json(usr); 
     });
   });
 }
 
 function login(req, res, next) {
-  passport.authenticate('local', function(err, user) {
+  passport.authenticate('local', function(err, user, info) {
     if(err)     { return next(err); }
-    if(!user)   { return res.status(400).end(); }
+    if(!user)   { return res.status(info.status).send(info.message); }
 
     req.logIn(user, function(err) {
       if(err) return next(err);
-
       if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
-      res.status(200).json({ id: user.id, usrLogged: true });
+      res.status(errors.restStat_isOk).json({ id: user.id, usrLogged: true });
     });
   })(req, res, next);
 }
@@ -259,7 +266,8 @@ function login(req, res, next) {
 function logout(req, res, next) {
   if(req.isAuthenticated()) req.logout();
   if(userModel.model != null) userModel.logoutUser();
-  res.status(200).end();
+  
+  res.status(errors.restStat_isOk).end();
 }
 
 function throwInRoot(req, res, next) {
@@ -268,28 +276,36 @@ function throwInRoot(req, res, next) {
   res.redirect('/');
 }
 
-function getuser(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+function getUser(req, res, next) {
+  if(!req.isAuthenticated()) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
 
-  userModel.getUserById(req.params.user_id, function(err, usr) {
-    if(err === 'UserDbError') return res.status(433).send("DB can't add user");
-    else if(err === 'NoUser') return res.status(434).send('User not found');
-    else if(err) return res.status(400).end();
-    
-    res.status(200).json(usr);
+  userModel.getUserById(req.params.user_id, function(status, message, usr) {
+    if(status === errors.restStat_isOk) { 
+      res.status(status).json(usr);
+    } else {
+      res.status(status).send(message);
+    }
   });
 }
 
-function setuser(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+function saveUser(req, res, next) {
+  if(!req.isAuthenticated()) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
   
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
 
-  //var body = req.body;
-  //console.log(body);
-  
-  return res.status(200).end();
+  if(loggedUser.id === Number(req.params.user_id))
+  {
+    userModel.saveLoggedUserFromBody(req.body, function(status, error) { 
+      if(status === errors.restStat_isOk) { 
+        res.status(status).end(); 
+      } else {
+        res.status(status).send(errors);
+      }
+    });
+  } else {
+    res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
+  }
 }
 
 function getgroup(req, res, next) {
@@ -464,6 +480,3 @@ function getfamilystatus(req, res, next) {
   ];
   res.status(200).send(familystatus);
 }
-//432 - Autorization error
-//433 - User db error
-//434 - User not found

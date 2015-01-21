@@ -13,5 +13,5 @@ App.Models.User = Backbone.Model.extend({
     usrLogged: false,
   },
  
-  urlRoot: '/api/users'
+  urlRoot: '/api/v1/users'
 });
