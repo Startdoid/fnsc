@@ -1,6 +1,8 @@
 var http = require("http");
 var mongoose = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
+var pg            = require('pg');
+var database      = require('../database');
 
 var userFields = {
   id: Number,
@@ -90,6 +92,33 @@ module.exports = {
   },
   getLoggedUser: function() {
     return loggedUser;
+  },
+  //Получение списка пользователей из линейной DB
+  getUsersList: function(from, to, filter, callback) {
+    var usersList = { data: [{}] };
+    
+    pg.connect(database.url_pg, function(err, client, done) {
+	   	if(err) {
+    		console.log('connection error (Postgres):' + err);
+    	}
+
+    	client.query('SELECT * FROM "Users" WHERE "id" BETWEEN $1 AND $2', [from, to], function(err, result) {
+    	  if(err) { console.log(err) }
+    	  done();
+    	  
+        if(from === 0) usersList.total_count = 4;
+
+    	  var arrUsrs = result.rows.map(function(object) { 
+    	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
+    	  });
+    	  //usersList.data = new Array();
+    	  //usersList.data.push(arrUsrs);
+    	  usersList.data = arrUsrs;
+    	  //console.log(usersList);
+    	  
+    	  callback(errors.restStat_isOk, '', usersList);
+    	});
+    });
   },
   logoutUser: function() {
     if(!loggedUser) {

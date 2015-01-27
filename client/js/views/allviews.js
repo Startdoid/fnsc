@@ -772,11 +772,11 @@ App.Frame.tabviewCentral_User = {
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
   borderless:true, scroll:'y', xCount:1,
-  type:{ height:100, width:450 },
+  type:{ height:110, width:450 },
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
     var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/'+obj.img+'"/></div>';
-    htmlCode = htmlCode + '<div class="friend_info"><div><span>Name:</span>'+obj.name+'</div><div><span>Email:</span>'+obj.email+'</div></div>';
+    htmlCode = htmlCode + '<div class="friend_info"><div><span>Name:</span>'+obj.username+'</div><div><span>Email:</span>'+obj.email+'</div></div>';
     return htmlCode;
   },
 	select:1,

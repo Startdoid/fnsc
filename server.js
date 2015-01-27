@@ -48,12 +48,12 @@ db.once('open', function callback () {
  	//app.use(express.logger('dev')); 						// log every request to the console
  	app.use(cookieParser());
  	app.use(favicon(path.join(__dirname, '/client/img/favicon.ico')));
- 	 app.use(session({ secret: 'me.TaskIn',
-   	resave: false,
-   	saveUninitialized: true,
-   	cookie: { secure: false }
- 	 }));
- 	//app.use(cookieSession({ secret: process.env.COOKIE_SECRET || "Superdupersecret" }));
+ 	//app.use(session({ secret: 'me.TaskIn',
+  //	resave: false,
+  // 	saveUninitialized: true,
+  // 	cookie: { secure: false }
+ 	//}));
+ 	app.use(cookieSession({ secret: process.env.COOKIE_SECRET || "Superdupersecret" }));
  	// parse application/x-www-form-urlencoded
 	app.use(bodyParser.urlencoded({ extended: true }));
 	// parse application/json

@@ -418,27 +418,23 @@ function deletetask(req, res, next) {
 function userlist(req, res, next) {
   var start = req.param('start');
   var count = req.param('count');
+  var userId = req.param('userId');
   
-  //if (!start || !count) {
-  if (Number(start) === 0) {
-    //Первый вызов, это инициализация динамического списка первыми данными
-    res.send({
-      total_count:5000,
-      data:[
-        //initial set of data
-        { img:'1.jpg', name:'bru1', email:'bru@bru.bru' },
-        { img:'1.jpg', name:'bru2', email:'bru@bru.bru' },
-        { img:'1.jpg', name:'bru3', email:'bru@bru.bru' }
-      ]
-    });
-  } else {
-    //последующая подгрузка: get "count" records from "pos" position
-    var json = { pos:start, data:[] };
-    for (var i = 0; i < count; i++) {
-      json.data.push({ img:'1.jpg', name:'bru'+(start*1+(i+1)), email:'bru@bru.bru' });
-    }
-    res.status(200).send(json);
-  }
+  userModel.getUsersList(Number(start), Number(start) + Number(count), {}, function(status, message, userlist) {
+    if(status === errors.restStat_isOk)
+      res.status(status).json(userlist);
+  });
+
+  // if (Number(start) === 0) {
+  //   //Первый вызов, это инициализация динамического списка первыми данными
+  // } else {
+  //   //последующая подгрузка: get "count" records from "pos" position
+  //   var json = { pos:start, data:[] };
+  //   for (var i = 0; i < count; i++) {
+  //     json.data.push({ img:'1.jpg', name:'bru'+(start*1+(i+1)), email:'bru@bru.bru' });
+  //   }
+  //   res.status(200).send(json);
+  // }
 }
 
 function getcountry(req, res, next) {
