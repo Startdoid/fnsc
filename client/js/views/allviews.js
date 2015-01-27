@@ -460,6 +460,8 @@ App.Func.loadUserAttributes = function() {
     $$('barProfile_user').data.value = App.State.viewedUser.get('username');
     $$('barProfile_user').refresh();
     
+    $$('avatarProfile_user').setValues({src:'avtr'+App.State.user.get('id')+'.png'}, true);
+    
     _ignoreSaveUserAttributes = true;
     $$('textUserAttributes_Name').setValue(App.State.user.get('username'));
     $$('textUserAttributes_Email').setValue(App.State.user.get('email'));
@@ -473,6 +475,8 @@ App.Func.loadUserAttributes = function() {
     mydate = strIsoToDate(App.State.user.get('dateofbirth'));
     $$('barProfile_vieweduser').data.value = App.State.viewedUser.get('username');
     $$('barProfile_vieweduser').refresh();
+    
+    $$('avatarProfile_vieweduser').setValues({src:'avtr'+App.State.viewedUser.get('id')+'.png'}, true);
     
     $$('labelviewedUserAttributes_Name').setValue(App.State.viewedUser.get('username'));
     $$('labelviewedUserAttributes_Email').setValue(App.State.viewedUser.get('email'));
@@ -647,7 +651,9 @@ var frameProfile_user = {
     { height:3 },
     { cols:[
       { rows: [
-        { view:'template', template:"<img src='img/avatars/2.png'>", width:250, height:250, borderless:true },
+        { view:'template', id:'avatarProfile_user', width:250, height:250, borderless:true, template:function(obj) {
+          return '<img src="img/avatars/200/'+obj.src+'">';
+        } },
         { height:10 },
         listProfile_UserAttributesSelector
       ]},
@@ -664,7 +670,9 @@ var frameProfile_viewedUser = {
     { height:3 },
     { cols:[
       { rows: [
-        { view:'template', template:"<img src='img/avatars/2.png'>", width:250, height:250, borderless:true },
+        { view:'template', id:'avatarProfile_vieweduser', width:250, height:250, borderless:true, template:function(obj) {
+          return '<img src="img/avatars/200/'+obj.src+'">';
+        } },
         { height:10 },
         listProfile_viewedUserAttributesSelector
       ]},
@@ -775,13 +783,19 @@ var dataviewCentral_Users = {
   type:{ height:110, width:450 },
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
-    var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/'+obj.img+'"/></div>';
+    var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
     htmlCode = htmlCode + '<div class="friend_info"><div><span>Name:</span>'+obj.username+'</div><div><span>Email:</span>'+obj.email+'</div></div>';
     return htmlCode;
   },
 	select:1,
-	autowidth:true//,
-	//url:'api/v1/userlist'
+	datafetch:4,
+	autowidth:true,
+	on:{
+	  'onItemClick': function(id, e, node) {
+      //var item = this.getItem(id);
+      App.Router.navigate('id' + id, {trigger: true});
+    }
+	}
 };
 
 var labelToolbarCentral_Users = {

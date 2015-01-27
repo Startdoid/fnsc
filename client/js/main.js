@@ -323,22 +323,24 @@ var implementFunction = (function() {
     $$('tabviewCentral_User').show();
     $$('tabviewCentral_User').hideProgress();
     
-    //В основном меню выделим пункт профиля
-    if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-      $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
-      $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile'); //Программно выбираем пункт меню
-      $$('listSegments_SegmentsSelector').unblockEvent();
-    }
-
     $$('scrollviewRight_UserFilter').show();
     
     //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
+      //В основном меню выделим пункт профиля
+      if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+        $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+        $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile'); //Программно выбираем пункт меню
+        $$('listSegments_SegmentsSelector').unblockEvent();
+      }      
+      
       $$('listProfile_UserAttributesSelector').unselectAll();
       $$('frameProfile_user').show();
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
-      $$('listProfile_viewedUserAttributesSelector').unselectAll();           
+      $$('listProfile_viewedUserAttributesSelector').unselectAll();
+      $$('listSegments_SegmentsSelector').unselectAll();
+      
       $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
       if($$('multiviewRight').isVisible()) $$('multiviewRight').hide();       //Если панель настроек доступа видима, то скроем
       if($$('toggleHeader_Options').getValue()) $$('toggleHeader_Options').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
