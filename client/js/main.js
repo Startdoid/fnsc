@@ -17,6 +17,7 @@ var implementFunction = (function() {
     segmentUserId     : null,
     usrCRC            : null,
     group             : 0,        //Выбранная группа, по которой фильтруются задачи
+    userlistFilter    : { userId: 0 },
     //флаги состояния приложения this_view_action
     groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
     groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
@@ -316,14 +317,16 @@ var implementFunction = (function() {
 	
 	//***************************************************************************
 	//AFTER FETCH FUNCTIONs
+	
+	//Вывод данных пользовательского профиля во фрейм, после успешного получения с сервера (callback)
   var showUserDataAfterSuccess = function(model, response, options) {
     $$('tabviewCentral_User').show();
     $$('tabviewCentral_User').hideProgress();
     
-    //Надо подумать как решить этот вопрос.... при выделении пункта меню снова вызывается роутер
+    //В основном меню выделим пункт профиля
     if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-      $$('listSegments_SegmentsSelector').blockEvent();
-      $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile');
+      $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+      $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile'); //Программно выбираем пункт меню
       $$('listSegments_SegmentsSelector').unblockEvent();
     }
 
@@ -333,13 +336,17 @@ var implementFunction = (function() {
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
       $$('listProfile_UserAttributesSelector').unselectAll();
       $$('frameProfile_user').show();
+      App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
-      $$('listProfile_viewedUserAttributesSelector').unselectAll();
-      $$('frameProfile_viewedUser').show();
+      $$('listProfile_viewedUserAttributesSelector').unselectAll();           
+      $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
+      if($$('multiviewRight').isVisible()) $$('multiviewRight').hide();       //Если панель настроек доступа видима, то скроем
+      if($$('toggleHeader_Options').getValue()) $$('toggleHeader_Options').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
+      $$('toggleHeader_Options').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
     }
     
     App.Func.loadUserAttributes();
-
+    
     //App.State.groups.fetch({ success: showGroupDataAfterFetch });
   };
 	
@@ -370,14 +377,12 @@ var implementFunction = (function() {
     
     //если пользователь залогинился (получаем при опросе состояния сервера)
   	if(user.get('usrLogged')) {
-  	  if(!$$('toolbarHeader').isVisible()) {
-  	    $$('toolbarHeader').show();
-  	  }
+  	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
+  	  if(!$$('toggleHeader_Options').isEnabled()) $$('toggleHeader_Options').enable();
   	  
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
   	  switch(App.State.segment) {
         case 'user':
-          console.log('segmentSelector: user');
        	  $$('tabviewCentral_User').showProgress({
             type:'icon',
             delay:500
@@ -388,11 +393,16 @@ var implementFunction = (function() {
 
           break;  	    
         case 'users':
-          console.log('segmentSelector: users');
+          $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
           if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
             $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
           }
+          $$('listSegments_SegmentsSelector').unblockEvent();
           
+          App.State.userlistFilter.userId = 0;
+          $$('dataviewCentral_Users').clearAll();
+          $$('dataviewCentral_Users').loadNext(10, 0, null, 'api/v1/userlist');
+
           $$('frameCentral_Users').show();
           $$('scrollviewRight_UsersFilter').show();
           
@@ -442,7 +452,7 @@ var implementFunction = (function() {
       //defaultState();
       //App.Router.navigate('', {trigger: true});
     }
-    webix.message({type:"error", text:err.responseText});
+    webix.message({type:'error', text:err.responseText});
   };
 
   App.State.$init();
@@ -522,7 +532,16 @@ var implementFunction = (function() {
     }
   });
   
-  webix.i18n.parseFormatDate = webix.Date.strToDate("%Y/%m/%d");
+  var centralUsers_DataRefresh = function(data) {
+    $$('dataviewCentral_Users').parse(data);
+  };
+  
+  $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url){
+    webix.ajax('api/v1/userlist', { start:start, count:count, userId: App.State.userlistFilter.userId }, centralUsers_DataRefresh);
+    return false;
+  });
+
+  webix.i18n.parseFormatDate = webix.Date.strToDate('%Y/%m/%d');
   webix.event(window, 'resize', function() { frameBase.adjust(); });
   //Backbone.history.start({pushState: true, root: "/"});
   Backbone.history.start( { pushState: true } );

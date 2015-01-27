@@ -11,6 +11,7 @@ App.Models.User = Backbone.Model.extend({
     familystatus: 'Выбор статуса',    
     thisTry: false,
     usrLogged: false,
+    permissionVisibleProfile: 0
   },
  
   urlRoot: '/api/v1/users'

@@ -2,7 +2,7 @@
 * Модель "Группы"
 */
 
-var pg            = require("pg");
+var pg            = require('pg');
 var database      = require('../database');
 var mongoose = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');

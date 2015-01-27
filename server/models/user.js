@@ -113,7 +113,7 @@ module.exports = {
     if(validationResult.status === errors.restStat_isOk) {
       var newSet = {};
       for(var key in userFields) {
-        if(key === 'avatar') continue;
+        if((key === 'avatar') || (key === 'permissionVisibleProfile')) continue;
         newSet[key] = body[key];
       }
       

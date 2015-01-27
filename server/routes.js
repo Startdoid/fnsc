@@ -416,10 +416,11 @@ function deletetask(req, res, next) {
 }
 
 function userlist(req, res, next) {
-  var start = req.param("start");
-  var count = req.param("count");
+  var start = req.param('start');
+  var count = req.param('count');
   
-  if (!start && !count) {
+  //if (!start || !count) {
+  if (Number(start) === 0) {
     //Первый вызов, это инициализация динамического списка первыми данными
     res.send({
       total_count:5000,
@@ -438,10 +439,6 @@ function userlist(req, res, next) {
     }
     res.status(200).send(json);
   }
-  
-  //  { img: '1.jpg', name: 'bru14', email: 'bru@bru.bru' }
-	//res.json(mydataset);
-  //res.send(200);
 }
 
 function getcountry(req, res, next) {

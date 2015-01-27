@@ -159,43 +159,78 @@ App.Frame.multiviewLeft = {
 //Фильтр в панели опции
 var scrollviewRight_UsersFilter = {
   view:'scrollview', id:'scrollviewRight_UsersFilter', container:'scrollviewRight_UsersFilter',
-  borderless: false, scroll:"y",
+  borderless: false, scroll:'y',
   $init: function(config) { },
   body:{
     rows:[
       { view:'template', template:'Пользователи', type:'section', align:'center' },
-      { view:'checkbox', id:'checkboxUserFilter_MyFriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
-      { view:'checkbox', id:'checkboxUserFilter_Online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
+      { view:'checkbox', id:'checkboxUsersFilter_MyFriends', labelRight:'Мои друзья', labelWidth:10, value:0 },
+      { view:'checkbox', id:'checkboxUsersFilter_Online', labelRight:'Сейчас на сайте', labelWidth:10, value:0 },
       { view:'template', template:'Регион', type:'section', align:'center' },
-      { view:'combo', id:'comboUserFilter_Country', suggest: 'suggestCountry', value:'Выбор страны', relatedView:'comboUserFilter_City', relatedAction:'snow' },
-      { view:'combo', id:'comboUserFilter_City', suggest: 'suggestCity', value:'Выбор города', hidden:true },
+      { view:'combo', id:'comboUsersFilter_Country', suggest: 'suggestCountry', value:'Выбор страны', relatedView:'comboUsersFilter_City', relatedAction:'snow' },
+      { view:'combo', id:'comboUsersFilter_City', suggest: 'suggestCity', value:'Выбор города', hidden:true },
       { view:'template', template:'Возраст', type:'section', align:'center' },
       { cols:[
-        { view:'combo', id:'comboUserFilter_Fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
+        { view:'combo', id:'comboUsersFilter_Fromage', suggest: [{id:1, value: 'от'},{id:2, value:'от 14'}], value:'от' },
         {	view:'label', label:'-', width:10 },
-        { view:'combo', id:'comboUserFilter_Toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
+        { view:'combo', id:'comboUsersFilter_Toage', suggest: [{id:1, value: 'до'},{id:2, value:'до 14'}], value:'до' }
       ]},
       { view:'template', template:'Пол', type:'section', align:'center' },
-      { view:'radio', id:'radioUserFilter_Gender', vertical:true, options:[{ value:'Любой', id:0 }, { value:'Мужской', id:1 }, { value:'Женский', id:2 }], value:0, autoheight:true },
+      { view:'radio', id:'radioUsersFilter_Gender', vertical:true, options:[{ value:'Любой', id:0 }, { value:'Мужской', id:1 }, { value:'Женский', id:2 }], value:0, autoheight:true },
       { view:'template', template:'Семейное положение', type:'section', align:'center' },
-      { view:'richselect', id:'richselectUserFilter_Familystatus', value:'Выбор статуса', yCount:3, options:'suggestFamilyStatus' }, {}
+      { view:'richselect', id:'richselectUsersFilter_Familystatus', value:'Выбор статуса', yCount:3, options:'suggestFamilyStatus' }, {}
   ]}
+};
+
+//**************************************************************************************************
+//USER permission bar
+var _ignoreSaveUserPermission;
+App.Func.loadUserPermission = function() {
+  _ignoreSaveUserPermission = true;
+  $$('richselectUserFilter_VisibleProfile').setValue(App.State.user.get('permissionVisibleProfile'));
+  _ignoreSaveUserPermission = false;
+};
+
+var saveUserPermission = function(newv, oldv) {
+  if(_ignoreSaveUserPermission) return;
+  //получаем идентификатор разрешения в котором изменились данные
+  var atrID = this.config.id;
+  
+  //произведем валидацию атрибута
+  try {
+    switch (atrID) {
+      case 'richselectUserFilter_VisibleProfile':
+        App.State.user.set('permissionVisibleProfile', newv);
+
+        break;
+      default:
+        // code
+    }
+  } catch(e) {
+    webix.message({type: 'error', text: e.message, expire: 10000});
+    this.blockEvent();
+    this.setValue(oldv);
+    this.unblockEvent();
+  }
 };
 
 var scrollviewRight_UserFilter = {
   view:'scrollview', id:'scrollviewRight_UserFilter',
-  borderless: false, scroll:"y",
+  borderless: false, scroll:'y',
   $init: function(config) { },
   body:{
     rows:[
-      { view:'template', template:'Пользователь', type:'section', align:'center' }
+      { view:'template', template:'Видимость профиля', type:'section', align:'center' },
+      { view:'richselect', id:'richselectUserFilter_VisibleProfile', options:[ {id:0, value: 'Только мне'}, {id:1, value: 'Только друзьям'}, {id:2, value: 'Всем'} ], on:{'onChange': saveUserPermission } }
     ]
   }
 };
 
+//**************************************************************************************************
+//GROUPS filter bar
 var scrollviewRight_GroupsFilter = {
   view:'scrollview', id:'scrollviewRight_GroupsFilter',
-  borderless: false, scroll:"y",
+  borderless: false, scroll:'y',
   $init: function(config) { },
   body:{
     rows:[
@@ -216,7 +251,6 @@ App.Frame.multiviewRight = {
 
 //***************************************************************************
 //GROUP frames
-
 App.Frame.toolbarMyGroups_Groupstool = {
   view:'toolbar', id:'toolbarMyGroups_Groupstool',
   cols:[
@@ -269,7 +303,7 @@ App.Frame.treetableMyGroups_Groupstable = {
 	drag:true,
 	columns:[
 		{ id:'id', header:'', css:{'text-align':'center'}, width:40 },
-		{ id:'name', editor:"text", header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
+		{ id:'name', editor:'text', header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 	],
 	on: {
@@ -366,8 +400,8 @@ App.Frame.treetableMytasks_Tasktable = {
 	select: true,
 	drag:true,
 	columns:[
-		{ id:'id', header:'', css:{"text-align":"center"}, width:40 },
-		{ id:'description', editor:"text", header:'Описание задачи', width:250, template:'{common.treetable()} #description#' }
+		{ id:'id', header:'', css:{'text-align':'center'}, width:40 },
+		{ id:'description', editor:'text', header:'Описание задачи', width:250, template:'{common.treetable()} #description#' }
 	],
 	on: {
 	  onItemClick:function() { App.State.tasktable_ItemSelected = this.getSelectedId().id; },
@@ -378,7 +412,7 @@ App.Frame.treetableMytasks_Tasktable = {
       }
   	 }
 	},
-	url: "TaskData->load"
+	url: 'TaskData->load'
 };
 
 App.Frame.tabviewCentral_Task = {
@@ -469,7 +503,7 @@ var listProfile_UserAttributesSelector = {
 		{ id:'listitemUserAtributesSelector_Projects',	value:'Проекты' },
 		{ id:'listitemUserAtributesSelector_Tags',	value:'Теги' }
 	],
-	on:{"onAfterSelect": function(id) {
+	on:{'onAfterSelect': function(id) {
     switch(id) {
       case 'listitemUserAtributesSelector_Users':
         App.Router.navigate('users', {trigger:true} );
@@ -585,7 +619,7 @@ var scrollviewProfile_UserAttributes = {
       { view:'richselect', id:'richselectUserAttributes_Country', label:'Страна', suggest: 'suggestCountry', labelWidth:150, on:{'onChange': saveUserAttributes } },
       { view:'richselect', id:'richselectUserAttributes_City', label:'Город', suggest: 'suggestCity', labelWidth:150, on:{'onChange': saveUserAttributes } },
       { view:'datepicker', id:'datepickerUserAttributes_Dateofbirth', stringResult:true, label:'Дата рождения', labelWidth:150, format:'%d %M %Y', on:{'onChange': saveUserAttributes } },
-      { view:'radio', id:'radioUserAttributes_Gender', label:'Пол', vertical:true, options:[{ value:"Любой", id:0 }, { value:"Мужской", id:1 }, { value:"Женский", id:2 }], labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'radio', id:'radioUserAttributes_Gender', label:'Пол', vertical:true, options:[{ value:'Любой', id:0 }, { value:'Мужской', id:1 }, { value:'Женский', id:2 }], labelWidth:150, on:{'onChange': saveUserAttributes } },
       { view:'richselect', id:'richselectUserAttributes_Familystatus', label:'Семейное положение', suggest:'suggestFamilyStatus', labelWidth:150, on:{'onChange': saveUserAttributes } }
   ]}
 };
@@ -737,12 +771,17 @@ App.Frame.tabviewCentral_User = {
 
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
-  borderless:false, scroll:'y', xCount:1,
-  type:{ height: 80, width:450 },
-  template:'html->dataviewCentral_Users_template',
-	//select:1,
-	autowidth:true,
-	url:'api/v1/userlist'
+  borderless:true, scroll:'y', xCount:1,
+  type:{ height:100, width:450 },
+  //template:'html->dataviewCentral_Users_template',
+  template:function(obj) {
+    var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/'+obj.img+'"/></div>';
+    htmlCode = htmlCode + '<div class="friend_info"><div><span>Name:</span>'+obj.name+'</div><div><span>Email:</span>'+obj.email+'</div></div>';
+    return htmlCode;
+  },
+	select:1,
+	autowidth:true//,
+	//url:'api/v1/userlist'
 };
 
 var labelToolbarCentral_Users = {
