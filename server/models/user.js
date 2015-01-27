@@ -2,11 +2,7 @@ var http          = require("http");
 var mongoose      = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 var pg            = require('pg');
-<<<<<<< HEAD
-var database      = require('../database');
-=======
 var database 			= require('../database'); //Чтение настроек подключения к ИБ 
->>>>>>> 3e2fc665fb6b10cb1adca17386c101928671a8c0
 
 var userFields = {
   id: Number,
@@ -119,30 +115,38 @@ module.exports = {
   },
   //Получение списка пользователей из линейной DB
   getUsersList: function(from, to, filter, callback) {
+    //структура возвращаемых значений:
+    //1. первая выдача данных { total_count - количество элементов, data - массив элементов }
+    //2. последующие порции данных { data }
     var usersList = { data: [{}] };
     
-    pg.connect(database.url_pg, function(err, client, done) {
-	   	if(err) {
-    		console.log('connection error (Postgres):' + err);
-    	}
-
-    	client.query('SELECT * FROM "Users" WHERE "id" BETWEEN $1 AND $2', [from, to], function(err, result) {
-    	  if(err) { console.log(err) }
-    	  done();
-    	  
-        if(from === 0) usersList.total_count = 4;
-
-    	  var arrUsrs = result.rows.map(function(object) { 
-    	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
-    	  });
-    	  //usersList.data = new Array();
-    	  //usersList.data.push(arrUsrs);
-    	  usersList.data = arrUsrs;
-    	  //console.log(usersList);
-    	  
-    	  callback(errors.restStat_isOk, '', usersList);
-    	});
-    });
+    if(from === 0) {
+      pg.connect(database.url_pg, function(err, client, done) {
+  	   	if(err) {
+      		console.log('connection error (Postgres):' + err);
+      	}
+  
+      	client.query('SELECT * FROM "Users" WHERE "id" BETWEEN $1 AND $2', [from, to], function(err, result) {
+      	  if(err) { console.log(err) }
+      	  done();
+      	  
+          usersList.total_count = 4; //заглушка (должна получать количество пользователей в базе и передавать сюда)
+  
+      	  var arrUsrs = result.rows.map(function(object) { 
+      	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
+      	  });
+      	  //usersList.data = new Array();
+      	  //usersList.data.push(arrUsrs);
+      	  usersList.data = arrUsrs;
+      	  //console.log(usersList);
+      	  
+      	  callback(errors.restStat_isOk, '', usersList);
+      	});
+      });
+    } else {
+      usersList.data = [];
+      callback(errors.restStat_isOk, '', usersList);
+    }
   },
   logoutUser: function() {
     if(!loggedUser) {
