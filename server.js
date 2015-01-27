@@ -1,23 +1,23 @@
 // set up ======================================================================
-var http 					= require("http");
+var http 				= require("http");
 var express  			= require('express');      //Подключаем библиотеку express :http://jsman.ru/express/#section
-var bodyParser 		= require('body-parser');
-var cookieSession	= require('cookie-session');
-var cookieParser 	= require('cookie-parser');
+var bodyParser 			= require('body-parser');
+var cookieSession		= require('cookie-session');
+var cookieParser 		= require('cookie-parser');
 var session 			= require('express-session');
 var favicon 			= require('serve-favicon');
-var methodOverride = require('method-override');
-var serveStatic 	= require('serve-static');
-var font_middleware = require("connect-fonts");
+var methodOverride 		= require('method-override');
+var serveStatic 		= require('serve-static');
+var font_middleware 	= require("connect-fonts");
 var opensans 			= require("connect-fonts-opensans");
 var mongoose 			= require('mongoose'); 		//Подключаем библиотеку mongoose, враппер для mongoDB
 var port  	 			= process.env.PORT; //Установка слушающего порта для сервера по-умолчанию
 var database 			= require('./server/database'); //Чтение настроек подключения к ИБ 
-var path 					= require('path');
+var path 				= require('path');
 var passport 			= require('passport');
-var autoIncrement = require('mongoose-auto-increment');
-var user 					= require('./server/models/user');
-//var pg						= require("pg");
+var autoIncrement 		= require('mongoose-auto-increment');
+var user 				= require('./server/models/user');
+var pg					= require('pg');
 
 var app      		= express(); 							//создаем приложение на основе объекта express 
 

@@ -1,6 +1,8 @@
-var http = require("http");
-var mongoose = require('mongoose');
+var http          = require("http");
+var mongoose      = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
+var pg            = require('pg');
+var database 			= require('../database'); //Чтение настроек подключения к ИБ 
 
 var userFields = {
   id: Number,
@@ -60,6 +62,26 @@ var familystatus = [
   {id:7, value:'Влюблен'}
 ];
 
+var rollback = function(client, done) {
+  client.query('ROLLBACK', function(err) {
+    //if there was a problem rolling back the query
+    //something is seriously messed up.  Return the error
+    //to the done function to close & remove this client from
+    //the pool.  If you leave a client in the pool with an unaborted
+    //transaction weird, hard to diagnose problems might happen.
+    return done(err);
+  });
+};
+
+var commit = function(client, callback) {
+    
+    // commit
+    client.query('COMMIT');
+    done();
+    return callback(validationResult.status);
+};
+
+
 module.exports = {
   model: null,
   modelInit: function() {
@@ -108,6 +130,11 @@ module.exports = {
       callback(errors.restStat_isOk, '', user.toObject());
     });
   },
+  
+  /*
+  * saveLoggedUserFromBody  записываем информацию о пользователи
+  *
+  */
   saveLoggedUserFromBody: function(body, callback) {
     var validationResult = errors.validateUser(body);
     if(validationResult.status === errors.restStat_isOk) {
@@ -116,7 +143,7 @@ module.exports = {
         if((key === 'avatar') || (key === 'permissionVisibleProfile')) continue;
         newSet[key] = body[key];
       }
-      
+      //mongo
       module.exports.model.update({ id: loggedUser.id }, newSet, function (err) {
         if (err) {
           var error = errors.translateMongoError(err); 
@@ -125,6 +152,55 @@ module.exports = {
           
         callback(validationResult.status);
       });
+      
+      //postgres
+      pg.connect(database.url_pg, function(err, client, done) {
+	   	if(err) {
+    		console.log('connection error (Postgres):'+err);
+    		return;
+    	}
+    	
+    	//запросы
+    	var querySelect = 'SELECT id FROM "Users" WHERE "id"=$1;';
+    	var queryUpdate = 'UPDATE "Users" SET "username"=$1, "email"=$2, "visibleProfile"=$3 WHERE "id"=$4;';
+    	var queryInsert = 'INSERT INTO "Users"("id", "username", "email", "visibleProfile") VALUES ($1, $2, $3, $4);';
+    	
+    	//trqansaction
+    	client.query('BEGIN', function(err){
+    	  if(err) return rollback(client, done);
+    	  
+    	  //проверяем существует или нет
+    	  var modeUpdate = false;
+    	  client.query(querySelect,[body['id']], function(err, result){
+    	    if(err) return rollback(client,done);
+    	    if(result.rowCount>=1) modeUpdate = true;
+    	    
+    	    if(modeUpdate){
+    	    // обновляем
+      	  client.query(queryUpdate,[body['username'], body['email'], body['permissionVisibleProfile'], body['id']], function(err){
+      	    if(err) return rollback(client,done);
+      	    
+              // commit
+              client.query('COMMIT');
+              done();
+              return callback(validationResult.status);
+      	  });
+      	  }else{
+      	  
+        	  // вставляем
+        	  client.query(queryInsert, [body['id'], body['username'], body['email'], body['permissionVisibleProfile']], function(err){
+        	    if(err) return rollback(client,done);
+          	     // commit
+                client.query('COMMIT');
+                done();
+                return callback(validationResult.status);
+      	    });
+      	  }
+    	  });
+    	  
+    	});
+    	
+    });
     } else {
       callback(validationResult.status, validationResult.message);
     }
