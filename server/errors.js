@@ -1,3 +1,6 @@
+/*
+*  Статусы/коды ошибок и сообщений
+*/
 var check = require('validator').check;
 module.exports = {
   //REST error:
