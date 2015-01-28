@@ -43,7 +43,7 @@ module.exports = {
     	}
 
     	client.query('select "GroupId" from "GroupsUsers" where "UserId"=$1', [user.id], function(err, result) {
-    	  if(err) { console.log(err) }
+    	  if(err) console.log(err)
     	  done();
     	  
     	  var arrGrId = result.rows.map(function(object) { return object.GroupId });
@@ -54,12 +54,6 @@ module.exports = {
         });
     	});
     });
-    // var arrGrId = user.grouplist.map(function(object) { return object.groupId });
-    // groupModel.find({ id: { $in: arrGrId }  }, function(err, groups) {
-    //   if (err) return callback("GroupDbError");
-      
-    //   callback(null, groups);
-    // });
   },
   getPublicGroups: function(user, filter, callback) {
     if(user === null) return callback("NeedUser");

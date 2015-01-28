@@ -113,40 +113,67 @@ module.exports = {
   getLoggedUser: function() {
     return loggedUser;
   },
-  //Получение списка пользователей из линейной DB
+  /*
+  * getUsersList Получение списка пользователей из линейной DB
+  * 
+    структура возвращаемых значений:
+    1. первая выдача данных { total_count - количество элементов, data - массив элементов }
+    2. последующие порции данных { data }
+  */
   getUsersList: function(from, to, filter, callback) {
-    //структура возвращаемых значений:
-    //1. первая выдача данных { total_count - количество элементов, data - массив элементов }
-    //2. последующие порции данных { data }
-    var usersList = { data: [{}] };
     
-    if(from === 0) {
-      pg.connect(database.url_pg, function(err, client, done) {
-  	   	if(err) {
-      		console.log('connection error (Postgres):' + err);
-      	}
-  
-      	client.query('SELECT * FROM "Users" WHERE "id" BETWEEN $1 AND $2', [from, to], function(err, result) {
-      	  if(err) { console.log(err) }
-      	  done();
+    var usersList = { data: [{}] };
+    var querySelect = 'SELECT id, username, email, "visibleProfile"  FROM "Users"  ORDER BY "id"  LIMIT $1 OFFSET $2;';
+    
+    pg.connect(database.url_pg, function(err, client, done) {
+      
+  	  if(err) {
+      	console.log('connection error (Postgres):' + err);
+      	//return callback(errors.restStat_isOk, '', usersList);
+      }
+      	
+      if(from === 0) {
+        // получим общее количество
+        client.query('SELECT count("id") as count FROM "Users" ', function(err, result) {
+      	  if(err) { console.log(err); }
       	  
-          usersList.total_count = 4; //заглушка (должна получать количество пользователей в базе и передавать сюда)
-  
-      	  var arrUsrs = result.rows.map(function(object) { 
-      	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
-      	  });
-      	  //usersList.data = new Array();
-      	  //usersList.data.push(arrUsrs);
-      	  usersList.data = arrUsrs;
-      	  //console.log(usersList);
-      	  
-      	  callback(errors.restStat_isOk, '', usersList);
-      	});
-      });
-    } else {
-      usersList.data = [];
+      	  usersList.total_count = result.rows[0].count;
+          
+          //первая порция
+          client.query(querySelect, [to-from, from], function(err, result) {
+      	    if(err) { console.log(err); }
+      	    
+        	  var arrUsrs = result.rows.map(function(object) { 
+        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
+        	  });
+        	  //usersList.data = new Array();
+        	  //usersList.data.push(arrUsrs);
+        	  usersList.data = arrUsrs;
+        	  //console.log(usersList);
+        	  done();
+        	  callback(errors.restStat_isOk, '', usersList);
+        	  });
+        });
+        
+      } else { // задан диапазон
+    
+      //след порция
+          client.query(querySelect, [to-from, from], function(err, result) {
+      	    if(err) { console.log(err); }
+      	    
+        	  var arrUsrs = result.rows.map(function(object) { 
+        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
+        	  });
+        	  //usersList.data = new Array();
+        	  //usersList.data.push(arrUsrs);
+        	  usersList.data = arrUsrs;
+        	  //console.log(usersList);
+        	  done();
+        	  callback(errors.restStat_isOk, '', usersList);
+        	  });
       callback(errors.restStat_isOk, '', usersList);
-    }
+    }      
+    });
   },
   logoutUser: function() {
     if(!loggedUser) {
