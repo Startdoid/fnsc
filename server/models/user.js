@@ -137,7 +137,7 @@ module.exports = {
         client.query('SELECT count("id") as count FROM "Users" ', function(err, result) {
       	  if(err) { console.log(err); }
       	  
-      	  usersList.total_count = result.rows[0].count;
+      	  usersList.total_count = Number(result.rows[0].count);
           
           //первая порция
           client.query(querySelect, [to-from, from], function(err, result) {
@@ -166,12 +166,13 @@ module.exports = {
         	  });
         	  //usersList.data = new Array();
         	  //usersList.data.push(arrUsrs);
+        	  usersList.pos = from;
         	  usersList.data = arrUsrs;
         	  //console.log(usersList);
         	  done();
         	  callback(errors.restStat_isOk, '', usersList);
         	  });
-      callback(errors.restStat_isOk, '', usersList);
+      //callback(errors.restStat_isOk, '', usersList);
     }      
     });
   },

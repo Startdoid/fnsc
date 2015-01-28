@@ -785,13 +785,17 @@ var dataviewCentral_Users = {
   template:function(obj) {
     var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
     htmlCode = htmlCode + '<div class="friend_info"><div><span>Name:</span>'+obj.username+'</div><div><span>Email:</span>'+obj.email+'</div></div>';
+    //htmlCode = htmlCode + '<a href="webix.message(0)"  class="select_link">'+'select'+'</a>';
+    //'<a href="javascript:void(0)"  class="select_link">'+'select'+'</a>';
+    //<input type="button" value="Set form" onclick="set_form();" />
+
     return htmlCode;
   },
 	select:1,
-	datafetch:4,
+	datafetch:3,
 	autowidth:true,
 	on:{
-	  'onItemClick': function(id, e, node) {
+	  'onItemDblClick': function(id, e, node) {
       //var item = this.getItem(id);
       App.Router.navigate('id' + id, {trigger: true});
     }

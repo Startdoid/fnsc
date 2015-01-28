@@ -403,7 +403,7 @@ var implementFunction = (function() {
           
           App.State.userlistFilter.userId = 0;
           $$('dataviewCentral_Users').clearAll();
-          $$('dataviewCentral_Users').loadNext(11, 0, null, 'api/v1/userlist');
+          $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/userlist');
 
           $$('frameCentral_Users').show();
           $$('scrollviewRight_UsersFilter').show();
@@ -538,7 +538,7 @@ var implementFunction = (function() {
     $$('dataviewCentral_Users').parse(data);
   };
   
-  $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url){
+  $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
     webix.ajax('api/v1/userlist', { start:start, count:count, userId: App.State.userlistFilter.userId }, centralUsers_DataRefresh);
     return false;
   });
