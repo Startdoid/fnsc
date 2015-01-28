@@ -108,6 +108,29 @@ module.exports = {
         
         callback(null, loggedUser.toObject());
       });
+      
+      //postgres
+      pg.connect(database.url_pg, function(err, client, done) {
+  	   	if(err) {
+      		console.log('connection error (Postgres):'+err);
+      		return;
+      	}
+      	
+      	var queryInsert = 'INSERT INTO "Users"("id", "username", "email", "visibleProfile") VALUES ($1, $2, $3, $4);';
+      	
+      	//trqansaction
+    	  client.query('BEGIN', function(err){
+    	    if(err) return rollback(client, done);
+
+      	  // вставляем
+        	client.query(queryInsert, [loggedUser.id, loggedUser.username, loggedUser.email, 0], function(err){
+        	  if(err) return rollback(client,done);
+          	  // commit
+            client.query('COMMIT');
+            done();
+      	 });
+      	});
+    	});
     });
   },
   getLoggedUser: function() {
