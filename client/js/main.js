@@ -115,6 +115,7 @@ var implementFunction = (function() {
       }
     },
     $autonomeState: function(err) {
+      webix.message(err);
       //заглушечка
     },
     segmentChange: function() {
@@ -243,6 +244,7 @@ var implementFunction = (function() {
 			'groups(/)':'groups',
 			'tasks(/)':'tasks',
 			'id:id(/)':'user',
+			'users?id=:id(/)':'userUsers',
 			'users(/)':'users',
 			'home(/)':'home',
 			'':'index'
@@ -269,12 +271,20 @@ var implementFunction = (function() {
 		},
 		users:function() {
 		  App.State.clientRoute = '/users';
+		  App.State.userlistFilter.userId = 0;
 		  App.State.segment = 'users';
 		  App.State.segmentChange();
 		},
 		user:function(id) {
-		  App.State.clientRoute = '/id'+id;
+		  App.State.clientRoute = '/id' + id;
 		  App.State.segment = 'user';
+		  App.State.segmentUserId = id;
+		  App.State.segmentChange();
+		},
+		userUsers:function(id) {
+		  App.State.clientRoute = '/id' + id + '/users';
+		  App.State.segment = 'users';
+		  App.State.userlistFilter.userId = id;
 		  App.State.segmentUserId = id;
 		  App.State.segmentChange();
 		},
@@ -401,7 +411,6 @@ var implementFunction = (function() {
           }
           $$('listSegments_SegmentsSelector').unblockEvent();
           
-          App.State.userlistFilter.userId = 0;
           $$('dataviewCentral_Users').clearAll();
           $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/userlist');
 

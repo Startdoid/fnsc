@@ -510,7 +510,7 @@ var listProfile_UserAttributesSelector = {
 	on:{'onAfterSelect': function(id) {
     switch(id) {
       case 'listitemUserAtributesSelector_Users':
-        App.Router.navigate('users', {trigger:true} );
+        App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
         break;
       case 'listitemUserAtributesSelector_Groups':
         App.Router.navigate('groups', {trigger:true} );
@@ -542,10 +542,10 @@ var listProfile_viewedUserAttributesSelector = {
 		{ id:'listitemViewedUserAtributesSelector_Projects',	value:'Проекты' },
 		{ id:'listitemViewedUserAtributesSelector_Tags',	value:'Теги' }
 	],
-	on:{"onAfterSelect": function(id) {
+	on:{'onAfterSelect': function(id) {
     switch(id) {
       case 'listitemViewedUserAtributesSelector_Users':
-        App.Router.navigate('users', {trigger:true} );
+        App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
         break;
       case 'listitemViewedUserAtributesSelector_Groups':
         App.Router.navigate('groups', {trigger:true} );
@@ -777,6 +777,10 @@ App.Frame.tabviewCentral_User = {
   ]
 };
 
+var UserRout = function(id) {
+  App.Router.navigate('id' + id, {trigger: true});
+};
+
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
   borderless:true, scroll:'y', xCount:1,
@@ -784,14 +788,15 @@ var dataviewCentral_Users = {
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
     var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
-    htmlCode = htmlCode + '<div class="friend_info"><div><span>Name:</span>'+obj.username+'</div><div><span>Email:</span>'+obj.email+'</div></div>';
-    //htmlCode = htmlCode + '<a href="webix.message(0)"  class="select_link">'+'select'+'</a>';
-    //'<a href="javascript:void(0)"  class="select_link">'+'select'+'</a>';
+    htmlCode = htmlCode + '<div class="friend_info"><a href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
+    htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
+    htmlCode = htmlCode + '<button onclick="webix.message(0);">Добавить в друзья</button>';
+    //'<a href="javascript:webix.message(0)"  class="select_link">'+'Добавить в друзья'+'</a>';
     //<input type="button" value="Set form" onclick="set_form();" />
 
     return htmlCode;
   },
-	select:1,
+	//select:1,
 	datafetch:3,
 	autowidth:true,
 	on:{
