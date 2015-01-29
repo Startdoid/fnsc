@@ -91,6 +91,11 @@ var routes = [
     middleware: [userlist]
   },
   {
+    path: '/api/v1/userlist',
+    httpMethod: 'PUT',
+    middleware: [addUserlist]
+  },
+  {
     path: '/api/v1/state',
     httpMethod: 'GET',
     middleware: [getState]
@@ -131,7 +136,7 @@ var routes = [
     middleware: [register]
   },
   {
-    path: '/img/avatars',
+    path: '/img/avatars/*',
     httpMethod: 'GET',
     middleware:[function (req, res) {
       //var requestedView = path.join('./', req.url);
@@ -425,17 +430,16 @@ function userlist(req, res, next) {
     if(status === errors.restStat_isOk)
       res.status(status).json(userlist);
   });
+}
 
-  // if (Number(start) === 0) {
-  //   //Первый вызов, это инициализация динамического списка первыми данными
-  // } else {
-  //   //последующая подгрузка: get "count" records from "pos" position
-  //   var json = { pos:start, data:[] };
-  //   for (var i = 0; i < count; i++) {
-  //     json.data.push({ img:'1.jpg', name:'bru'+(start*1+(i+1)), email:'bru@bru.bru' });
-  //   }
-  //   res.status(200).send(json);
-  // }
+//bru: Добавление пользователя в список друзей
+function addUserlist(req, res, next) {
+  //bru: Добавляемый пользователь
+  var addedUserId = req.param('addedUserId');
+  
+  //bru: при успешном добавлении возврат
+  //res.status(status).end();
+  //bru: при неудачном
 }
 
 function getcountry(req, res, next) {
