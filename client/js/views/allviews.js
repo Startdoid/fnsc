@@ -778,38 +778,64 @@ App.Frame.tabviewCentral_User = {
   ]
 };
 
+//bru: функция вызываемая при нажатии на ссылке с именем пользователя, для перехода на профиль пользователя
 var UserRout = function(id) {
   App.Router.navigate('id' + id, {trigger: true});
 };
 
+//bru: успешный ответ сервера на запрос добавления друга
 var addUserResponse = function(text, data) {
-  
+  var btn = document.getElementById('buttonAddUserFriend1');
+  btn.setAttribute('disabled', true);
 };
 
+//bru: функция вызываемая нажатием кнопки добавления друга
 var addUserFriend = function(id) {
-  var promise = webix.ajax().put('api/v1/userlist', { addedUserId: id }, addUserResponse);
+  var promise = webix.ajax().put('api/v1/userlist', { userId: id }, addUserResponse);
   promise.then(function(realdata){}).fail(function(err) {
     //$$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
   });
 };
 
+//bru: успешный ответ сервера на запрос удаления друга
+var deleteUserResponse = function(text, data) {
+  
+};
+
+//bru: функция вызываемая нажатием кнопки удаления друга
+var deleteUserFriend = function(id) {
+  var promise = webix.ajax().delete('api/v1/userlist', { userId: id }, deleteUserResponse);
+  promise.then(function(realdata){}).fail(function(err) {
+    //$$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
+  });  
+};
+
+//bru: фрейм выводящий список пользоватлей и друзей
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
   borderless:true, scroll:'y', xCount:1,
   type:{ height:110, width:450 },
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
+    //bru: построение элемента в списке друзей
     var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
     htmlCode = htmlCode + '<div class="friend_info"><a href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
-    htmlCode = htmlCode + '<button onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
-    //'<a href="javascript:webix.message(0)"  class="select_link">'+'Добавить в друзья'+'</a>';
-    //<input type="button" value="Set form" onclick="set_form();" />
-
+    
+    //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
+    if(App.State.segmentUserId === App.State.user.get('id')) {
+      htmlCode = htmlCode + '<button id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
+    } else {
+      //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
+      //в случае если у текущего пользователя уже есть такой друг, на что указывает флаг isFriend, то кнопка добавить в друзья не показывается
+      if(!obj.isFriend) {
+        htmlCode = htmlCode + '<button id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
+      }
+    }
     return htmlCode;
   },
 	//select:1,
-	datafetch:3,
+	datafetch:5,
 	autowidth:true,
 	on:{
 	  'onItemDblClick': function(id, e, node) {

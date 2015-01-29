@@ -438,7 +438,7 @@ function addUserlist(req, res, next) {
   var addedUserId = req.param('addedUserId');
   
   //bru: при успешном добавлении возврат
-  //res.status(status).end();
+  res.status(errors.restStat_isOk).end();
   //bru: при неудачном
 }
 
