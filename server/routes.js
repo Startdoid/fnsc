@@ -96,6 +96,11 @@ var routes = [
     middleware: [addUserlist]
   },
   {
+    path: '/api/v1/userlist',
+    httpMethod: 'DELETE',
+    middleware: [deleteUserlist]
+  },
+  {
     path: '/api/v1/state',
     httpMethod: 'GET',
     middleware: [getState]
@@ -275,6 +280,8 @@ function logout(req, res, next) {
   res.status(errors.restStat_isOk).end();
 }
 
+//bru: ловит URL и сохраняет в промежуточную переменную, что бы отдать клиенту, когда тот загрузит всё приложение
+//и продолжит роут переданный в URL
 function throwInRoot(req, res, next) {
   if(routeExclude.indexOf(req.url) != -1) return next();
   console.log(req.url);
@@ -421,9 +428,12 @@ function deletetask(req, res, next) {
   res.status(400).end();
 }
 
+//bru: Получение списка пользователей и друзей
 function userlist(req, res, next) {
   var start = req.param('start');
   var count = req.param('count');
+  //bru: если значение === 0, то отдаются все пользователи. 
+  //В противном случает отдаются друзья пользователя с id = userId
   var userId = Number(req.param('userId'));
   
   if(userId===0){
@@ -452,6 +462,15 @@ function addUserlist(req, res, next) {
     //В базе есть поле статус - типо заявка или уже друг
     //в запросе который отдает список я сделаю еще поле статуса заявка, в друзьях, либо не добавлен
   } else {res.status(errors.restStat_DbSaveError).end();}//bru: при неудачном
+}
+
+//bru:Удаление пользователя из списка друзей
+function deleteUserlist(req, res, next) {
+  //bru: Удаляемый пользователь
+  var userId = req.param('userId');
+  
+  //bru: заглушка - отдает положительный ответ на удаление
+  res.status(errors.restStat_isOk).end();
 }
 
 function getcountry(req, res, next) {
