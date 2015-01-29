@@ -652,8 +652,9 @@ var frameProfile_user = {
     { cols:[
       { rows: [
         { view:'template', id:'avatarProfile_user', width:250, height:250, borderless:true, template:function(obj) {
-          return '<img src="img/avatars/200/'+obj.src+'">';
-        } },
+          return '<div class="frAv"><img src="img/avatars/200/'+obj.src+'"></div>';
+        }, onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false;//blocks default onclick event
+        } } },
         { height:10 },
         listProfile_UserAttributesSelector
       ]},
