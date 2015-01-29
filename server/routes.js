@@ -424,22 +424,34 @@ function deletetask(req, res, next) {
 function userlist(req, res, next) {
   var start = req.param('start');
   var count = req.param('count');
-  var userId = req.param('userId');
+  var userId = Number(req.param('userId'));
   
-  userModel.getUsersList(Number(start), Number(start) + Number(count), {}, function(status, message, userlist) {
-    if(status === errors.restStat_isOk)
-      res.status(status).json(userlist);
-  });
+  if(userId===0){
+    userModel.getUsersList(Number(start), Number(start) + Number(count), {}, function(status, message, userlist) {
+      if(status === errors.restStat_isOk)
+        res.status(status).json(userlist);
+    });
+  }else{
+    userModel.getFriends(function(status, message, userlist) {
+      if(status === errors.restStat_isOk)
+        res.status(status).json(userlist);
+        else console.log(message);
+    });
+  }
 }
 
 //bru: Добавление пользователя в список друзей
 function addUserlist(req, res, next) {
   //bru: Добавляемый пользователь
-  var addedUserId = req.param('addedUserId');
+  var userId = req.param('userId');
   
-  //bru: при успешном добавлении возврат
-  res.status(errors.restStat_isOk).end();
-  //bru: при неудачном
+  if(userModel.addFriend(userId)){
+    //bru: при успешном добавлении возврат
+    res.status(errors.restStat_isOk).end();
+    //ice по идеи нужно изменить кнопку на надпись "заявка подана"
+    //В базе есть поле статус - типо заявка или уже друг
+    //в запросе который отдает список я сделаю еще поле статуса заявка, в друзьях, либо не добавлен
+  } else {res.status(errors.restStat_DbSaveError).end();}//bru: при неудачном
 }
 
 function getcountry(req, res, next) {
