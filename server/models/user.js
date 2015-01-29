@@ -146,7 +146,7 @@ module.exports = {
   getUsersList: function(from, to, filter, callback) {
     
     var usersList = { data: [{}] };
-    var querySelect = 'SELECT id, username, email, "visibleProfile"  FROM "Users"  ORDER BY "id"  LIMIT $1 OFFSET $2;';
+    var querySelect = 'SELECT id, username, email, "visibleProfile"  FROM "Users" where "id"<>$3 ORDER BY "id"  LIMIT $1 OFFSET $2;';
     
     pg.connect(database.url_pg, function(err, client, done) {
       
@@ -157,22 +157,19 @@ module.exports = {
       	
       if(from === 0) {
         // получим общее количество
-        client.query('SELECT count("id") as count FROM "Users" ', function(err, result) {
+        client.query('SELECT count("id") as count FROM "Users" where "id"<>$1',[loggedUser.id], function(err, result) {
       	  if(err) { console.log(err); }
       	  
       	  usersList.total_count = Number(result.rows[0].count);
           
           //первая порция
-          client.query(querySelect, [to-from, from], function(err, result) {
+          client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
       	    if(err) { console.log(err); }
       	    
         	  var arrUsrs = result.rows.map(function(object) { 
         	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
         	  });
-        	  //usersList.data = new Array();
-        	  //usersList.data.push(arrUsrs);
         	  usersList.data = arrUsrs;
-        	  //console.log(usersList);
         	  done();
         	  callback(errors.restStat_isOk, '', usersList);
         	  });
@@ -181,24 +178,84 @@ module.exports = {
       } else { // задан диапазон
     
       //след порция
-          client.query(querySelect, [to-from, from], function(err, result) {
+          client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
       	    if(err) { console.log(err); }
       	    
         	  var arrUsrs = result.rows.map(function(object) { 
         	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
         	  });
-        	  //usersList.data = new Array();
-        	  //usersList.data.push(arrUsrs);
         	  usersList.pos = from;
         	  usersList.data = arrUsrs;
-        	  //console.log(usersList);
         	  done();
         	  callback(errors.restStat_isOk, '', usersList);
         	  });
-      //callback(errors.restStat_isOk, '', usersList);
     }      
     });
   },
+  
+  /****************************************************************************
+  * getFriends list
+  *
+  * Result:
+      (array)(array) - Массив с пользователями
+  */
+  getFriends: function(callback) {
+    
+    var usersList = { data: [{}] };
+    
+    pg.connect(database.url_pg, function(err, client, done) {
+      if(err){console.log(err); return usersList}
+      
+      var querySelect = 'SELECT "Users".id, "Users".username, "Users".email, "Users"."visibleProfile", "UserFriends"."Status" \
+                        FROM public."UserFriends" left join public."Users" on "Users".id = "UserFriends"."FriendId" \
+                        WHERE "UserFriends"."UserId" = $1';
+      
+      //получаем список
+      client.query(querySelect,[loggedUser.id], function(err, result){
+    	  if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList}
+    	  
+    	  var arrUsrs = result.rows.map(function(object) { 
+        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', status:object.Status };
+        	  });
+        	  usersList.data = arrUsrs;
+        	  done();
+        	  callback(errors.restStat_isOk, '', usersList);
+        	  return usersList;
+      });
+    });
+  },
+  
+  /*
+  * addFriend
+  * Добавляет пользователя в список друзей со статусом "заявка"
+  * По идеи, нужно когда другой пользователь подтверждает, здесь же организовать эту логику
+  * id - id пользователя которого хотят добавить
+  * Result:
+  * (boolean)
+  */
+  addFriend: function(friendId){
+    
+    pg.connect(database.url_pg, function(err, client, done) {
+      if(err){console.log(err); return false}
+      
+      var queryInsert = 'INSERT INTO "UserFriends"("UserId", "FriendId", "Status") VALUES ($1, $2, $3);';
+      
+      //добавляем друга
+      client.query('BEGIN', function(err){
+    	  if(err) {rollback(client, done); return false}
+    	        
+    	  client.query(queryInsert, [loggedUser.id, friendId, 0], function(err, result) {
+      	  if(err) { console.log(err); rollback(client, done); return false }
+      	  
+      	  client.query('COMMIT');
+          done();
+          return true;
+    	  });
+      });
+    });
+    
+  },
+  
   logoutUser: function() {
     if(!loggedUser) {
       delete loggedUser;
