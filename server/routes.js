@@ -272,6 +272,7 @@ function logout(req, res, next) {
 
 function throwInRoot(req, res, next) {
   if(routeExclude.indexOf(req.url) != -1) return next();
+  console.log(req.url);
   state.serverRoute = req.path;
   res.redirect('/');
 }
