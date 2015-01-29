@@ -781,6 +781,17 @@ var UserRout = function(id) {
   App.Router.navigate('id' + id, {trigger: true});
 };
 
+var addUserResponse = function(text, data) {
+  
+};
+
+var addUserFriend = function(id) {
+  var promise = webix.ajax().put('api/v1/userlist', { addedUserId: id }, addUserResponse);
+  promise.then(function(realdata){}).fail(function(err) {
+    //$$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
+  });
+};
+
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
   borderless:true, scroll:'y', xCount:1,
@@ -790,7 +801,7 @@ var dataviewCentral_Users = {
     var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
     htmlCode = htmlCode + '<div class="friend_info"><a href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
-    htmlCode = htmlCode + '<button onclick="webix.message(0);">Добавить в друзья</button>';
+    htmlCode = htmlCode + '<button onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
     //'<a href="javascript:webix.message(0)"  class="select_link">'+'Добавить в друзья'+'</a>';
     //<input type="button" value="Set form" onclick="set_form();" />
 
@@ -992,6 +1003,13 @@ App.Frame.multiviewToolbar = {
   cells:[App.Frame.toolbarAutorisation, App.Frame.toolbarHeader],
   animate:false
 };
+
+// App.Frame.naviBar = {
+//   id:'naviBar',
+//   width:70,
+//   rows:[{ view:'label', label:'Назад' }, {}],
+//   visible:false
+// };
 
 App.Frame.multiviewCentral = {
   view:'multiview', id:'multiviewCentral', container:'multiviewCentral',
