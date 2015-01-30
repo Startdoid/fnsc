@@ -804,7 +804,7 @@ var deleteUserResponse = function(text, data) {
 
 //bru: функция вызываемая нажатием кнопки удаления друга
 var deleteUserFriend = function(id) {
-  var promise = webix.ajax().delete('api/v1/userlist', { userId: id }, deleteUserResponse);
+  var promise = webix.ajax().del('api/v1/userlist', { userId: id }, deleteUserResponse);
   promise.then(function(realdata){}).fail(function(err) {
     //$$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
   });  
