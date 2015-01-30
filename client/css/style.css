@@ -17,3 +17,69 @@
 /*  background: url('/img/spin.gif') no-repeat 50% 50%;*/
 /*  margin: -16px 0 0 -16px;*/
 /*}*/
+
+.itmTextBold {
+  color: #2B587A;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.itmTextBold:hover {
+  text-decoration: underline;
+}
+
+.buttonAddUserFriend {
+  padding: 6px 16px 7px 16px;
+  margin: 0;
+  font-size: 11px;
+  display: inline-block;
+  zoom: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  font-family: tahoma, arial, verdana, sans-serif, Lucida Sans;
+  vertical-align: top;
+  overflow: visible;
+  line-height: 13px;
+  text-decoration: none;
+  background: none;
+  background-color: #6383a8;
+  color: #FFF;
+  border: 0;
+  border-radius: 2px;
+  transition: background-color 100ms ease-in-out;
+}
+
+div.friend_avatar {
+  width: 120px;
+  float: left;
+}
+ div.friend_avatar img {
+	border: none;
+}
+
+.frAv {
+  border: none;
+}
+
+div.friend_info span {
+	display: block;
+	width: 64px;
+	font-weight: bold;
+	float: left;
+}
+.friend_info, .friend_avatar {
+	padding:8px;
+	line-height: 21px;
+}	  
+.mainSelector .webix_list_item {
+  line-height:50px;
+}
+.bless {
+  border: none;
+}
+.authenticateError {
+  font-style: italic;
+}

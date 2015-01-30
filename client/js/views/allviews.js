@@ -819,17 +819,17 @@ var dataviewCentral_Users = {
   template:function(obj) {
     //bru: построение элемента в списке друзей
     var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
-    htmlCode = htmlCode + '<div class="friend_info"><a href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
+    htmlCode = htmlCode + '<div class="friend_info"><a class="itmTextBold" href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
     //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
-    if(App.State.segmentUserId === App.State.user.get('id')) {
-      htmlCode = htmlCode + '<button id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
+    if(Number(App.State.segmentUserId) === App.State.user.get('id')) {
+      htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
     } else {
       //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
       //в случае если у текущего пользователя уже есть такой друг, на что указывает флаг isFriend, то кнопка добавить в друзья не показывается
       if(!obj.isFriend) {
-        htmlCode = htmlCode + '<button id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
+        htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
       }
     }
     return htmlCode;
@@ -851,7 +851,7 @@ var labelToolbarCentral_Users = {
 	label:'Назад',
 	on:{
 		'onItemClick': function() { 
-		  App.Router.navigate('home', {trigger:true} ); 
+		  App.Router.navigate('', {trigger:true} ); 
 		}
 	}
 };

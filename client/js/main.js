@@ -406,8 +406,12 @@ var implementFunction = (function() {
           break;  	    
         case 'users':
           $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
-          if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-            $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
+          if(App.State.userlistFilter.userId === 0) {
+            if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+              $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
+            }
+          } else {
+            $$('listSegments_SegmentsSelector').unselectAll();
           }
           $$('listSegments_SegmentsSelector').unblockEvent();
           
