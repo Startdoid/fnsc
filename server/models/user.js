@@ -199,7 +199,7 @@ module.exports = {
   * Result:
       (array)(array) - Массив с пользователями
   */
-  getFriends: function(callback) {
+  getFriends: function(UserId, callback) {
     
     var usersList = { data: [{}] };
     
@@ -211,7 +211,7 @@ module.exports = {
                         WHERE "UserFriends"."UserId" = $1';
       
       //получаем список
-      client.query(querySelect,[loggedUser.id], function(err, result){
+      client.query(querySelect,[Number(UserId)], function(err, result){
     	  if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList}
     	  
     	  var arrUsrs = result.rows.map(function(object) { 
@@ -264,7 +264,7 @@ module.exports = {
     pg.connect(database.url_pg, function(err, client, done) {
       if(err){console.log(err); callback(false)}
       
-      var queryDelete = 'DELETE FROM "UserFriends" WHERE FriendId=$1 and UserId=$2;';
+      var queryDelete = 'DELETE FROM "UserFriends" WHERE "FriendId"=$1 and "UserId"=$2;';
       
       //добавляем друга
       client.query('BEGIN', function(err){
