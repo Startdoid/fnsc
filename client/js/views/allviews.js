@@ -811,7 +811,7 @@ var dataviewCentral_Users = {
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
     //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
-    if(Number(App.State.segmentUserId) === App.State.user.get('id')) {
+    if(Number(App.State.userlistFilter.userId) === App.State.user.get('id')) {
       htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
     } else {
       //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
