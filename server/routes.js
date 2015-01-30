@@ -455,13 +455,12 @@ function addUserlist(req, res, next) {
   //bru: Добавляемый пользователь
   var userId = req.param('userId');
   
-  if(userModel.addFriend(userId)){
-    //bru: при успешном добавлении возврат
-    res.status(errors.restStat_isOk).end();
-    //ice по идеи нужно изменить кнопку на надпись "заявка подана"
-    //В базе есть поле статус - типо заявка или уже друг
-    //в запросе который отдает список я сделаю еще поле статуса заявка, в друзьях, либо не добавлен
-  } else {res.status(errors.restStat_DbSaveError).end();}//bru: при неудачном
+  userModel.addFriend(userId, function(status){
+    
+    if(status){
+      res.status(errors.restStat_isOk).end();
+    }else{res.status(errors.restStat_DbSaveError).end();}
+  });
 }
 
 //bru:Удаление пользователя из списка друзей
@@ -469,8 +468,12 @@ function deleteUserlist(req, res, next) {
   //bru: Удаляемый пользователь
   var userId = req.param('userId');
   
-  //bru: заглушка - отдает положительный ответ на удаление
-  res.status(errors.restStat_isOk).end();
+  userModel.deleteFriend(userId, function(status){
+    
+    if(status){
+      res.status(errors.restStat_isOk).end();
+    }else{res.status(errors.restStat_DbSaveError).end();}
+  });
 }
 
 function getcountry(req, res, next) {

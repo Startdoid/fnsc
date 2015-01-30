@@ -233,26 +233,53 @@ module.exports = {
   * Result:
   * (boolean)
   */
-  addFriend: function(friendId){
+  addFriend: function(friendId, callback){
     
     pg.connect(database.url_pg, function(err, client, done) {
-      if(err){console.log(err); return false}
+      if(err){console.log(err); callback(false)}
       
       var queryInsert = 'INSERT INTO "UserFriends"("UserId", "FriendId", "Status") VALUES ($1, $2, $3);';
       
       //добавляем друга
       client.query('BEGIN', function(err){
-    	  if(err) {rollback(client, done); return false}
+    	  if(err) {rollback(client, done); callback(false)}
     	        
     	  client.query(queryInsert, [loggedUser.id, friendId, 0], function(err, result) {
-      	  if(err) { console.log(err); rollback(client, done); return false }
+      	  if(err) { console.log(err); rollback(client, done); callback(false) }
       	  
       	  client.query('COMMIT');
           done();
-          return true;
+          callback(true);
     	  });
       });
     });
+    
+  },
+  /*
+  * deleteFriend
+  *
+  */
+  deleteFriend: function(friendId, callback){
+    
+    pg.connect(database.url_pg, function(err, client, done) {
+      if(err){console.log(err); callback(false)}
+      
+      var queryDelete = 'DELETE FROM "UserFriends" WHERE FriendId=$1 and UserId=$2;';
+      
+      //добавляем друга
+      client.query('BEGIN', function(err){
+    	  if(err) {rollback(client, done); callback(false)}
+    	        
+    	  client.query(queryDelete, [friendId, loggedUser.id], function(err, result) {
+      	  if(err) { console.log(err); rollback(client, done); callback(false) }
+      	  
+      	  client.query('COMMIT');
+          done();
+          callback(true);
+    	  });
+      });
+    });
+    
     
   },
   
