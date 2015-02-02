@@ -442,7 +442,7 @@ function userlist(req, res, next) {
         res.status(status).json(userlist);
     });
   }else{
-    userModel.getFriends(userId, function(status, message, userlist) {
+    userModel.getFriends(userId, Number(start), Number(count), function(status, message, userlist) {
       if(status === errors.restStat_isOk)
         res.status(status).json(userlist);
         else console.log(message);
