@@ -1,3 +1,9 @@
+/**
+* Модель пользователя User
+* 
+* 
+*/
+
 var http          = require("http");
 var mongoose      = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
@@ -195,10 +201,10 @@ module.exports = {
   },
   
   /****************************************************************************
-   getFriends list
-   UserId - Друзья какого пользователя
-   Result:
-      (array)(array) - Массив с пользователями
+  * getFriends list
+  * UserId - Друзья какого пользователя
+  * Result:
+  *    (array)(array) - Массив с пользователями
   *****************************************************************************/
   getFriends: function(UserId, from, count, callback) {
     
