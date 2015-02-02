@@ -76,7 +76,10 @@ var listSegments_SegmentsSelector = {
 		{ id:'listitemSegmentsSelector_Finances', value:'Финансы', count:0 },
 		{ id:'listitemSegmentsSelector_Notes', value:'Заметки', count:0 },
 		{ id:'listitemSegmentsSelector_Events', value:'События', count:1 },
-		{ id:'listitemSegmentsSelector_Messages', value:'Сообщения', count:3 }
+		{ id:'listitemSegmentsSelector_Messages', value:'Сообщения', count:3 },
+		{ value: '' },
+		{ id:'listitemSegmentsSelector_PersonalOptions', value:'Персональные настройки' },
+		{ id:'listitemSegmentsSelector_Exit', value:'Выйти' }
 	],
 	on:{"onAfterSelect": function(id){
     switch(id) {
@@ -106,29 +109,13 @@ var listSegments_SegmentsSelector = {
         break;
       case 'listitemSegmentsSelector_Events':
         App.Router.navigate('events', {trigger:true} );
-        break;          
+        break;
       case 'listitemSegmentsSelector_Messages':
         App.Router.navigate('messages', {trigger:true} );
-        break;          
-    }
-	}}
-};
-
-var listSegments_OptionsSelector = {
-  view:'list', id:'listSegments_OptionsSelector', css:'mainSelector',
-	borderless:true,  width:250, scroll:false,
-	template:'#value#',
-	type:{ height:40 },
-	select:true,
-	data:[
-		{ id:'listSegments_OptionsSelector_PersonalOptions', value:'Персональные настройки' },
-		{ id:'listSegments_OptionsSelector_Exit', value:'Выйти' }
-	],
-	on:{"onAfterSelect": function(id){
-    switch(id) {
-      case 'listSegments_OptionsSelector_Exit':
-      App.Router.navigate('logout', {trigger:true} );
-      break;
+        break;
+      case 'listitemSegmentsSelector_Exit':
+        App.Router.navigate('logout', {trigger:true} );
+        break;
     }
 	}}
 };
@@ -142,9 +129,7 @@ var scrollviewLeft_Segments = {
 		//type:'space',
 		rows:[//{ body: 'Task pull', autoheight:true,  },
 				  //{ view: 'resizer' },
-		      { body: listSegments_SegmentsSelector },
-		      { view: 'resizer' },
-		      { body: listSegments_OptionsSelector }
+		      { body: listSegments_SegmentsSelector }
 		]
   }
 };
@@ -785,8 +770,9 @@ var UserRout = function(id) {
 
 //bru: успешный ответ сервера на запрос добавления друга
 var addUserResponse = function(text, data) {
-  var btn = document.getElementById('buttonAddUserFriend1');
+  var btn = document.getElementById('buttonAddUserFriend' + data.json().userId);
   btn.setAttribute('disabled', true);
+  btn.innerHTML = 'Добавлен в друзья';
 };
 
 //bru: функция вызываемая нажатием кнопки добавления друга
@@ -799,7 +785,9 @@ var addUserFriend = function(id) {
 
 //bru: успешный ответ сервера на запрос удаления друга
 var deleteUserResponse = function(text, data) {
-  
+  var btn = document.getElementById('buttonAddUserFriend' + data.json().userId);
+  btn.setAttribute('disabled', true);
+  btn.innerHTML = 'Удален из друзей';
 };
 
 //bru: функция вызываемая нажатием кнопки удаления друга
@@ -818,7 +806,7 @@ var dataviewCentral_Users = {
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
     //bru: построение элемента в списке друзей
-    var htmlCode = '<div class="friend_avatar"><img src="/img/avatars/100/'+obj.img+'"/></div>';
+    var htmlCode = '<div class="friend_avatar"><img style="width:100px; height:100px;" src="/img/avatars/100/'+obj.img+'"/></div>';
     htmlCode = htmlCode + '<div class="friend_info"><a class="itmTextBold" href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     

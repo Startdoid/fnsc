@@ -455,11 +455,11 @@ function addUserlist(req, res, next) {
   //bru: Добавляемый пользователь
   var userId = req.param('userId');
   
-  userModel.addFriend(userId, function(status){
-    
-    if(status){
-      res.status(errors.restStat_isOk).end();
-    }else{res.status(errors.restStat_DbSaveError).end();}
+  userModel.addFriend(userId, function(status) {
+    if(status) {
+      //bru: в случае успеха отсылает id добавленного пользователя
+      res.status(errors.restStat_isOk).send( { userId:userId } );
+    } else {res.status(errors.restStat_DbSaveError).end();}
   });
 }
 
@@ -468,11 +468,11 @@ function deleteUserlist(req, res, next) {
   //bru: Удаляемый пользователь
   var userId = req.param('userId');
   
-  userModel.deleteFriend(userId, function(status){
-    
-    if(status){
-      res.status(errors.restStat_isOk).end();
-    }else{res.status(errors.restStat_DbSaveError).end();}
+  userModel.deleteFriend(userId, function(status) {
+    if(status) {
+      //bru: в случае успеха отсылает id удаленного пользователя
+      res.status(errors.restStat_isOk).send( { userId:userId } );
+    } else {res.status(errors.restStat_DbSaveError).end();}
   });
 }
 
