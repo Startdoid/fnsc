@@ -629,6 +629,101 @@ var scrollviewProfile_viewedUserAttributes = {
   ]}
 };
 
+//**************************************************************************************************
+//АВАТАРКА ПРОФИЛЯ
+
+function avatarUploadFiles() {
+	$$('upl1').send();
+}
+
+function avatarUploadCancel() {
+	var id = $$('upl1').files.getFirstId();
+	while (id) {
+		$$('upl1').stopUpload(id);
+		id = $$('upl1').files.getNextId(id);
+	}
+	$$('avatarLoaderFrame').hide();
+}
+
+webix.type(webix.ui.list, {
+	name:'myUploader',
+	template:function(f, type){
+		var html = "<div class='uploader_overall'><div class='uploader_name'>"+f.name+"</div>";
+		html += "<div class='uploader_remove_file'><span style='color:#AAA' class='uploader_cancel_icon'></span></div>";
+		html += "<div class='uploader_status'>";
+		html += "<div class='uploader_progress "+f.status+"' style='width:"+(f.status == 'transfer'||f.status=="server"?f.percent+"%": "0px")+"'></div>";
+		html += "<div class='uploader_message "+ f.status+"'>"+type.status(f)+"</div>";
+		html +=	 "</div>";
+		html += "<div class='uploader_size'>"+ f.sizetext+"</div></div>";
+		return html;
+	 },
+	status:function(f){
+		var messages = {
+			server: 'Done',
+			error: 'Error',
+			client: 'Ready',
+			transfer:  f.percent+'%'
+		};
+		return messages[f.status];
+	},
+	on_click:{
+		'uploader_remove_file':function(ev, id){
+			$$(this.config.uploader).files.remove(id);
+		}
+	},
+	height: 35
+});
+
+var avatarLoaderForm = {
+	view:'form',
+	borderless:true,
+	elements: [
+		{ view:'template', template:'<span>Было бы замечательно, если бы ваш профиль имел аватарку! Сейчас у вас замечательная возможность её выбрать!</span>' },
+		{ view:'uploader', 
+		  id:'upl1', 
+		  height:37, align:'center', 
+		  type:'iconButton', icon:'plus-circle', 
+		  label:'Add files', autosend:false, 
+		  link:'mylist', 
+		  upload:'api/v1/upload',
+		  accept:'image/png' },
+		  //accept:'image/png, image/gif, image/jpg' },
+		{
+			borderless:true,
+			view:'list', id:'mylist', type:'myUploader',
+			autoheight:true, minHeight:50
+  	},
+		{
+			id:'uploadButtons',
+			cols:[
+				{ view:'button', label:'Upload', type:'iconButton', icon:'upload', click:'avatarUploadFiles()', align:'center' },
+				{ width:5 },
+				{ view:'button', label:'Cancel', type:'iconButton', icon:'cancel-circle', click:'avatarUploadCancel()', align:'center' }
+			]
+		}
+	],
+	elementsConfig:{
+		labelPosition:'top',
+	}
+};
+
+webix.ui({
+  view:'window',
+  id:'avatarLoaderFrame',
+  width:450,
+  height:300,
+  position:'center',
+  modal:true,
+  head:'Загрузка новой фотографии',
+  body:webix.copy(avatarLoaderForm)
+});
+
+var changeAvatar = function() {
+  $$('avatarLoaderFrame').getBody().clear();
+  $$('avatarLoaderFrame').show();
+  $$('avatarLoaderFrame').getBody().focus();
+};
+
 var frameProfile_user = {
   id: 'frameProfile_user',
   rows:[
@@ -637,9 +732,11 @@ var frameProfile_user = {
     { cols:[
       { rows: [
         { view:'template', id:'avatarProfile_user', width:250, height:250, borderless:true, template:function(obj) {
-          return '<div class="frAv"><img src="img/avatars/200/'+obj.src+'"></div>';
-        }, onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false;//blocks default onclick event
-        } } },
+          return '<div class="frAv"> \
+            <a href="javascript:changeAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
+            <img src="img/avatars/200/'+obj.src+'"></div>';
+        }, //onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false; } } //blocks default onclick event 
+        },
         { height:10 },
         listProfile_UserAttributesSelector
       ]},
@@ -777,7 +874,7 @@ var addUserResponse = function(text, data) {
 
 //bru: функция вызываемая нажатием кнопки добавления друга
 var addUserFriend = function(id) {
-  var promise = webix.ajax().put('api/v1/userlist', { userId: id }, addUserResponse);
+  var promise = webix.ajax().put('api/v1/users', { userId: id }, addUserResponse);
   promise.then(function(realdata){}).fail(function(err) {
     //$$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
   });
@@ -792,7 +889,7 @@ var deleteUserResponse = function(text, data) {
 
 //bru: функция вызываемая нажатием кнопки удаления друга
 var deleteUserFriend = function(id) {
-  var promise = webix.ajax().del('api/v1/userlist', { userId: id }, deleteUserResponse);
+  var promise = webix.ajax().del('api/v1/users', { userId: id }, deleteUserResponse);
   promise.then(function(realdata){}).fail(function(err) {
     //$$('frameCentralRegister_authenticateError').setValues({ src:err.responseText });
   });  
@@ -811,7 +908,7 @@ var dataviewCentral_Users = {
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
     //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
-    if(Number(App.State.userlistFilter.userId) === App.State.user.get('id')) {
+    if(Number(App.State.usersFilter.userId) === App.State.user.get('id')) {
       htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
     } else {
       //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
