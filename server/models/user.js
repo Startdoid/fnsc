@@ -136,23 +136,24 @@ module.exports = {
   getLoggedUser: function() {
     return loggedUser;
   },
-  /*
+  /*****************************************************************************
   * getUsersList Получение списка пользователей из линейной DB
   * 
     структура возвращаемых значений:
     1. первая выдача данных { total_count - количество элементов, data - массив элементов }
     2. последующие порции данных { data }
-  */
+  *****************************************************************************/
   getUsersList: function(from, to, filter, callback) {
     
     var usersList = { data: [{}] };
+    
     var querySelect = 'SELECT id, username, email, "visibleProfile"  FROM "Users" where "id"<>$3 ORDER BY "id"  LIMIT $1 OFFSET $2;';
     
     pg.connect(global.url_pg, function(err, client, done) {
       
   	  if(err) {
       	console.log('connection error (Postgres):' + err);
-      	//return callback(errors.restStat_isOk, '', usersList);
+      	return callback(errors.restStat_DbReadError, err, usersList);
       }
       	
       if(from === 0) {
@@ -164,10 +165,10 @@ module.exports = {
           
           //первая порция
           client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
-      	    if(err) { console.log(err); }
+      	    if(err) { console.log(err); return callback(errors.restStat_DbReadError, err, usersList);}
       	    
         	  var arrUsrs = result.rows.map(function(object) { 
-        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
+        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', isFriend: object.isfriend };
         	  });
         	  usersList.data = arrUsrs;
         	  done();
@@ -179,7 +180,7 @@ module.exports = {
     
       //след порция
           client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
-      	    if(err) { console.log(err); }
+      	    if(err) { console.log(err); return callback(errors.restStat_DbReadError, err, usersList);}
       	    
         	  var arrUsrs = result.rows.map(function(object) { 
         	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
@@ -194,33 +195,58 @@ module.exports = {
   },
   
   /****************************************************************************
-  * getFriends list
-  *
-  * Result:
+   getFriends list
+   UserId - Друзья какого пользователя
+   Result:
       (array)(array) - Массив с пользователями
-  */
-  getFriends: function(UserId, callback) {
+  *****************************************************************************/
+  getFriends: function(UserId, from, count, callback) {
     
     var usersList = { data: [{}] };
     
     pg.connect(global.url_pg, function(err, client, done) {
       if(err){console.log(err); return usersList}
       
-      var querySelect = 'SELECT "Users".id, "Users".username, "Users".email, "Users"."visibleProfile", "UserFriends"."Status" \
-                        FROM public."UserFriends" left join public."Users" on "Users".id = "UserFriends"."FriendId" \
-                        WHERE "UserFriends"."UserId" = $1';
+      /*$1 - чьи друзья
+      * $2 - текущий пользователь
+        $3 - количество
+        $4 - начальная позиция*/
       
-      //получаем список
-      client.query(querySelect,[Number(UserId)], function(err, result){
+      var queryCount = 'SELECT count("Users".id) as count \
+                        FROM "UserFriends" left join "Users" on "Users".id = "UserFriends"."FriendId" \
+                                left join "UserFriends" as "UF2" on "Users".id = "UF2"."FriendId" and "UF2"."UserId"=$2 \
+                        WHERE "UserFriends"."UserId" = $1 \
+                        GROUP by "Users"."id" \
+                        Order by "Users"."id" ;';
+        
+      var querySelect = 'SELECT "Users".id, "Users".username, "Users".email, "Users"."visibleProfile", "UserFriends"."Status", \
+                            CASE \
+                            	WHEN "UF2"."FriendId" IS NOT NULL THEN 1 \
+                            	ELSE 0 \
+                            END as isfriend \
+                        FROM "UserFriends" left join "Users" on "Users".id = "UserFriends"."FriendId" \
+                                left join "UserFriends" as "UF2" on "Users".id = "UF2"."FriendId" and "UF2"."UserId"=$2 \
+                        WHERE "UserFriends"."UserId" = $1 \
+                        Order by "Users"."id" LIMIT $3 OFFSET $4;';
+      
+      //количество для списка
+      client.query(queryCount,[Number(UserId), Number(loggedUser.id)], function(err, result){
+        if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList;}
+        
+        usersList.total_count = Number(result.rows[0].count);
+        
+        //получаем список
+        client.query(querySelect,[Number(UserId), Number(loggedUser.id), Number(count), Number(from)], function(err, result){
     	  if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList}
     	  
     	  var arrUsrs = result.rows.map(function(object) { 
-        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', status:object.Status };
+        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', status:object.status, isFriend:object.isfriend };
         	  });
         	  usersList.data = arrUsrs;
         	  done();
         	  callback(errors.restStat_isOk, '', usersList);
         	  return usersList;
+        });
       });
     });
   },
