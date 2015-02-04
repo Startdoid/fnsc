@@ -481,7 +481,7 @@ App.Func.loadUserAttributes = function() {
 
 var listProfile_UserAttributesSelector = {
   view:'list', id:'listProfile_UserAttributesSelector', css:'mainSelector',
-	borderless:true,  width:250, scroll:false,
+	borderless:true,  width:200, scroll:false,
 	template:'#value#',
 	type:{ height:50 },
 	select:true,
@@ -516,7 +516,7 @@ var listProfile_UserAttributesSelector = {
 
 var listProfile_viewedUserAttributesSelector = {
   view:'list', id:'listProfile_viewedUserAttributesSelector', css:'mainSelector',
-	borderless:true,  width:250, scroll:false,
+	borderless:true,  width:200, scroll:false,
 	template:'#value#',
 	type:{ height:50 },
 	select:true,
@@ -731,7 +731,7 @@ var frameProfile_user = {
     { height:3 },
     { cols:[
       { rows: [
-        { view:'template', id:'avatarProfile_user', width:250, height:250, borderless:true, template:function(obj) {
+        { view:'template', id:'avatarProfile_user', width:200, height:200, borderless:true, template:function(obj) {
           return '<div class="frAv"> \
             <a href="javascript:changeAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
             <img src="img/avatars/200/'+obj.src+'"></div>';
@@ -753,7 +753,7 @@ var frameProfile_viewedUser = {
     { height:3 },
     { cols:[
       { rows: [
-        { view:'template', id:'avatarProfile_vieweduser', width:250, height:250, borderless:true, template:function(obj) {
+        { view:'template', id:'avatarProfile_vieweduser', width:200, height:200, borderless:true, template:function(obj) {
           return '<img src="img/avatars/200/'+obj.src+'">';
         } },
         { height:10 },
