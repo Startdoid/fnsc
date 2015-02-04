@@ -34,3 +34,6 @@ node_modules
 my.md
 vk.js
 vk2.js
+
+#jsdoc
+/out/

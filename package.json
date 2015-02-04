@@ -24,6 +24,7 @@
     "passport-google": "*",
     "mongoose-auto-increment": "*",
     "MD5": "*",
-    "pg":"*"
+    "pg":"*",
+    "jsdoc":"*"
     }
 }
