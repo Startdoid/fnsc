@@ -23,6 +23,9 @@
     "passport-facebook": "*",
     "passport-google": "*",
     "mongoose-auto-increment": "*",
+    "upload-file": "*",
+    "lwip": "*",
+    "morgan": "*",
     "MD5": "*",
     "pg":"*"
     }

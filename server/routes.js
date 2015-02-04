@@ -1,18 +1,15 @@
-var _ = require('underscore');
-var path = require('path');
-var taskModel = require('./models/task');
-var userModel = require('./models/user');
+var _          = require('underscore');
+var path       = require('path');
+var taskModel  = require('./models/task');
+var userModel  = require('./models/user');
 var groupModel = require('./models/group');
-var errors = require('./errors');
-var passport = require('passport');
+var errors     = require('./errors');
+var passport   = require('passport');
+var global     = require('./global');
+var Upload     = require('upload-file');
+var lwip       = require('lwip');
+var fs         = require('fs');
 
-var state = {
-  id: 0,
-  usrLogged: false,
-  usrCRC: null,
-  serverRoute: ''
-};
-  
 var routeExclude = ['/img/avatars/',
   '/js/jquery.min.map',
   '/favicon.ico',
@@ -21,6 +18,11 @@ var routeExclude = ['/img/avatars/',
 
 var routes = [
   // Views
+  {
+    path: '/api/v1/upload',
+    httpMethod: 'POST',
+    middleware: [uploader]
+  },  
   {
     path: '/partials/*',
     httpMethod: 'GET',
@@ -86,19 +88,19 @@ var routes = [
     middleware: [saveUser]
   },  
   {
-    path: '/api/v1/userlist',
+    path: '/api/v1/users',
     httpMethod: 'GET',
-    middleware: [userlist]
+    middleware: [getUsers]
   },
   {
-    path: '/api/v1/userlist',
+    path: '/api/v1/users',
     httpMethod: 'PUT',
-    middleware: [addUserlist]
+    middleware: [addUsers]
   },
   {
-    path: '/api/v1/userlist',
+    path: '/api/v1/users',
     httpMethod: 'DELETE',
-    middleware: [deleteUserlist]
+    middleware: [deleteUsers]
   },
   {
     path: '/api/v1/state',
@@ -218,24 +220,74 @@ function sendFonts(req, res, next) {
   });
 }
 
+//bru: загрузка файла на сервер
+function uploader(req, res, next) {
+  var loggedUser = userModel.getLoggedUser();
+  
+  new Upload(req, {
+    dest: './client/tmp',
+    maxFileSize: 100 * 1024,
+    rename: function(filename) {
+      return filename;
+    },
+    done: function(err, files) {
+      //console.log(files);
+      if (global.imgs.indexOf(path.extname(filename)) != -1) {
+        lwip.open('./client/tmp/' + filename, function(err, image) {
+          if(err) return res.send(errors.restMess_ImgErr);
+          
+          image.resize(100, 100, function(err, image) {
+            if(err) return res.send(errors.restMess_ImgErr);
+            
+            image.writeFile('./client/img/avatars/100/avtr'+loggedUser.id+'.png', function(err) {
+              if(err) return res.send(errors.restMess_ImgErr);
+              
+              step2();
+            });
+          });
+        });
+
+        var step2 = function() {
+          lwip.open('./client/tmp/' + filename, function(err, image) {
+            if(err) return res.send(errors.restMess_ImgErr);
+            
+            image.resize(200, 200, function(err, image) {
+              if(err) return res.send(errors.restMess_ImgErr);
+              
+              image.writeFile('./client/img/avatars/200/avtr'+loggedUser.id+'.png', function(err) {
+                if(err) return res.send(errors.restMess_ImgErr);
+
+                fs.unlinkSync('./client/tmp/' + filename);
+                res.send(errors.restMess_ImgOk);
+              });
+            });
+          });
+        };
+      } else {
+        res.send(errors.restMess_ImgErr);
+      }
+    }
+  });
+}
+
 function getState(req, res, next) {
   if(req.isAuthenticated()) {
     var loggedUser = userModel.getLoggedUser();
     if(loggedUser !== null) {
-      state.id = loggedUser.id;
-      state.usrLogged = true;
+      global.state.id = loggedUser.id;
+      global.state.usrLogged = true;
     }
   } else {
-    state.id = 0;
-    state.usrLogged = false;
+    global.state.id = 0;
+    global.state.usrLogged = false;
   }
   
-  res.status(errors.restStat_isOk).json(state);
+  res.status(errors.restStat_isOk).json(global.state);
 }
 
 function setState(req, res, next) {
   if(req.body.serverRoute !== 'undefined') {
-    state.serverRoute = '';//req.body.serverRoute;
+    global.state.serverRoute = '';//req.body.serverRoute;
   }
   
   res.status(errors.restStat_isOk).send('');
@@ -285,7 +337,7 @@ function logout(req, res, next) {
 function throwInRoot(req, res, next) {
   if(routeExclude.indexOf(req.url) != -1) return next();
   console.log(req.url);
-  state.serverRoute = req.path;
+  global.state.serverRoute = req.path;
   res.redirect('/');
 }
 
@@ -429,7 +481,7 @@ function deletetask(req, res, next) {
 }
 
 //bru: Получение списка пользователей и друзей
-function userlist(req, res, next) {
+function getUsers(req, res, next) {
   var start = req.param('start');
   var count = req.param('count');
   //bru: если значение === 0, то отдаются все пользователи. 
@@ -451,7 +503,7 @@ function userlist(req, res, next) {
 }
 
 //bru: Добавление пользователя в список друзей
-function addUserlist(req, res, next) {
+function addUsers(req, res, next) {
   //bru: Добавляемый пользователь
   var userId = req.param('userId');
   
@@ -464,7 +516,7 @@ function addUserlist(req, res, next) {
 }
 
 //bru:Удаление пользователя из списка друзей
-function deleteUserlist(req, res, next) {
+function deleteUsers(req, res, next) {
   //bru: Удаляемый пользователь
   var userId = req.param('userId');
   

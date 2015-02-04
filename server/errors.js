@@ -24,6 +24,10 @@ module.exports = {
 	//неудачная попытка прочитать данные из БД
 	restStat_DbReadError               : 436,
 	restMess_DbReadError               : 'Невозможно прочитать данные из DB',
+	//неудачная попытка обработать файл изображения
+	restMess_ImgErr                    : { status:'error' },
+	//удачная попытка обработать файл изображения
+	restMess_ImgOk                     : { status:'server' },
 	//перевод ошибок Монги во внутренние проблемы
 	translateMongoError: function(error) {
 	  var ret = { status: this.restStat_DbSaveError, message: this.restMess_DbSaveError + ' ' + error.message };

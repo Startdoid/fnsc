@@ -5,19 +5,19 @@ var implementFunction = (function() {
   var Backbone = window.Backbone;
   
   App.State = {
-    user              : null,     //Пользователь системы
-    viewedUser        : null,     //текущий пользователь, выбранный в списке пользователей или друзей
-    groupTreeManager  : null,     //менеджер дерева для групп
-    taskTreeManager   : null,     //менеджер дерева для задач
-    groups            : null,     //коллекция групп пользователя системы
-    tasks             : null,     //коллекция задач пользователя системы
-    serverRoute       : '',
-    clientRoute       : '',
-    segment           : '',   //user, users, groups, tasks, templates, finances, process, files, notes
-    segmentUserId     : null,
-    usrCRC            : null,
-    group             : 0,        //Выбранная группа, по которой фильтруются задачи
-    userlistFilter    : { userId: 0 },
+    user             : null,     //Пользователь системы
+    viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
+    groupTreeManager : null,     //менеджер дерева для групп
+    taskTreeManager  : null,     //менеджер дерева для задач
+    groups           : null,     //коллекция групп пользователя системы
+    tasks            : null,     //коллекция задач пользователя системы
+    serverRoute      : '',
+    clientRoute      : '',
+    segment          : '',   //user, users, groups, tasks, templates, finances, process, files, notes
+    segmentUserId    : null,
+    usrCRC           : null,
+    group            : 0,        //Выбранная группа, по которой фильтруются задачи
+    usersFilter      : { userId: 0 },
     //флаги состояния приложения this_view_action
     groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
     groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
@@ -271,7 +271,7 @@ var implementFunction = (function() {
 		},
 		users:function() {
 		  App.State.clientRoute = '/users';
-		  App.State.userlistFilter.userId = 0;
+		  App.State.usersFilter.userId = 0;
 		  App.State.segment = 'users';
 		  App.State.segmentChange();
 		},
@@ -284,7 +284,7 @@ var implementFunction = (function() {
 		userUsers:function(id) {
 		  App.State.clientRoute = '/id' + id + '/users';
 		  App.State.segment = 'users';
-		  App.State.userlistFilter.userId = id;
+		  App.State.usersFilter.userId = id;
 		  App.State.segmentUserId = id;
 		  App.State.segmentChange();
 		},
@@ -406,7 +406,7 @@ var implementFunction = (function() {
           break;  	    
         case 'users':
           $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
-          if(App.State.userlistFilter.userId === 0) {
+          if(App.State.usersFilter.userId === 0) {
             if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
               $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
             }
@@ -416,7 +416,7 @@ var implementFunction = (function() {
           $$('listSegments_SegmentsSelector').unblockEvent();
           
           $$('dataviewCentral_Users').clearAll();
-          $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/userlist');
+          $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/users');
 
           $$('frameCentral_Users').show();
           $$('scrollviewRight_UsersFilter').show();
@@ -552,8 +552,14 @@ var implementFunction = (function() {
   };
   
   $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
-    webix.ajax('api/v1/userlist', { start:start, count:count, userId: App.State.userlistFilter.userId }, centralUsers_DataRefresh);
+    webix.ajax('api/v1/users', { start:start, count:count, userId: App.State.usersFilter.userId }, centralUsers_DataRefresh);
     return false;
+  });
+
+  $$('upl1').attachEvent('onUploadComplete', function(){
+    webix.message("done");
+    $$('avatarProfile_user').refresh();
+    $$('avatarLoaderFrame').hide();
   });
 
   webix.i18n.parseFormatDate = webix.Date.strToDate('%Y/%m/%d');

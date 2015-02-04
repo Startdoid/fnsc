@@ -8,7 +8,7 @@ var http          = require("http");
 var mongoose      = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 var pg            = require('pg');
-var database 			= require('../database'); //Чтение настроек подключения к ИБ 
+var global       = require('../global'); //Чтение настроек подключения к ИБ 
 
 var userFields = {
   id: Number,
@@ -116,7 +116,7 @@ module.exports = {
       });
       
       //postgres
-      pg.connect(database.url_pg, function(err, client, done) {
+      pg.connect(global.url_pg, function(err, client, done) {
   	   	if(err) {
       		console.log('connection error (Postgres):'+err);
       		return;
@@ -155,7 +155,7 @@ module.exports = {
     
     var querySelect = 'SELECT id, username, email, "visibleProfile"  FROM "Users" where "id"<>$3 ORDER BY "id"  LIMIT $1 OFFSET $2;';
     
-    pg.connect(database.url_pg, function(err, client, done) {
+    pg.connect(global.url_pg, function(err, client, done) {
       
   	  if(err) {
       	console.log('connection error (Postgres):' + err);
@@ -210,7 +210,7 @@ module.exports = {
     
     var usersList = { data: [{}] };
     
-    pg.connect(database.url_pg, function(err, client, done) {
+    pg.connect(global.url_pg, function(err, client, done) {
       if(err){console.log(err); return usersList}
       
       /*$1 - чьи друзья
@@ -267,7 +267,7 @@ module.exports = {
   */
   addFriend: function(friendId, callback){
     
-    pg.connect(database.url_pg, function(err, client, done) {
+    pg.connect(global.url_pg, function(err, client, done) {
       if(err){console.log(err); callback(false)}
       
       var queryInsert = 'INSERT INTO "UserFriends"("UserId", "FriendId", "Status") VALUES ($1, $2, $3);';
@@ -293,7 +293,7 @@ module.exports = {
   */
   deleteFriend: function(friendId, callback){
     
-    pg.connect(database.url_pg, function(err, client, done) {
+    pg.connect(global.url_pg, function(err, client, done) {
       if(err){console.log(err); callback(false)}
       
       var queryDelete = 'DELETE FROM "UserFriends" WHERE "FriendId"=$1 and "UserId"=$2;';
@@ -356,7 +356,7 @@ module.exports = {
       });
       
       //postgres
-      pg.connect(database.url_pg, function(err, client, done) {
+      pg.connect(global.url_pg, function(err, client, done) {
 	   	if(err) {
     		console.log('connection error (Postgres):'+err);
     		return;

@@ -3,8 +3,8 @@
 */
 
 var pg            = require('pg');
-var database      = require('../database');
-var mongoose = require('mongoose');
+var global        = require('../global');
+var mongoose      = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 
 var groupSchema = mongoose.Schema({
@@ -37,7 +37,7 @@ module.exports = {
   getGroups: function(user, filter, callback) {
     if(user === null) return callback("NeedUser");
     
-    pg.connect(database.url_pg, function(err, client, done) {
+    pg.connect(global.url_pg, function(err, client, done) {
 	   	if(err) {
     		console.log('connection error (Postgres):'+err);
     	}
