@@ -35,7 +35,7 @@ var routes = [
   {
     path: '/api/v1/groups',
     httpMethod: 'GET',
-    middleware: [getgroups]
+    middleware: [getGroups]
   },
   {
     path: '/api/v1/groups/:group_id',
@@ -377,17 +377,31 @@ function getgroup(req, res, next) {
   res.status(200).end();
 }
 
-function getgroups(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+/**
+* getGroups
+*  Функция извлекает из DB группы
+* Attributes:
+*  userId - пользователь, относительно которого извлекается массив групп
+*  - если значение 0, то извлекаются все группы в соответствии с настройками приватности для групп
+*  т.е. все "публичные" группы + группы которые видимы осн-пользователю
+* Result:
+*****************************************************************************/
+function getGroups(req, res, next) {
+  //bru: если значение === 0, то отдаются все пользователи. 
+  //В противном случает отдаются друзья пользователя с id = userId
+  var userId = Number(req.param('userId'));
   
-  var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  //старое содержимое функции
+  // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
   
-  groupModel.getGroups(loggedUser, null, function(err, groups) {
-    if(err) return res.status(400).send(err);
+  // var loggedUser = userModel.getLoggedUser();
+  // if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  
+  // groupModel.getGroups(loggedUser, null, function(err, groups) {
+  //   if(err) return res.status(400).send(err);
     
-    res.status(200).json(groups);
-  });
+  //   res.status(200).json(groups);
+  // });
 }
 
 function savegroup(req, res, next) {

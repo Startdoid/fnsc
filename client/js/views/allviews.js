@@ -895,7 +895,7 @@ var deleteUserFriend = function(id) {
   });  
 };
 
-//bru: фрейм выводящий список пользоватлей и друзей
+//bru: фрейм выводящий список пользователей и друзей
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
   borderless:true, scroll:'y', xCount:1,
@@ -936,7 +936,7 @@ var labelToolbarCentral_Users = {
 	label:'Назад',
 	on:{
 		'onItemClick': function() { 
-		  App.Router.navigate('', {trigger:true} ); 
+		  App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); 
 		}
 	}
 };

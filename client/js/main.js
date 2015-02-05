@@ -5,6 +5,10 @@ var implementFunction = (function() {
   var Backbone = window.Backbone;
   
   App.State = {
+    _st : [{
+      clientRoute : '',
+      segment     : '',   //user, users, groups, tasks, templates, finances, process, files, notes
+    }],                          //Стек состояний
     user             : null,     //Пользователь системы
     viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
     groupTreeManager : null,     //менеджер дерева для групп
@@ -12,8 +16,6 @@ var implementFunction = (function() {
     groups           : null,     //коллекция групп пользователя системы
     tasks            : null,     //коллекция задач пользователя системы
     serverRoute      : '',
-    clientRoute      : '',
-    segment          : '',   //user, users, groups, tasks, templates, finances, process, files, notes
     segmentUserId    : null,
     usrCRC           : null,
     group            : 0,        //Выбранная группа, по которой фильтруются задачи
@@ -24,33 +26,88 @@ var implementFunction = (function() {
     tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
     tasktable_ItemEdited      : null,  //редактируемый элемент в области конструктора задач
     $init: function() {
-      this.segment                  = '';
+      if(this.user != null) { this.user = null; }
+      this.user = this.userModelInit();
+
+      if(this.viewedUser != null) { this.viewedUser = null; }
+      this.viewedUser = this.userModelInit();
+
+      if(this.groupTreeManager != null) { this.groupTreeManager = null; }
+      this.groupTreeManager = new treeManager();
+
+      if(this.taskTreeManager != null) { this.taskTreeManager = null; }
+      this.taskTreeManager = new treeManager();
+
+      if(this.groups != null) { this.groups = null; }
+      this.groups = this.groupsModelInit();
+
+      if(this.tasks != null) { this.tasks = null; }
+      this.tasks = this.tasksModelInit();
+
+      this._st                       = [ { clientRoute: '', segment: '' } ];
+      this.serverRoute              = '';
+      this.prevClientRoute          = '',
+      this.segmentUserId            = null;
+      this.usrCRC                   = null;
       this.group                    = 0;
+      this.usersFilter              = { userId: 0 };
       this.groupstable_ItemSelected = 0;
       this.groupstable_ItemEdited   = null;
       this.tasktable_ItemSelected   = 0;
       this.tasktable_ItemEdited     = null;
-      this.serverRoute              = '';
-      this.segmentUserId            = null;
-      this.usrCRC                   = null;
-      
-      if(this.groupTreeManager != null) { delete this.groupTreeManager; this.groupTreeManager = null; }
-      this.groupTreeManager = new treeManager();
-      
-      if(this.taskTreeManager != null) { delete this.taskTreeManager; this.taskTreeManager = null; }
-      this.taskTreeManager = new treeManager();
-      
-      if(this.user != null) { delete this.user; this.user = null; }
-      this.user = this.userModelInit();
-      
-      if(this.viewedUser != null) { delete this.viewedUser; this.viewedUser = null; }
-      this.viewedUser = this.userModelInit();
-      
-      if(this.groups != null) { delete this.groups; this.groups = null; }
-      this.groups = this.groupsModelInit();
-
-      if(this.tasks != null) { delete this.tasks; this.tasks = null; }
-      this.tasks = this.tasksModelInit();
+    },
+    /**
+    * setState
+    *   Функция ДОБАВЛЯЕТ новые значения в стек состояний State._st. 
+    *   Стек ограничен длиной в 4 элемента, при привышении этой длины первый элемент стека State._st удаляется.
+    *   Если атрибут функции содержит не все атрибуты стека State._st, то новое значение дополняется 
+    *   значениям из предыдущего состояния стека
+    * Attributes:
+    *   state - новое состояние стека
+    * Result:
+    *****************************************************************************/
+    setState: function(state) {
+      if (typeof state === 'object') {
+        var len = this._st.length;
+        if(len > 3) this._st.shift();
+        len = this._st.push({ clientRoute: '', segment: '' });
+        
+          for (var prop in this._st[len - 1]) {
+            if(state[prop] === undefined) {
+                if(len >= 2)
+                    this._st[len - 1][prop] = this._st[len - 2][prop];
+                else
+                    this._st[len - 1][prop] = null;
+            } else {
+                this._st[len - 1][prop] = state[prop];
+            }
+          }
+      }
+    },
+    /**
+    * getState
+    *   Функция ИЗВЛЕКАЕТ значения из стека состояний State._st. 
+    * Attributes:
+    *   state - при пустом значении извлекается последний объект стека, 
+    *   - при отрицательном числовом значении извлекается предыдущий объект стека на количество 
+    *   значений указанных в атрибуте
+    *   - если указано строковое значение, то извлекается атрибут объекта стека состояний State.st 
+    *   соответствующий этому ключу
+    *   step - при отрицательном числовом значении извлекается предыдущий объект стека на количество
+    *   значений указанных в атрибуте
+    * Result:
+    *   объект из стека состояний State._st { clientRoute: '', segment: '' } или значение атрибута 
+    *   этого объекта
+    *****************************************************************************/
+    getState: function(state, step) {
+        if(state === undefined) {
+            return this._st[this._st.length - 1];
+        } else if(typeof state === 'number') {
+            return this._st[this._st.length - 1 + state];
+        } else if(typeof state === 'string') {
+            return this._st[step === undefined ? this._st.length - 1 : this._st.length - 1 + step][state];
+        }
+        return undefined;
     },
     $srvUrlChanged: function(text, data, XmlHttpRequest) {
       var sr = App.State.serverRoute;
@@ -73,7 +130,7 @@ var implementFunction = (function() {
           webix.message({type: 'error', text: err.responseText});
         });
       } else {
-        if(App.State.segment === '') {
+        if(App.State.getState('segment') === '') {
           App.Router.navigate('id' + model.id, {trigger: true});
         } else {
           segmentSelector();
@@ -118,15 +175,24 @@ var implementFunction = (function() {
       webix.message(err);
       //заглушечка
     },
-    segmentChange: function() {
-      //при смене сегментов происходит запрос с сервера о состоянии приложения
-      //в состоянии содержится информация об измененных объектах, о состоянии пользователя и т.п.
-      //и url который ввел пользователь
-      
-      //если ответ от сервера получен, то переходим к функции обработки состояния
+    /**
+    * segmentChange
+    *   функция вызывается при смене роута, запоминает предыдущее состояние, делает запрос состояния
+    *   с сервера, передает управление дальше в соответствии с Result
+    * Attributes:
+    *   clientRoute - url по которому переходит пользователь
+    *   segment - сегмент который отображается пользователю после перехода по url
+    * Result:
+    *   ok: $loadState - управление сменой сегмена в зависимости от состояния на сервере
+    *   error: $autonomeState - переход к автономному режиму, когда состояние от сервера не получено
+    *****************************************************************************/
+    segmentChange: function(clientRoute, segment) {
+      this.setState( {clientRoute:clientRoute, segment:segment} );
+
       var promise = webix.ajax().get('api/v1/state', {}, this.$loadState);
-      //если ответ от сервера не получен, то переходим в автономный режим
-      promise.then(function(realdata){}).fail(this.$autonomeState);
+      promise.then(function(realdata) {
+        //prevClientRoute = 
+      }).fail(this.$autonomeState);
     },
     userModelInit: function() {
       //Инициализируем глобальный объект пользователя со всеми настройками приложения
@@ -251,45 +317,34 @@ var implementFunction = (function() {
 		},
 		//home выбрасывает в корень
 		home:function() {
-		  App.State.clientRoute = '/home';
+		  //App.State.clientRoute = '/home';
 		  this.navigate('', {trigger: true});
 		},
 		//корень приложения
 		index:function() {
-		  App.State.clientRoute = '';
-		  App.State.segmentChange();
+		  App.State.segmentChange('', undefined);
 		},
 		groups:function() {
-		  App.State.clientRoute = '/groups';
-		  App.State.segment = 'groups';
-		  App.State.segmentChange();
+		  App.State.segmentChange('/groups', 'groups');
 		},
 		tasks:function() {
-		  App.State.clientRoute = '/tasks';
-		  App.State.segment = 'tasks';
-		  App.State.segmentChange();
+		  App.State.segmentChange('/tasks', 'tasks');
 		},
 		users:function() {
-		  App.State.clientRoute = '/users';
 		  App.State.usersFilter.userId = 0;
-		  App.State.segment = 'users';
-		  App.State.segmentChange();
+		  App.State.segmentChange('/users', 'users');
 		},
 		user:function(id) {
-		  App.State.clientRoute = '/id' + id;
-		  App.State.segment = 'user';
 		  App.State.segmentUserId = id;
-		  App.State.segmentChange();
+		  App.State.segmentChange('/id' + id, 'user');
 		},
 		userUsers:function(id) {
-		  App.State.clientRoute = '/id' + id + '/users';
-		  App.State.segment = 'users';
 		  App.State.usersFilter.userId = id;
 		  App.State.segmentUserId = id;
-		  App.State.segmentChange();
+		  App.State.segmentChange('users?id=' + id, 'users');
 		},
 		login:function() {
-		  App.State.clientRoute = '/login';
+		  //App.State.clientRoute = '/login';
 		  if(!App.State.user.get('usrLogged')) {
 		    $$('frameCentral_Login').show();
         $$('frameCentralLogin_authenticateError').setValues({src:''});
@@ -301,7 +356,7 @@ var implementFunction = (function() {
 		  }
 		},
 		logout:function() {
-		  App.State.clientRoute = '/logout';
+		  //App.State.clientRoute = '/logout';
       var promise = webix.ajax().put('api/v1/logout', { id: App.State.user.get('id') });
 	        
       promise.then(function(realdata) {
@@ -312,7 +367,7 @@ var implementFunction = (function() {
       });
 		},
 		register:function() {
-		  App.State.clientRoute = '/register';
+		  //App.State.clientRoute = '/register';
 		  if(!App.State.user.get('usrLogged')) {
 		    $$('frameCentral_Register').show();
 		    $$('frameCentralRegister_authenticateError').setValues({src:''});
@@ -393,7 +448,7 @@ var implementFunction = (function() {
   	  if(!$$('toggleHeader_Options').isEnabled()) $$('toggleHeader_Options').enable();
   	  
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
-  	  switch(App.State.segment) {
+  	  switch(App.State.getState('segment')) {
         case 'user':
        	  $$('tabviewCentral_User').showProgress({
             type:'icon',
