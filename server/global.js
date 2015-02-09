@@ -6,8 +6,9 @@ module.exports = {
 	imgs   : ['.png', '.jpg', '.jpeg', '.gif', '.bmp'], // only make thumbnail for these
 	state  : {
     id: 0,
-    usrLogged: false,
+    mainUserLogged: false,
     usrCRC: null,
-    serverRoute: ''
+    serverRoute: '',
+    userId : 0
   }
 }; 

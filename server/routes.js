@@ -38,6 +38,21 @@ var routes = [
     middleware: [getGroups]
   },
   {
+    path: '/api/v1/groups',
+    httpMethod: 'PUT',
+    middleware: [putGroups]
+  },
+  {
+    path: '/api/v1/groups',
+    httpMethod: 'POST',
+    middleware: [postGroups]
+  },
+  {
+    path: '/api/v1/groups',
+    httpMethod: 'DELETE',
+    middleware: [deleteGroups]
+  },  
+  {
     path: '/api/v1/groups/:group_id',
     httpMethod: 'GET',
     middleware: [getgroup]
@@ -275,11 +290,11 @@ function getState(req, res, next) {
     var loggedUser = userModel.getLoggedUser();
     if(loggedUser !== null) {
       global.state.id = loggedUser.id;
-      global.state.usrLogged = true;
+      global.state.mainUserLogged = true;
     }
   } else {
     global.state.id = 0;
-    global.state.usrLogged = false;
+    global.state.mainUserLogged = false;
   }
   
   res.status(errors.restStat_isOk).json(global.state);
@@ -320,7 +335,7 @@ function login(req, res, next) {
     req.logIn(user, function(err) {
       if(err) return next(err);
       if(req.body.rememberme) req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7;
-      res.status(errors.restStat_isOk).json({ id: user.id, usrLogged: true });
+      res.status(errors.restStat_isOk).json({ id: user.id, mainUserLogged: true });
     });
   })(req, res, next);
 }
@@ -379,7 +394,7 @@ function getgroup(req, res, next) {
 
 /**
 * getGroups
-*  Функция извлекает из DB группы
+*  Функция извлекает группы из DB
 * Attributes:
 *  userId - пользователь, относительно которого извлекается массив групп
 *  - если значение 0, то извлекаются все группы в соответствии с настройками приватности для групп
@@ -390,12 +405,28 @@ function getGroups(req, res, next) {
   //bru: если значение === 0, то отдаются все пользователи. 
   //В противном случает отдаются друзья пользователя с id = userId
   var userId = Number(req.param('userId'));
+  var cont = req.param('continue');
+  var parent = req.param('parent');
   
+  if(cont) {
+    if(parent === '1') {
+      var data2 = [{ id:'3', name:'Sub-Branch', numUsers:1, webix_kids:true },
+      { id:'4', name:'Sub-sub-Branch', numUsers:1 }];
+      res.status(200).json({ parent:1, data:data2 });
+    } else if(parent === '3') {
+      var data3 = [{ id:'5', name:'Sub-2-Branch', numUsers:1 }];
+      res.status(200).json({ parent:3, data:data3 });
+    }
+  } else {
+    var data1 = [{ id:'1', name:'Branch', numUsers:1, webix_kids:true },
+    { id:'2', name:'leaf', numUsers:1 }];
+    res.status(200).json(data1);
+  }
   //старое содержимое функции
-  // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+  // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
   
   // var loggedUser = userModel.getLoggedUser();
-  // if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  // if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
   
   // groupModel.getGroups(loggedUser, null, function(err, groups) {
   //   if(err) return res.status(400).send(err);
@@ -404,11 +435,91 @@ function getGroups(req, res, next) {
   // });
 }
 
+/**
+* setGroups
+*  Функция изменяет, удаляет, добавляет группы в DB
+* Attributes:
+*  userId - пользователь, относительно которого извлекается массив групп
+*  - если значение 0, то извлекаются все группы в соответствии с настройками приватности для групп
+*  т.е. все "публичные" группы + группы которые видимы осн-пользователю
+* Result:
+*****************************************************************************/
+function setGroups(req, res, next) {
+  console.log(req.param('index'));
+  console.log(req.param('id'));
+  console.log(req.body);
+  
+  var crud = req.param('webix_operation');
+  var parent = req.param('parent');
+  var id = req.param('id');
+  
+  if(crud === undefined) {
+    //Запрос пришел не от webix
+  } else {
+    switch (crud) {
+      case 'insert':
+        // Добавление элемента в дерево
+        
+        //ВНИМАНИЕ Добавив элемент в дереве, мы должны вернуть на клиент новый id, т.е. назначенный в DB id
+        //Необходимо вернуть всю запись с новым id подобно шаблону ниже
+        //{ id:'1', name:'Branch', numUsers:1, webix_kids:true }, где webix_kids означает, что ветка
+        //содержит потомков, false (или без этого атрибута) - нифига не содержит
+        //Опять же всё делаем в коллбеке, добавление в базу и возврат ответа на клиент
+        
+        if(parent === 0) {
+          //Родитель не указан, поэтому добавляем в корень дерева
+          
+          //например конструкция ниже возвращает клиенту тоже что и получил, но с изм. id
+          delete req.body.webix_operation;
+          req.body.id = '7';
+          res.status(200).json(req.body);
+        } else {
+          //Есть родитель, поэтому добавляем в родителя
+        }
+        break;
+      
+      case 'update':
+        //Обновление элемента в дереве
+        
+        //ВНИМАНИЕ Обновив элемент в дереве, мы должны вернуть на клиент новый id, т.е. назначенный в DB id
+        //Необходимо вернуть всю запись с новым id подобно шаблону ниже
+        //{ id:'1', name:'Branch', numUsers:1, webix_kids:true }, где webix_kids означает, что ветка
+        //содержит потомков, false (или без этого атрибута) - нифига не содержит
+        //Опять же всё делаем в коллбеке, добавление в базу и возврат ответа на клиент
+        
+        //например конструкция ниже возвращает клиенту тоже что и получил
+        delete req.body.webix_operation;
+        res.status(200).json(req.body);
+        break;
+      
+      case 'delete':
+        //code
+        res.status(200).end();
+        break;
+    }
+  }
+}
+
+//Обработчики crud для не вебикс запросов
+//**************************************************************************************************
+function postGroups(req, res, next) {
+  return setGroups(req, res, next);
+}
+
+function putGroups(req, res, next) {
+  return setGroups(req, res, next);
+}
+
+function deleteGroups(req, res, next) {
+  return setGroups(req, res, next);
+}
+//**************************************************************************************************
+
 function savegroup(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
   
   var arrGrId = loggedUser.grouplist.map(function(object) { return object.groupId });
   var index = arrGrId.indexOf(Number(req.params.group_id));
@@ -432,10 +543,10 @@ function deletegroup(req, res, next) {
 }
 
 function gettasks(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
 
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
 
@@ -460,10 +571,10 @@ function gettask(req, res, next) {
 }
 
 function savetask(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, usrLogged: false });
+  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, usrLogged: false });
+  if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
   
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
   

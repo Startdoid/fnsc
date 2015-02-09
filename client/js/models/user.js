@@ -10,7 +10,7 @@ App.Models.User = Backbone.Model.extend({
     gender: 0,
     familystatus: 'Выбор статуса',    
     thisTry: false,
-    usrLogged: false,
+    mainUserLogged: false,
     permissionVisibleProfile: 0
   },
  

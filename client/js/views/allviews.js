@@ -240,32 +240,41 @@ App.Frame.toolbarMyGroups_Groupstool = {
   view:'toolbar', id:'toolbarMyGroups_Groupstool',
   cols:[
     { view:'button', id:'buttonGroupstool_AddRoot', value:'Добавить основную', width:140, align:'left', 
-      click: function() { App.State.groups.newGroup(0); } },
+      click: function() { 
+        //App.State.groups.newGroup(0); 
+        var countElems = $$('treetableMyGroups_Groupstable').count();
+        $$("treetableMyGroups_Groupstable").add({
+          name: 'Новый элемент', //data users enter into an input field 
+          numUsers: 1
+        }, countElems);
+      } },
     { view:'button', id:'buttonGroupstool_Add', value:'Добавить', width:100, align:'left', 
       click: function() { App.State.groups.newGroup(App.State.groupstable_ItemSelected); } },
     { view:'button', id:'buttonGroupstool_Delete', value:'Удалить', width:100, align:'left', 
       click: function() {
-        var selectedId = App.State.groupstable_ItemSelected;
-        if (selectedId !== 0) {
-          var firstModels = App.State.groups.findWhere( { parent_id: selectedId } );
-          var text = '';
-          if (typeof firstModels === 'undefined') {
-            text = 'Вы пожелали удалить выбранную группу?';
-          } else {
-            text = 'Группа содержит другие группы, вы желаете удалить корневую группу вместе с потомками?';
-          }
+        $$('treetableMyGroups_Groupstable').remove($$('treetableMyGroups_Groupstable').getSelectedId());
+        
+        // var selectedId = App.State.groupstable_ItemSelected;
+        // if (selectedId !== 0) {
+        //   var firstModels = App.State.groups.findWhere( { parent_id: selectedId } );
+        //   var text = '';
+        //   if (typeof firstModels === 'undefined') {
+        //     text = 'Вы пожелали удалить выбранную группу?';
+        //   } else {
+        //     text = 'Группа содержит другие группы, вы желаете удалить корневую группу вместе с потомками?';
+        //   }
 
-          webix.confirm({
-            title:'Запрос на удаление группы',
-            ok:'Да', 
-            cancel:'Нет',
-            type:'confirm-warning',
-            text:text,
-            callback: function(result) { 
-              if (result) { App.State.groups.removeGroup(App.State.groupstable_ItemSelected); }
-              }
-          });
-        }
+        //   webix.confirm({
+        //     title:'Запрос на удаление группы',
+        //     ok:'Да', 
+        //     cancel:'Нет',
+        //     type:'confirm-warning',
+        //     text:text,
+        //     callback: function(result) { 
+        //       if (result) { App.State.groups.removeGroup(App.State.groupstable_ItemSelected); }
+        //       }
+        //   });
+        // }
       }
     },
     { view:'button', id:'buttonGroupstool_Up', value:'Вверх', width:100, align:'left', 
@@ -280,27 +289,90 @@ App.Frame.toolbarMyGroups_Groupstool = {
   ]
 };
 
+webix.ui({
+	view:'popup', id:'toolpopupGroups',
+  head:'Submenu',
+	width:200,
+	body:{
+		view:'list', 
+		data:[ { id: 'grMoveUp', value: 'Переместить выше', icon: 'arrow-up', $css: 'grMoveUp' },
+		  { id: 'grMoveDown', value: 'Переместить ниже', icon: 'arrow-down', $css: 'grMoveDown' },
+		  { id: 'grLevelUp', value: 'На уровень выше', icon: 'level-up', $css: 'grLevelUp' },
+		  { id: 'grLevelDown', value: 'На уровень ниже', icon: 'level-down', $css: 'grLevelDown' },
+		  { id: 'grAddGroup', value: 'Добавить группу', icon: 'plus', $css: 'grAddGroup' },
+		  { id: 'grDeleteGroup', value: 'Удалить группу', icon: 'trash-o', $css: 'grDeleteGroup' }
+		],
+		datatype:'json',
+		template:"<span style='cursor:pointer;' class='webix_icon fa-#icon#'></span><span>#value#</span>",
+		autoheight:true,
+		select:true
+	}
+});
+
+var treetableMyGroups_Groupstable_loadSuccess = function(data) {
+  $$('treetableMyGroups_Groupstable').parse(data.json());
+};
+
 App.Frame.treetableMyGroups_Groupstable = {
   view:'treetable', id:'treetableMyGroups_Groupstable',
 	editable:true, 
 	autoheight:true, 
 	select: true,
 	drag:true,
+	updateFromResponse:true,
+  save:{
+    'insert':'api/v1/groups',
+    'update':'api/v1/groups',
+    'delete':'api/v1/groups',
+    updateFromResponse:true
+  },	
 	columns:[
-		{ id:'id', header:'', css:{'text-align':'center'}, width:40 },
+		{ id:'id', header:'&nbsp;', css:{'text-align':'center'}, width:40 },
+		{ id:'grIcoChange', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-ellipsis-h'></span>" },
+		{ id:'grIcoView', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
+		{ id:'grIcoUsers', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-users'></span>" },
 		{ id:'name', editor:'text', header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
 	],
-	on: {
-	  onItemClick: function() { App.State.groupstable_ItemSelected = this.getSelectedId().id; },
-    onBeforeDrop: function(context, event) {
-      var id_conf = context.to.config.id;
-      if(id_conf === 'treetableMyGroups_Groupstable') {
-        App.State.groups.moveGroup(context.start, 'jump', context.index, context.parent);
-      }
-  	 }
+	onClick:{
+		'fa-ellipsis-h': function(e, id, node) {
+		  webix.message('change');
+		  $$('toolpopupGroups').show(node.childNodes[0], { pos: 'right'});
+		},
+		'fa-eye': function(e, id, node) {
+		  webix.message('view');
+		},
+		'fa-users': function(e, id, node) {
+		  webix.message('users');
+		}		
 	},
-	url: 'GroupData->load'
+	on: {
+	  onItemClick: function() { 
+	    //App.State.groupstable_ItemSelected = this.getSelectedId().id; 
+	  },
+    onBeforeDrop: function(context, event) {
+      // var id_conf = context.to.config.id;
+      // if(id_conf === 'treetableMyGroups_Groupstable') {
+      //   App.State.groups.moveGroup(context.start, 'jump', context.index, context.parent);
+      // }
+  	 },
+		onBeforeLoad: function() {
+			this.showOverlay('Загрузка данных...');
+		},
+		onAfterLoad: function() {
+			this.hideOverlay();
+		},
+    // onBeforeOpen:function(id) {
+    //   if(this.getItem(id).$count===-1)
+    //     this.loadBranch(id);
+    // },
+    onDataRequest: function (id) {
+      webix.ajax().get('api/v1/groups?continue=true&parent='+id).then(treetableMyGroups_Groupstable_loadSuccess);
+      //cancelling default behaviour
+      return false;
+    }    
+	},
+	//url: 'GroupData->load'
 };
 
 App.Frame.tabviewCentral_Groups = {
@@ -960,7 +1032,7 @@ App.Frame.frameCentral_Users = {
 //**************************************************************************************************
 //OTHER frames
 var reglogResponse = function(text, data) {
-  //App.State.user.set({'usrLogged': true}, {silent: true});
+  //App.State.user.set({'mainUserLogged': true}, {silent: true});
   //App.State.user.set({'id': data.json().id}, {silent: true});
   App.Router.navigate('id' + data.json().id, {trigger: true});
 };

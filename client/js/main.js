@@ -138,7 +138,7 @@ var implementFunction = (function() {
       }
     },
     $userError: function(model, xhr, options) {
-      App.State.user.set({'usrLogged': false}, {silent: true});
+      App.State.user.set({'mainUserLogged': false}, {silent: true});
       segmentSelector();
       //заглушечка
     },
@@ -150,12 +150,12 @@ var implementFunction = (function() {
       App.State.serverRoute = data.json().serverRoute;
       
       //(сравниваем авторизации на клиенте и сервере), (хэш суммы пользователя на клиенте и сервере)
-      if(data.json().usrLogged) {
+      if(data.json().mainUserLogged) {
         //Если пользователь авторизирован на сервере
         
         //(сравниваем авторизации на клиенте и сервере), (хэш суммы пользователя на клиенте и сервере)
-        if((App.State.user.get('usrLogged') !== data.json().usrLogged) || (App.State.usrCRC !== data.json().usrCRC)) {
-          App.State.user.set({'usrLogged': true}, {silent: true});
+        if((App.State.user.get('mainUserLogged') !== data.json().mainUserLogged) || (App.State.usrCRC !== data.json().usrCRC)) {
+          App.State.user.set({'mainUserLogged': true}, {silent: true});
 		      App.State.user.url = '/api/v1/users/' + data.json().id;
           App.State.user.fetch({ success: App.State.$userSuccess, error: App.State.$userError, silent:true });
           
@@ -165,8 +165,8 @@ var implementFunction = (function() {
         segmentSelector();
       } else {
         //Если пользователь не авторизирован на сервере
-        if(App.State.user.get('usrLogged')) {
-          App.State.user.set({'usrLogged': false}, {silent: true});
+        if(App.State.user.get('mainUserLogged')) {
+          App.State.user.set({'mainUserLogged': false}, {silent: true});
         }
         segmentSelector();
       }
@@ -345,7 +345,7 @@ var implementFunction = (function() {
 		},
 		login:function() {
 		  //App.State.clientRoute = '/login';
-		  if(!App.State.user.get('usrLogged')) {
+		  if(!App.State.user.get('mainUserLogged')) {
 		    $$('frameCentral_Login').show();
         $$('frameCentralLogin_authenticateError').setValues({src:''});
 
@@ -360,7 +360,7 @@ var implementFunction = (function() {
       var promise = webix.ajax().put('api/v1/logout', { id: App.State.user.get('id') });
 	        
       promise.then(function(realdata) {
-        App.State.user.set({'usrLogged': false}, {silent:true});
+        App.State.user.set({'mainUserLogged': false}, {silent:true});
         App.Router.navigate('', {trigger: true});
       }).fail(function(err){
         connectionErrorShow(err);
@@ -368,7 +368,7 @@ var implementFunction = (function() {
 		},
 		register:function() {
 		  //App.State.clientRoute = '/register';
-		  if(!App.State.user.get('usrLogged')) {
+		  if(!App.State.user.get('mainUserLogged')) {
 		    $$('frameCentral_Register').show();
 		    $$('frameCentralRegister_authenticateError').setValues({src:''});
 		    
@@ -421,11 +421,16 @@ var implementFunction = (function() {
 	  //заглушка
 	};
 	
-  var showGroupDataAfterFetch = function(Groups, response, options) {
-    App.State.groupTreeManager.treeBuild(App.State.groups.models);
+  var showGroupDataAfterSuccess = function(text, data) {
+    //App.State.groupTreeManager.treeBuild(App.State.groups.models);
     
-    $$('treetableMyGroups_Groupstable').load('GroupData->load');
+    //$$('treetableMyGroups_Groupstable').load('GroupData->load');
+    $$("treetableMyGroups_Groupstable").parse(text);
   };
+
+  var showGroupDataAfterError = function(model, xhr, options) {
+	  //заглушка
+	};
 
   var showTaskDataAfterFetch = function(Tasks, response, options) {
     App.State.taskTreeManager.treeBuild(App.State.tasks.models);
@@ -443,7 +448,7 @@ var implementFunction = (function() {
     var viewedUser = App.State.viewedUser;
     
     //если пользователь залогинился (получаем при опросе состояния сервера)
-  	if(user.get('usrLogged')) {
+  	if(user.get('mainUserLogged')) {
   	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
   	  if(!$$('toggleHeader_Options').isEnabled()) $$('toggleHeader_Options').enable();
   	  
@@ -460,7 +465,11 @@ var implementFunction = (function() {
 
           break;  	    
         case 'users':
-          $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+          //Обработаем показ сегмента пользователей, сперва верно выделим пункты меню
+          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
+          //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
+          //в противном случае снимаем выделение
+          $$('listSegments_SegmentsSelector').blockEvent();
           if(App.State.usersFilter.userId === 0) {
             if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
               $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
@@ -478,12 +487,28 @@ var implementFunction = (function() {
           
           break;
         case 'groups':
-          if('listitemSegmentsSelector_AllGroups' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-            $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllGroups');
+          //Обработаем показ сегмента групп, сперва верно выделим пункты меню
+          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
+          //если фильтр по пользователю не выбран, выделяем пункт групп в основном меню
+          //в противном случае снимаем выделение          
+          $$('listSegments_SegmentsSelector').blockEvent();
+          if(App.State.usersFilter.userId === 0) {
+            if('listitemSegmentsSelector_AllGroups' != $$('listSegments_SegmentsSelector').getSelectedId()) {
+              $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllGroups');
+            }
+          } else {
+            $$('listSegments_SegmentsSelector').unselectAll();
           }
-
-          App.State.groups.fetch({ success: showGroupDataAfterFetch });
+          $$('listSegments_SegmentsSelector').unblockEvent();
           
+          //App.State.groups.fetch({ success: showGroupDataAfterFetch });
+          $$('treetableMyGroups_Groupstable').clearAll();
+          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.usersFilter.userId }, showGroupDataAfterSuccess);
+          promise.then(function(realdata) {}).fail(showGroupDataAfterError);
+
+          //$$('treetableMyGroups_Groupstable').load('api/v1/groups');
+          //$$('treetableMyGroups_Groupstable').loadNext(10, 0, null, 'api/v1/groups');
+
           $$('tabviewCentral_Groups').show();
           $$('scrollviewRight_GroupsFilter').show();
           
@@ -514,7 +539,7 @@ var implementFunction = (function() {
 	    App.State.$init();
 	    offState();
   	  $$('frameCentral_Greeting').show();
-  	} //if(App.State.user.usrLogged)    
+  	} //if(App.State.user.mainUserLogged)    
   };
   
   var connectionErrorShow = function(err) {
@@ -577,8 +602,8 @@ var implementFunction = (function() {
         this.updateItem(ItemEdited);
         App.State.groupstable_ItemEdited = null;
       } else {
-        var selectGroup = App.State.groups.get(App.State.groupstable_ItemEdited);
-        selectGroup.set({ 'name': state.value });
+        //var selectGroup = App.State.groups.get(App.State.groupstable_ItemEdited);
+        //selectGroup.set({ 'name': state.value });
       }
     }
   });
@@ -612,9 +637,43 @@ var implementFunction = (function() {
   });
 
   $$('upl1').attachEvent('onUploadComplete', function(){
-    webix.message("done");
     $$('avatarProfile_user').refresh();
     $$('avatarLoaderFrame').hide();
+  });
+  
+  var dp = webix.dp('treetableMyGroups_Groupstable');
+  dp.config.updateFromResponse = true;  
+  dp.attachEvent('onAfterSaveError', function(id, status, response, detail) {
+    // structure of status: {
+    //   id:"id of item",
+    //   status:"update status",
+    //   newid:"new id after operation"
+    // }
+    // Structure of details {
+    //   text:"full text of server side response",
+    //   data:"webix ajax data related to the error",
+    //   loader:"xmlHttpRequest object related to the error"
+    // }
+    
+    return true;
+  });
+  dp.attachEvent('onBeforeSaveError', function(id, status, response, detail) {
+    return true;//return true to ignore the error and mark item as saved
+  });  
+  dp.attachEvent('onLoadError', function(text, data, loader) {
+    return true;
+  });
+  dp.attachEvent('onBeforeInsert', function(id, object) {
+    $$('treetableMyGroups_Groupstable').showOverlay('Добавление группы...');
+    return true;
+  });
+  dp.attachEvent('onBeforeUpdate', function(id, object) {
+    $$('treetableMyGroups_Groupstable').showOverlay('Изменение в группе...');
+    return true;
+  });  
+  dp.attachEvent('onAfterSave', function(response, id, update) {
+    $$('treetableMyGroups_Groupstable').hideOverlay();
+    return true;
   });
 
   webix.i18n.parseFormatDate = webix.Date.strToDate('%Y/%m/%d');

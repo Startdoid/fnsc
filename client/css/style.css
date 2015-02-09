@@ -72,6 +72,10 @@ a.ChangePicture {
 	display: block;
 }
 
+.menu .grMoveUp .webix_icon{
+	font-size: 18px;
+}
+
 /*avatar change*/
 
 .uploader_overall { height:100%; line-height: 26px; }
