@@ -1,7 +1,7 @@
 /**
-* Модель пользователя User
-* 
-* 
+* Модуль серверной модели работы с пользователями
+* @module users
+* @author iceflash
 */
 
 var http          = require("http");
@@ -87,13 +87,27 @@ var commit = function(client, callback) {
     return callback(validationResult.status);
 };
 
+//var userModel = {
 
+/** Реализует серверную логику работы c данными пользователей системы 
+ * Реализует серверную логику работы c данными пользователей системы 
+ */
 module.exports = {
-  model: null,
+  /**@private*/ 
+  model: null, // поле модели
+  /** Инициализация модели, подключение mongoose  */
   modelInit: function() {
     userSchema.plugin(autoIncrement.plugin, { model: 'user', field: 'id' });
     module.exports.model = mongoose.model('user', userSchema);
   },
+  
+  /**
+   * Добавление пользователя в БД (mongoDB и Postgres)
+   * @param {String} userName имя пользователя
+   * @param {String} password пароль
+   * @param {String} email пароль
+   * 
+   */
   addUser: function(username, password, email, callback) {
     module.exports.model.findOne({ email: email }, function(err, user) {
       if (err) return callback({ status: errors.restStat_DbReadError, message: errors.restMess_DbReadError }, null);
@@ -139,16 +153,18 @@ module.exports = {
     	});
     });
   },
+  
+  /** Возвращает текущего залогиненного пользователя */
   getLoggedUser: function() {
     return loggedUser;
   },
-  /*****************************************************************************
-  * getUsersList Получение списка пользователей из линейной DB
+  /**
+  * Получение списка пользователей из линейной DB
   * 
-    структура возвращаемых значений:
-    1. первая выдача данных { total_count - количество элементов, data - массив элементов }
-    2. последующие порции данных { data }
-  *****************************************************************************/
+  * структура возвращаемых значений:
+  * 1. первая выдача данных { total_count - количество элементов, data - массив элементов }
+  * 2. последующие порции данных { data }
+  */
   getUsersList: function(from, to, filter, callback) {
     
     var usersList = { data: [{}] };
@@ -200,12 +216,13 @@ module.exports = {
     });
   },
   
-  /****************************************************************************
-  * getFriends list
-  * UserId - Друзья какого пользователя
+  /**
+  * Возвращает список друзей пользователя, с учетом их отношения к текущем 
+  * авторизованному пользователю
+  * @param {Number} UserId - Друзья какого пользователя
   * Result:
   *    (array)(array) - Массив с пользователями
-  *****************************************************************************/
+  */
   getFriends: function(UserId, from, count, callback) {
     
     var usersList = { data: [{}] };
@@ -257,7 +274,7 @@ module.exports = {
     });
   },
   
-  /*
+  /**
   * addFriend
   * Добавляет пользователя в список друзей со статусом "заявка"
   * По идеи, нужно когда другой пользователь подтверждает, здесь же организовать эту логику
@@ -287,7 +304,7 @@ module.exports = {
     });
     
   },
-  /*
+  /**
   * deleteFriend
   *
   */
@@ -314,13 +331,14 @@ module.exports = {
     
     
   },
-  
+  /** Завершить сенанс */
   logoutUser: function() {
     if(!loggedUser) {
       delete loggedUser;
       loggedUser = null;
     }
   },
+  /** Получить пользователя по id*/
   getUserById: function(id, callback) {
     module.exports.model.findOne({ id : id }, function(err, user) {
       if (err) {
@@ -333,7 +351,7 @@ module.exports = {
     });
   },
   
-  /*
+  /**
   * saveLoggedUserFromBody  записываем информацию о пользователи
   *
   */
@@ -445,3 +463,5 @@ module.exports = {
     }
   }
 };
+
+//module.exports = userModel;
