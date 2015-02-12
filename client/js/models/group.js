@@ -4,9 +4,9 @@ App.Models.Group = Backbone.Model.extend({
     parent_id: 0,
     owner_id: 0,
     name: 'Default try',
-    picId: 0,
-    numUsers: 1,
-    numTask: 0
+    email: '',
+    description: '',
+    numUsers: 1
   },
   urlRoot: '/api/v1/groups'
   // initialize: function(data) {

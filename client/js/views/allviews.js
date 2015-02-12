@@ -837,8 +837,8 @@ var frameProfile_viewedUser = {
   ]
 };
 
-var frameUser_Profile = {
-  view:'multiview', id:'frameUser_Profile', container:'frameUser_Profile',
+var multiview_UserProfile = {
+  view:'multiview', id:'multiview_UserProfile', container:'multiview_UserProfile',
   borderless:false, animate:false,
   cells:[ frameProfile_user, frameProfile_viewedUser]
 };
@@ -911,7 +911,7 @@ App.Frame.tabviewCentral_User = {
   cells:[
     {
       header: 'Профиль',
-      body: frameUser_Profile
+      body: multiview_UserProfile
     },
     {
       header: 'Альбомы',
@@ -928,6 +928,298 @@ App.Frame.tabviewCentral_User = {
     {
       header: 'Сообщения',
       body: frameUser_Message
+    },    
+  ]
+};
+
+//**************************************************************************************************
+//GROUP frames
+var _ignoreSaveGroupAttributes;
+App.Func.loadGroupAttributes = function() {
+  if($$('frame_GroupProfile').isVisible()) {
+    $$('bar_GroupProfile').data.value = App.State.viewedGroup.get('name');
+    $$('bar_GroupProfile').refresh();
+    
+    $$('avatar_GroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
+    
+    _ignoreSaveGroupAttributes = true;
+    $$('text_GroupProfile_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
+    $$('text_GroupProfile_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
+    $$('text_GroupProfile_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
+    _ignoreSaveGroupAttributes = false;
+  } else {
+    $$('bar_ViewedGroupProfile').data.value = App.State.viewedGroup.get('name');
+    $$('bar_ViewedGroupProfile').refresh();
+    
+    $$('avatar_ViewedGroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
+    
+    $$('label_GroupProfile_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
+    $$('label_GroupProfile_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
+    $$('label_GroupProfile_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
+  }
+};
+
+var list_GroupProfile_Menu = {
+  view:'list', id:'list_GroupProfile_Menu', css:'mainSelector',
+	borderless:true,  width:200, scroll:false,
+	template:'#value#',
+	type:{ height:50 },
+	select:true,
+	data:[
+		{ id:'item_GroupProfile_Menu_Users', value:'Участники' },
+		{ id:'item_GroupProfile_Menu_Groups',	value:'Группы' },
+		{ id:'item_GroupProfile_Menu_Tasks',	value:'Задачи' },
+		{ id:'item_GroupProfile_Menu_Projects',	value:'Проекты' },
+		{ id:'item_GroupProfile_Menu_Tags',	value:'Теги' }
+	],
+	on:{'onAfterSelect': function(id) {
+    switch(id) {
+      case 'item_GroupProfile_Menu_Users':
+        //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+        break;
+      case 'item_GroupProfile_Menu_Groups':
+        //App.Router.navigate('groups', {trigger:true} );
+        break;
+      case 'item_GroupProfile_Menu_Tasks':
+        //App.Router.navigate('tasks', {trigger:true} );
+        break;
+      case 'item_GroupProfile_Menu_Projects':
+        //App.Router.navigate('projects', {trigger:true} );
+        break;
+      case 'item_GroupProfile_Menu_Tags':
+        //App.Router.navigate('tags', {trigger:true} );
+        break;
+      }
+	  }
+	}
+};
+
+var list_ViewedGroupProfile_Menu = {
+  view:'list', id:'list_ViewedGroupProfile_Menu', css:'mainSelector',
+	borderless:true,  width:200, scroll:false,
+	template:'#value#',
+	type:{ height:50 },
+	select:true,
+	data:[
+		{ id:'item_ViewedGroupProfile_Menu_Users', value:'Участники' },
+		{ id:'item_ViewedGroupProfile_Menu_Groups',	value:'Группы' },
+		{ id:'item_ViewedGroupProfile_Menu_Tasks',	value:'Задачи' },
+		{ id:'item_ViewedGroupProfile_Menu_Projects',	value:'Проекты' },
+		{ id:'item_ViewedGroupProfile_Menu_Tags',	value:'Теги' }
+	],
+	on:{'onAfterSelect': function(id) {
+    switch(id) {
+      case 'item_ViewedGroupProfile_Menu_Users':
+        //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+        break;
+      case 'item_ViewedGroupProfile_Menu_Groups':
+        //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+        break;
+      case 'item_ViewedGroupProfile_Menu_Tasks':
+        //App.Router.navigate('tasks', {trigger:true} );
+        break;
+      case 'item_ViewedGroupProfile_Menu_Projects':
+        //App.Router.navigate('projects', {trigger:true} );
+        break;
+      case 'item_ViewedGroupProfile_Menu_Tags':
+        //App.Router.navigate('tags', {trigger:true} );
+        break;
+      }
+	  }
+	}
+};
+
+var saveGroupAttributes = function(newv, oldv) {
+  if(_ignoreSaveGroupAttributes) return;
+  //получаем идентификатор атрибута в котором изменились данные
+  var atrID = this.config.id;
+  
+  //произведем валидацию атрибута
+  try {
+    switch (atrID) {
+      case 'text_GroupProfile_Attributes_Name':
+        check(newv, 'Имя группы должно содержать от 1 до 20 символов').len(1, 20);
+        check(newv, 'Такое имя группы не подходит').not(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
+        
+        App.State.viewedGroup.set('name', newv);
+        $$('bar_GroupProfile').data.value = newv;
+        $$('bar_GroupProfile').refresh();
+
+        break;
+      case 'text_GroupProfile_Attributes_Email':
+        App.State.viewedGroup.set('email', newv);
+
+        break;
+      case 'text_GroupProfile_Attributes_Description':
+        App.State.viewedGroup.set('description', newv);
+
+        break;
+      default:
+        // code
+    }
+  } catch(e) {
+    webix.message({type: 'error', text: e.message, expire: 10000});
+    this.blockEvent();
+    this.setValue(oldv);
+    this.unblockEvent();
+  }
+};
+
+var scrollview_GroupProfile_Attributes = {
+  view:'scrollview', id:'scrollview_GroupProfile_Attributes',
+  borderless: true, scroll:'y',
+  body:{
+    rows:[
+      { view:'template', template:'Персональные', type:'section', align:'center' },
+      { view:'text', id:'text_GroupProfile_Attributes_Name', label:'Имя пользователя', labelWidth:150, on:{'onChange': saveGroupAttributes } },
+      { view:'text', id:'text_GroupProfile_Attributes_Email', label:'Email', labelWidth:150, disabled:true },
+      { view:'text', id:'text_GroupProfile_Attributes_Description', label:'Описание группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
+  ]}
+};
+
+var scrollview_ViewedGroupProfile_Attributes = {
+  view:'scrollview', id:'scrollview_ViewedGroupProfile_Attributes',
+  borderless: true, scroll:'y',
+  body:{
+    rows:[
+      { view:'template', template:'Персональные', type:'section', align:'center' },
+      { cols:[ { view:'label', label:'Название группы', width:120}, { view:'label', id:'label_ViewedGroupProfile_Attributes_Name' }] },
+      { cols:[ { view:'label', label:'Email', width:120 }, { view:'label', id:'label_ViewedGroupProfile_Attributes_Email' }] },
+      { cols:[ { view:'label', label:'Описание группы', width:120 }, { view:'label', id:'label_ViewedGroupProfile_Attributes_Description' }] }
+  ]}
+};
+
+var frame_GroupProfile = {
+  id: 'frame_GroupProfile',
+  rows:[
+    { view:'template', id:'bar_GroupProfile', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { height:3 },
+    { cols:[
+      { rows: [
+        { view:'template', id:'avatar_GroupProfile', width:200, height:200, borderless:true, template:function(obj) {
+          return '<div class="frGrAv"> \
+            <a href="javascript:changeGroupAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
+            <img src="img/gravatars/200/'+obj.src+'"></div>';
+        }},
+        { height:10 },
+        list_GroupProfile_Menu
+      ]},
+      { width:10 },
+      scrollview_GroupProfile_Attributes
+    ]}
+  ]
+};
+
+var frame_ViewedGroupProfile = {
+  id: 'frame_ViewedGroupProfile',
+  rows:[
+    { view:'template', id:'bar_ViewedGroupProfile', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { height:3 },
+    { cols:[
+      { rows: [
+        { view:'template', id:'avatar_ViewedGroupProfile', width:200, height:200, borderless:true, template:function(obj) {
+          return '<img src="img/gravatars/200/'+obj.src+'">';
+        } },
+        { height:10 },
+        list_ViewedGroupProfile_Menu
+      ]},
+      { width:10 },
+      scrollview_ViewedGroupProfile_Attributes
+    ]}
+  ]
+};
+
+var multiview_GroupProfile = {
+  view:'multiview', id:'multiview_GroupProfile', container:'multiview_GroupProfile',
+  borderless:false, animate:false,
+  cells:[ frame_GroupProfile, frame_ViewedGroupProfile ]
+};
+
+var frame_GroupAlbums = {
+  id:'frame_GroupAlbums',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'albums', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+var frame_GroupAchievements = {
+  id:'frame_GroupAchievements',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'achievements', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+var frame_GroupEvents = {
+  id:'frame_GroupEvents',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'events', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+var frame_GroupMessage = {
+  id:'frame_GroupMessage',
+  rows:[
+    {},
+    {
+      cols:[
+      {},
+      { view:'template', template:'message', type:'header', align:'center' },
+      {}
+      ]
+    },
+    {}
+  ]
+};
+
+App.Frame.tabview_CentralGroup = {
+  view:'tabview', id:'tabview_CentralGroup',
+  autoheight:true, autowidth:true,
+  animate:true,
+  tabbar : { optionWidth : 200 },
+  cells:[
+    {
+      header: 'Профиль',
+      body: multiview_GroupProfile
+    },
+    {
+      header: 'Альбомы',
+      body: frame_GroupAlbums
+    },
+    {
+      header: 'Достижения',
+      body: frame_GroupAchievements
+    },
+    {
+      header: 'События',
+      body: frame_GroupEvents
+    },
+    {
+      header: 'Сообщения',
+      body: frame_GroupMessage
     },    
   ]
 };
@@ -1204,6 +1496,7 @@ App.Frame.multiviewCentral = {
     App.Frame.frameCentral_Register,
     App.Frame.frameCentral_Login,
     App.Frame.tabviewCentral_User,
+    App.Frame.tabview_CentralGroup,
     App.Frame.frameCentral_Users],
   fitBiggest:true,
   animate:false
