@@ -55,17 +55,17 @@ var routes = [
   {
     path: '/api/v1/groups/:group_id',
     httpMethod: 'GET',
-    middleware: [getgroup]
+    middleware: [getGroup]
   },
   {
     path: '/api/v1/groups/:group_id',
     httpMethod: 'PUT',
-    middleware: [savegroup]
+    middleware: [saveGroup]
   },
   {
     path: '/api/v1/groups/:group_id',
     httpMethod: 'DELETE',
-    middleware: [deletegroup]
+    middleware: [deleteGroup]
   },
   {
     path: '/api/v1/tasks',
@@ -388,8 +388,26 @@ function saveUser(req, res, next) {
   }
 }
 
-function getgroup(req, res, next) {
-  res.status(200).end();
+/**
+* getGroups
+*  Функция извлекает группу из DB по переданному ID
+* Attributes:
+*  groupID - группа, которая извлекается из DB
+* Result:
+*****************************************************************************/
+function getGroup(req, res, next) {
+  var groupID = req.param('group_id');
+  
+  var zaglushka = {
+    id: groupID,
+    parent_id: 0,
+    owner_id: 0,
+    name: 'Mauz groupz',
+    email: 'Maus@maus.maus',
+    description: 'Это просто тестовая маусянская группа для отладки маусинных возможностей',
+    numUsers: 1
+  };
+  res.status(errors.restStat_isOk).send(zaglushka);
 }
 
 /**
@@ -412,15 +430,15 @@ function getGroups(req, res, next) {
     if(parent === '1') {
       var data2 = [{ id:'3', name:'Sub-Branch', numUsers:1, webix_kids:true },
       { id:'4', name:'Sub-sub-Branch', numUsers:1 }];
-      res.status(200).json({ parent:1, data:data2 });
+      res.status(errors.restStat_isOk).json({ parent:1, data:data2 });
     } else if(parent === '3') {
       var data3 = [{ id:'5', name:'Sub-2-Branch', numUsers:1 }];
-      res.status(200).json({ parent:3, data:data3 });
+      res.status(errors.restStat_isOk).json({ parent:3, data:data3 });
     }
   } else {
     var data1 = [{ id:'1', name:'Branch', numUsers:1, webix_kids:true },
     { id:'2', name:'leaf', numUsers:1 }];
-    res.status(200).json(data1);
+    res.status(errors.restStat_isOk).json(data1);
   }
   //старое содержимое функции
   // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
@@ -472,7 +490,7 @@ function setGroups(req, res, next) {
           //например конструкция ниже возвращает клиенту тоже что и получил, но с изм. id
           delete req.body.webix_operation;
           req.body.id = '7';
-          res.status(200).json(req.body);
+          res.status(errors.restStat_isOk).json(req.body);
         } else {
           //Есть родитель, поэтому добавляем в родителя
         }
@@ -489,12 +507,12 @@ function setGroups(req, res, next) {
         
         //например конструкция ниже возвращает клиенту тоже что и получил
         delete req.body.webix_operation;
-        res.status(200).json(req.body);
+        res.status(errors.restStat_isOk).json(req.body);
         break;
       
       case 'delete':
         //code
-        res.status(200).end();
+        res.status(errors.restStat_isOk).end();
         break;
     }
   }
@@ -515,38 +533,39 @@ function deleteGroups(req, res, next) {
 }
 //**************************************************************************************************
 
-function savegroup(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
+function saveGroup(req, res, next) {
+  // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
 
-  var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
+  // var loggedUser = userModel.getLoggedUser();
+  // if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
   
-  var arrGrId = loggedUser.grouplist.map(function(object) { return object.groupId });
-  var index = arrGrId.indexOf(Number(req.params.group_id));
-  if(index === -1) loggedUser.grouplist.push( { groupId: Number(req.params.group_id), permission: 0 } );
-    else {
-      loggedUser.grouplist[index].groupId = Number(req.params.group_id);
-      loggedUser.grouplist[index].permission = 0;
-    }
-  loggedUser.save();
+  // var arrGrId = loggedUser.grouplist.map(function(object) { return object.groupId });
+  // var index = arrGrId.indexOf(Number(req.params.group_id));
+  // if(index === -1) loggedUser.grouplist.push( { groupId: Number(req.params.group_id), permission: 0 } );
+  //   else {
+  //     loggedUser.grouplist[index].groupId = Number(req.params.group_id);
+  //     loggedUser.grouplist[index].permission = 0;
+  //   }
+  // loggedUser.save();
 
-  delete req.body._id;
-  delete req.body.__v;
-  groupModel.model.findOneAndUpdate({id : Number(req.params.group_id)}, req.body, {upsert:true}, function(err, group) {
-    if (err) { res.status(400).send(err); }
-    res.status(200).end();
-  });
+  // delete req.body._id;
+  // delete req.body.__v;
+  // groupModel.model.findOneAndUpdate({id : Number(req.params.group_id)}, req.body, {upsert:true}, function(err, group) {
+  //   if (err) { res.status(400).send(err); }
+  //   res.status(errors.restStat_isOk).end();
+  // });
+  res.status(200).end();
 }
 
-function deletegroup(req, res, next) {
+function deleteGroup(req, res, next) {
   res.status(400).end();
 }
 
 function gettasks(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
+  if(!req.isAuthenticated()) return res.status(errors.restStat_isOk).send({ id: 0, mainUserLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
+  if(loggedUser === null) return res.status(errors.restStat_isOk).send({ id: 0, mainUserLogged: false });
 
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
 
@@ -561,7 +580,7 @@ function gettasks(req, res, next) {
     var arrTaskId = grp.tasklist.map(function(object) { return object.taskId });
     taskModel.model.find({ id: { $in: arrTaskId } }, function(err, tasks) {
       if (err) { res.status(400).send(err); return; }
-      res.status(200).json(tasks);
+      res.status(errors.restStat_isOk).json(tasks);
     });
   });
 }
@@ -571,10 +590,10 @@ function gettask(req, res, next) {
 }
 
 function savetask(req, res, next) {
-  if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
+  if(!req.isAuthenticated()) return res.status(errors.restStat_isOk).send({ id: 0, mainUserLogged: false });
 
   var loggedUser = userModel.getLoggedUser();
-  if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
+  if(loggedUser === null) return res.status(errors.restStat_isOk).send({ id: 0, mainUserLogged: false });
   
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
   
@@ -665,7 +684,7 @@ function getcountry(req, res, next) {
     {id:8, value:'Грузия'},
     {id:9, value:'Израиль'}
   ];
-  res.status(200).send(country);
+  res.status(errors.restStat_isOk).send(country);
 }
 
 function getcity(req, res, next) {
@@ -674,7 +693,7 @@ function getcity(req, res, next) {
     {id:2, value:'Красноярск'},
     {id:3, value:'Москва'}
   ];
-  res.status(200).send(city);
+  res.status(errors.restStat_isOk).send(city);
 }
 
 function getfamilystatus(req, res, next) {
@@ -687,5 +706,5 @@ function getfamilystatus(req, res, next) {
     {id:6, value:'Женат'},
     {id:7, value:'Влюблен'}
   ];
-  res.status(200).send(familystatus);
+  res.status(errors.restStat_isOk).send(familystatus);
 }
