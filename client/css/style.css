@@ -18,6 +18,84 @@
 /*  margin: -16px 0 0 -16px;*/
 /*}*/
 
+.webix_icon_button{
+	position:relative;
+}
+
+.webix_layout_toolbar.webix_toolbar .webix_el_icon  .webix_icon{
+	height:100%;
+	width:100%;
+	line-height: inherit;
+}
+
+.webix_icon_count {
+	background-color: #eb6e1a;
+	border-radius: 50%;
+	font-size: 12px;
+	height: 22px;
+	min-width: 22px;
+	line-height: 17px;
+	box-sizing: border-box;
+	-moz-box-sizing: boder-box;
+	-webkit-box-sizing: boder-box;
+	padding: 0 4px;
+	text-align: center;
+	line-height: 22px;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.menu .webix_tree_item {
+	height: 40px;
+	line-height: 40px;
+}
+.webix_tree .webix_scroll_cont > .webix_tree_leaves {
+	padding: 0;
+}
+.menu.webix_view{
+	background: #f1f1f1 !important;
+}
+.menu .webix_tree_item.webix_selected , .menu .webix_tree_item.webix_selected span{
+	background-color: #27ae60;
+	padding-right:0;
+}
+.menu .webix_tree_branch_1 .webix_tree_item{
+	/*padding-left:10px;*/
+	padding-left:24px;
+	padding-right:10px;
+}
+.menu .webix_tree_branch_1>.webix_tree_item{
+	/*padding: 5px 12px;*/
+	padding: 5px 0 4px 0;
+	line-height:40px;
+	/*font-size: 12px;
+	text-transform: uppercase;*/
+}
+.menu .webix_tree_branch_1{
+	border-bottom:1px solid #e5e5e5;
+}
+.menu .webix_tree_item.webix_selected span, .menu .webix_tree_item span{
+	margin:0;
+	padding:1px;
+}
+
+.menu .webix_tree_item.webix_selected .webix_icon{
+	color: #fff;
+}
+.menu .webix_icon{
+	width: 25px;
+	padding-left: 12px !important;
+	text-align: center;
+}
+.menu .user .webix_icon{
+	font-size: 18px;
+}
+
+.menu .webix_tree_leaves .webix_tree_leaves {
+	margin-left: 0px;
+}
+
 .itmTextBold {
   color: #2B587A;
   text-decoration: none;

@@ -11,50 +11,56 @@ var implementFunction = (function() {
     }],                          //Стек состояний
     user             : null,     //Пользователь системы
     viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
-    groupTreeManager : null,     //менеджер дерева для групп
-    taskTreeManager  : null,     //менеджер дерева для задач
-    groups           : null,     //коллекция групп пользователя системы
-    tasks            : null,     //коллекция задач пользователя системы
+    viewedGroup      : null,
+    //groupTreeManager : null,     //менеджер дерева для групп
+    //taskTreeManager  : null,     //менеджер дерева для задач
+    //groups           : null,     //коллекция групп пользователя системы
+    //tasks            : null,     //коллекция задач пользователя системы
     serverRoute      : '',
     segmentUserId    : null,
+    segmentGroupId   : null,
     usrCRC           : null,
     group            : 0,        //Выбранная группа, по которой фильтруются задачи
     usersFilter      : { userId: 0 },
     //флаги состояния приложения this_view_action
-    groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
-    groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
-    tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
-    tasktable_ItemEdited      : null,  //редактируемый элемент в области конструктора задач
-    $init: function() {
+    //groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
+    //groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
+    //tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
+    //tasktable_ItemEdited      : null,  //редактируемый элемент в области конструктора задач
+    init: function() {
       if(this.user != null) { this.user = null; }
       this.user = this.userModelInit();
 
       if(this.viewedUser != null) { this.viewedUser = null; }
       this.viewedUser = this.userModelInit();
 
-      if(this.groupTreeManager != null) { this.groupTreeManager = null; }
-      this.groupTreeManager = new treeManager();
+      if(this.viewedGroup != null) { this.viewedGroup = null; }
+      this.viewedGroup = this.groupModelInit();
 
-      if(this.taskTreeManager != null) { this.taskTreeManager = null; }
-      this.taskTreeManager = new treeManager();
+      //if(this.groupTreeManager != null) { this.groupTreeManager = null; }
+      //this.groupTreeManager = new treeManager();
 
-      if(this.groups != null) { this.groups = null; }
-      this.groups = this.groupsModelInit();
+      //if(this.taskTreeManager != null) { this.taskTreeManager = null; }
+      //this.taskTreeManager = new treeManager();
 
-      if(this.tasks != null) { this.tasks = null; }
-      this.tasks = this.tasksModelInit();
+      //if(this.groups != null) { this.groups = null; }
+      //this.groups = this.groupsModelInit();
+
+      //if(this.tasks != null) { this.tasks = null; }
+      //this.tasks = this.tasksModelInit();
 
       this._st                       = [ { clientRoute: '', segment: '' } ];
       this.serverRoute              = '';
       this.prevClientRoute          = '',
       this.segmentUserId            = null;
+      this.segmentGroupId           = null;
       this.usrCRC                   = null;
       this.group                    = 0;
       this.usersFilter              = { userId: 0 };
-      this.groupstable_ItemSelected = 0;
-      this.groupstable_ItemEdited   = null;
-      this.tasktable_ItemSelected   = 0;
-      this.tasktable_ItemEdited     = null;
+      //this.groupstable_ItemSelected = 0;
+      //this.groupstable_ItemEdited   = null;
+      //this.tasktable_ItemSelected   = 0;
+      //this.tasktable_ItemEdited     = null;
     },
     /**
     * setState
@@ -197,7 +203,6 @@ var implementFunction = (function() {
     userModelInit: function() {
       //Инициализируем глобальный объект пользователя со всеми настройками приложения
       var user = new App.Models.User();
-  	  user.on('change:thisTry', function() { });
       user.on('change', function(model, options) { 
         model.save(model.changedAttributes());
       });
@@ -205,50 +210,59 @@ var implementFunction = (function() {
       
       return user;
     },
-    groupsModelInit: function() {
-  	  var groups = new collectionGroups();
-  
-    	groups.on('add', function(grp) {
-    	  App.State.groupTreeManager.treeAdd(grp);
-    	});
-  	
-    	groups.on('remove', function(ind) {
-    	  App.State.groupTreeManager.treeRemove(ind);
-    	});
-  
-      groups.on('change', function(model, options) {
-        App.State.groupTreeManager.treeChange(model);
-        model.save(); 
+    groupModelInit: function() {
+      var group = new App.Models.Group();
+      group.on('change', function(model, options) {
+        model.save(model.changedAttributes());
       });
+      group.on('error', function(model, xhr, options) {});
       
-      groups.on('move', function(currentPosId, newPosId, parentId) {
-        App.State.groupTreeManager.move(currentPosId, newPosId, parentId);
-      });
-      
-      return groups;
-    },
-    tasksModelInit: function() {
-      var tasks = new collectionTasks();
-      
-      tasks.on('add', function(tsk) {
-        App.State.taskTreeManager.treeAdd(tsk);
-      });
-      
-    	tasks.on('remove', function(ind) {
-    	  App.State.taskTreeManager.treeRemove(ind);
-    	});
-    
-      tasks.on('change', function(model, options) {
-        App.State.taskTreeManager.treeChange(model);
-        model.save();
-      });
-      
-      tasks.on('move', function(currentPosId, newPosId, parentId) {
-        App.State.taskTreeManager.move(currentPosId, newPosId, parentId);
-      });
-      
-      return tasks;
+      return group;
     }
+    // groupsModelInit: function() {
+  	 // var groups = new collectionGroups();
+  
+    // 	groups.on('add', function(grp) {
+    // 	  App.State.groupTreeManager.treeAdd(grp);
+    // 	});
+  	
+    // 	groups.on('remove', function(ind) {
+    // 	  App.State.groupTreeManager.treeRemove(ind);
+    // 	});
+  
+    //   groups.on('change', function(model, options) {
+    //     App.State.groupTreeManager.treeChange(model);
+    //     model.save(); 
+    //   });
+      
+    //   groups.on('move', function(currentPosId, newPosId, parentId) {
+    //     App.State.groupTreeManager.move(currentPosId, newPosId, parentId);
+    //   });
+      
+    //   return groups;
+    // },
+    // tasksModelInit: function() {
+    //   var tasks = new collectionTasks();
+      
+    //   tasks.on('add', function(tsk) {
+    //     App.State.taskTreeManager.treeAdd(tsk);
+    //   });
+      
+    // 	tasks.on('remove', function(ind) {
+    // 	  App.State.taskTreeManager.treeRemove(ind);
+    // 	});
+    
+    //   tasks.on('change', function(model, options) {
+    //     App.State.taskTreeManager.treeChange(model);
+    //     model.save();
+    //   });
+      
+    //   tasks.on('move', function(currentPosId, newPosId, parentId) {
+    //     App.State.taskTreeManager.move(currentPosId, newPosId, parentId);
+    //   });
+      
+    //   return tasks;
+    // }
   };
   
   var dataCountry = new webix.DataCollection({ 
@@ -295,8 +309,222 @@ var implementFunction = (function() {
     load: function(view, callback) {
       //Добавляем id вебиксовых вьюх для синхронизации с данными
   	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-      App.State.taskTreeManager.viewsAdd($$(view.config.id));
+      //App.State.taskTreeManager.viewsAdd($$(view.config.id));
     }
+  };
+
+  var offState = function() {
+    $$('multiviewLeft').hide();
+    $$('multiviewRight').hide();
+
+    $$('treetableMytasks_Tasktable').clearAll();
+    $$('treetableMyGroups_Groupstable').clearAll();
+    
+    $$('toggleHeader_Menu').setValue(0);
+    $$('toggleHeader_Options').setValue(0);
+    
+    $$('toolbarAutorisation').show();
+    $$('buttonAutorisationLogin').enable();
+	  $$('buttonAutorisationRegister').enable();
+  };
+
+	//***************************************************************************
+	//AFTER FETCH FUNCTIONs
+	
+	//Вывод данных пользовательского профиля во фрейм, после успешного получения с сервера (callback)
+  var showUserDataAfterSuccess = function(model, response, options) {
+    $$('tabview_CentralUser').show();
+    $$('tabview_CentralUser').hideProgress();
+    
+    $$('scrollview_RightUserFilter').show();
+    
+    //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
+    if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
+      //В основном меню выделим пункт профиля
+      if('SegmentsSelector_MyProfile' != $$('tree_SegmentsSelector').getSelectedId()) {
+        $$('tree_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+        $$('tree_SegmentsSelector').select('SegmentsSelector_MyProfile'); //Программно выбираем пункт меню
+        $$('tree_SegmentsSelector').unblockEvent();
+      }      
+      
+      $$('listProfile_UserAttributesSelector').unselectAll();
+      $$('frameProfile_user').show();
+      App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
+    } else {
+      $$('listProfile_viewedUserAttributesSelector').unselectAll();
+      $$('tree_SegmentsSelector').unselectAll();
+      
+      $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
+      if($$('multiviewRight').isVisible()) $$('multiviewRight').hide();       //Если панель настроек доступа видима, то скроем
+      if($$('toggleHeader_Options').getValue()) $$('toggleHeader_Options').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
+      $$('toggleHeader_Options').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
+    }
+    
+    App.Func.loadUserAttributes();
+    
+    //App.State.groups.fetch({ success: showGroupDataAfterFetch });
+  };
+	
+	var showUserDataAfterError = function(model, xhr, options) {
+	  //заглушка
+	};
+	
+  //Вывод данных профиля группы во фрейм, после успешного получения с сервера (callback)
+  var showGroupDataAfterSuccess = function(model, response, options) {
+    $$('tabview_CentralGroup').show();
+    $$('tabview_CentralGroup').hideProgress();
+    
+    $$('scrollview_RightGroupFilter').show();
+
+    $$('list_ViewedGroupProfile_Menu').unselectAll();
+    $$('frame_GroupProfile').show();
+    //App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
+
+    App.Func.loadGroupAttributes();
+  };
+	
+	var showGroupDataAfterError = function(model, xhr, options) {
+	  //заглушка
+	};
+	
+  var showGroupsDataAfterSuccess = function(text, data) {
+    //App.State.groupTreeManager.treeBuild(App.State.groups.models);
+    
+    //$$('treetableMyGroups_Groupstable').load('GroupData->load');
+    $$("treetableMyGroups_Groupstable").parse(text);
+  };
+
+  var showGroupsDataAfterError = function(model, xhr, options) {
+	  //заглушка
+	};
+
+  var showTaskDataAfterFetch = function(Tasks, response, options) {
+    //App.State.taskTreeManager.treeBuild(App.State.tasks.models);
+    
+    //$$('treetableMytasks_Tasktable').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
+  };
+
+  //***************************************************************************
+  //INTERFACE MANIPULATION
+  //segmentSelector переключает состояние интерфейса в соответствии с теми сегментами, которые были
+  //установлены при обратке роутов в backbone App.Router, смена сегментов всегда сопровождается вызовом
+  //следующих функций segmengChange()->опрос состояния сервера->segmentSelector()->перерисовка интерфейса
+  var segmentSelector = function() {
+    var user = App.State.user;
+    var viewedUser = App.State.viewedUser;
+    var viewedGroup = App.State.viewedGroup;
+    
+    //если пользователь залогинился (получаем при опросе состояния сервера)
+  	if(user.get('mainUserLogged')) {
+  	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
+  	  if(!$$('toggleHeader_Options').isEnabled()) $$('toggleHeader_Options').enable();
+  	  
+  	  //Отрисовка интерфейса в зависимости от выбранного сегмента
+  	  switch(App.State.getState('segment')) {
+        case 'user':
+       	  $$('tabview_CentralUser').showProgress({
+            type:'icon',
+            delay:200
+          });
+  
+          viewedUser.url = '/api/v1/users/' + App.State.segmentUserId;
+          viewedUser.fetch({ success: showUserDataAfterSuccess, error: showUserDataAfterError, silent:true });
+
+          break;
+        case 'group':
+       	  $$('tabview_CentralGroup').showProgress({
+            type:'icon',
+            delay:200
+          });
+          
+          viewedGroup.url = '/api/v1/groups/' + App.State.segmentGroupId;
+          viewedGroup.fetch({ success: showGroupDataAfterSuccess, error: showGroupDataAfterError, silent:true });
+          
+          break;
+        case 'users':
+          //Обработаем показ сегмента пользователей, сперва верно выделим пункты меню
+          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
+          //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
+          //в противном случае снимаем выделение
+          $$('tree_SegmentsSelector').blockEvent();
+          if(App.State.usersFilter.userId === 0) {
+            if('SegmentsSelector_AllUsers' != $$('tree_SegmentsSelector').getSelectedId()) {
+              $$('tree_SegmentsSelector').select('SegmentsSelector_AllUsers');
+            }
+          } else {
+            $$('tree_SegmentsSelector').unselectAll();
+          }
+          $$('tree_SegmentsSelector').unblockEvent();
+          
+          $$('dataviewCentral_Users').clearAll();
+          $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/users');
+
+          $$('frameCentral_Users').show();
+          $$('scrollviewRight_UsersFilter').show();
+          
+          break;
+        case 'groups':
+          //Обработаем показ сегмента групп, сперва верно выделим пункты меню
+          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
+          //если фильтр по пользователю не выбран, выделяем пункт групп в основном меню
+          //в противном случае снимаем выделение          
+          $$('tree_SegmentsSelector').blockEvent();
+          if(App.State.usersFilter.userId === 0) {
+            if('SegmentsSelector_AllGroups' != $$('tree_SegmentsSelector').getSelectedId()) {
+              $$('tree_SegmentsSelector').select('SegmentsSelector_AllGroups');
+            }
+          } else {
+            $$('tree_SegmentsSelector').unselectAll();
+          }
+          $$('tree_SegmentsSelector').unblockEvent();
+          
+          //App.State.groups.fetch({ success: showGroupDataAfterFetch });
+          $$('treetableMyGroups_Groupstable').clearAll();
+          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.usersFilter.userId }, showGroupsDataAfterSuccess);
+          promise.then(function(realdata) {}).fail(showGroupsDataAfterError);
+
+          //$$('treetableMyGroups_Groupstable').load('api/v1/groups');
+          //$$('treetableMyGroups_Groupstable').loadNext(10, 0, null, 'api/v1/groups');
+
+          $$('tabviewCentral_Groups').show();
+          $$('scrollviewRight_GroupsFilter').show();
+          
+          break;
+        case 'tasks':
+          $$('tree_SegmentsSelector').select('SegmentsSelector_AllTasks');
+          
+          App.State.tasks.fetch({ success: showTaskDataAfterFetch });
+          $$('tabviewCentral_Task').show();
+          break;
+        case 'templates':
+          // code
+          break;
+        case 'finances':
+          break;
+        case 'process':
+          // code
+          break;
+        case 'files':
+          // code
+          break;
+        case 'notes':
+          // code
+          break;
+  	  }
+  	} else {
+  	  console.log('segmentSelector: user not logged');
+	    App.State.init();
+	    offState();
+  	  $$('frameCentral_Greeting').show();
+  	} //if(App.State.user.mainUserLogged)    
+  };
+  
+  var connectionErrorShow = function(err) {
+    if(err.status === 434) {
+      //defaultState();
+      //App.Router.navigate('', {trigger: true});
+    }
+    webix.message({type:'error', text:err.responseText});
   };
 
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
@@ -310,6 +538,7 @@ var implementFunction = (function() {
 			'groups(/)':'groups',
 			'tasks(/)':'tasks',
 			'id:id(/)':'user',
+			'gr:id(/)':'group',
 			'users?id=:id(/)':'userUsers',
 			'users(/)':'users',
 			'home(/)':'home',
@@ -337,6 +566,10 @@ var implementFunction = (function() {
 		user:function(id) {
 		  App.State.segmentUserId = id;
 		  App.State.segmentChange('/id' + id, 'user');
+		},
+		group:function(id) {
+		  App.State.segmentGroupId = id;
+		  App.State.segmentChange('/gr' + id, 'group');
 		},
 		userUsers:function(id) {
 		  App.State.usersFilter.userId = id;
@@ -379,178 +612,8 @@ var implementFunction = (function() {
 		  }
 		}
 	}))();
-	
-	//***************************************************************************
-	//AFTER FETCH FUNCTIONs
-	
-	//Вывод данных пользовательского профиля во фрейм, после успешного получения с сервера (callback)
-  var showUserDataAfterSuccess = function(model, response, options) {
-    $$('tabviewCentral_User').show();
-    $$('tabviewCentral_User').hideProgress();
-    
-    $$('scrollviewRight_UserFilter').show();
-    
-    //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
-    if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
-      //В основном меню выделим пункт профиля
-      if('listitemSegmentsSelector_MyProfile' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-        $$('listSegments_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
-        $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_MyProfile'); //Программно выбираем пункт меню
-        $$('listSegments_SegmentsSelector').unblockEvent();
-      }      
-      
-      $$('listProfile_UserAttributesSelector').unselectAll();
-      $$('frameProfile_user').show();
-      App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
-    } else {
-      $$('listProfile_viewedUserAttributesSelector').unselectAll();
-      $$('listSegments_SegmentsSelector').unselectAll();
-      
-      $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
-      if($$('multiviewRight').isVisible()) $$('multiviewRight').hide();       //Если панель настроек доступа видима, то скроем
-      if($$('toggleHeader_Options').getValue()) $$('toggleHeader_Options').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
-      $$('toggleHeader_Options').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
-    }
-    
-    App.Func.loadUserAttributes();
-    
-    //App.State.groups.fetch({ success: showGroupDataAfterFetch });
-  };
-	
-	var showUserDataAfterError = function(model, xhr, options) {
-	  //заглушка
-	};
-	
-  var showGroupDataAfterSuccess = function(text, data) {
-    //App.State.groupTreeManager.treeBuild(App.State.groups.models);
-    
-    //$$('treetableMyGroups_Groupstable').load('GroupData->load');
-    $$("treetableMyGroups_Groupstable").parse(text);
-  };
 
-  var showGroupDataAfterError = function(model, xhr, options) {
-	  //заглушка
-	};
-
-  var showTaskDataAfterFetch = function(Tasks, response, options) {
-    App.State.taskTreeManager.treeBuild(App.State.tasks.models);
-    
-    $$('treetableMytasks_Tasktable').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
-  };
-
-  //***************************************************************************
-  //INTERFACE MANIPULATION
-  //segmentSelector переключает состояние интерфейса в соответствии с теми сегментами, которые были
-  //установлены при обратке роутов в backbone App.Router, смена сегментов всегда сопровождается вызовом
-  //следующих функций segmengChange()->опрос состояния сервера->segmentSelector()->перерисовка интерфейса
-  var segmentSelector = function() {
-    var user = App.State.user;
-    var viewedUser = App.State.viewedUser;
-    
-    //если пользователь залогинился (получаем при опросе состояния сервера)
-  	if(user.get('mainUserLogged')) {
-  	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
-  	  if(!$$('toggleHeader_Options').isEnabled()) $$('toggleHeader_Options').enable();
-  	  
-  	  //Отрисовка интерфейса в зависимости от выбранного сегмента
-  	  switch(App.State.getState('segment')) {
-        case 'user':
-       	  $$('tabviewCentral_User').showProgress({
-            type:'icon',
-            delay:500
-          });
-  
-          viewedUser.url = '/api/v1/users/' + App.State.segmentUserId;
-          viewedUser.fetch({ success: showUserDataAfterSuccess, error: showUserDataAfterError, silent:true });
-
-          break;  	    
-        case 'users':
-          //Обработаем показ сегмента пользователей, сперва верно выделим пункты меню
-          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
-          //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
-          //в противном случае снимаем выделение
-          $$('listSegments_SegmentsSelector').blockEvent();
-          if(App.State.usersFilter.userId === 0) {
-            if('listitemSegmentsSelector_AllUsers' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-              $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllUsers');
-            }
-          } else {
-            $$('listSegments_SegmentsSelector').unselectAll();
-          }
-          $$('listSegments_SegmentsSelector').unblockEvent();
-          
-          $$('dataviewCentral_Users').clearAll();
-          $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/users');
-
-          $$('frameCentral_Users').show();
-          $$('scrollviewRight_UsersFilter').show();
-          
-          break;
-        case 'groups':
-          //Обработаем показ сегмента групп, сперва верно выделим пункты меню
-          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
-          //если фильтр по пользователю не выбран, выделяем пункт групп в основном меню
-          //в противном случае снимаем выделение          
-          $$('listSegments_SegmentsSelector').blockEvent();
-          if(App.State.usersFilter.userId === 0) {
-            if('listitemSegmentsSelector_AllGroups' != $$('listSegments_SegmentsSelector').getSelectedId()) {
-              $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllGroups');
-            }
-          } else {
-            $$('listSegments_SegmentsSelector').unselectAll();
-          }
-          $$('listSegments_SegmentsSelector').unblockEvent();
-          
-          //App.State.groups.fetch({ success: showGroupDataAfterFetch });
-          $$('treetableMyGroups_Groupstable').clearAll();
-          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.usersFilter.userId }, showGroupDataAfterSuccess);
-          promise.then(function(realdata) {}).fail(showGroupDataAfterError);
-
-          //$$('treetableMyGroups_Groupstable').load('api/v1/groups');
-          //$$('treetableMyGroups_Groupstable').loadNext(10, 0, null, 'api/v1/groups');
-
-          $$('tabviewCentral_Groups').show();
-          $$('scrollviewRight_GroupsFilter').show();
-          
-          break;
-        case 'tasks':
-          $$('listSegments_SegmentsSelector').select('listitemSegmentsSelector_AllTasks');
-          
-          App.State.tasks.fetch({ success: showTaskDataAfterFetch });
-          $$('tabviewCentral_Task').show();
-          break;
-        case 'templates':
-          // code
-          break;
-        case 'finances':
-          break;
-        case 'process':
-          // code
-          break;
-        case 'files':
-          // code
-          break;
-        case 'notes':
-          // code
-          break;
-  	  }
-  	} else {
-  	  console.log('segmentSelector: user not logged');
-	    App.State.$init();
-	    offState();
-  	  $$('frameCentral_Greeting').show();
-  	} //if(App.State.user.mainUserLogged)    
-  };
-  
-  var connectionErrorShow = function(err) {
-    if(err.status === 434) {
-      //defaultState();
-      //App.Router.navigate('', {trigger: true});
-    }
-    webix.message({type:'error', text:err.responseText});
-  };
-
-  App.State.$init();
+  App.State.init();
 
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   var frameBase = new webix.ui({
@@ -560,24 +623,10 @@ var implementFunction = (function() {
     ]
   });
 
-  var offState = function() {
-    $$('multiviewLeft').hide();
-    $$('multiviewRight').hide();
-
-    $$('treetableMytasks_Tasktable').clearAll();
-    $$('treetableMyGroups_Groupstable').clearAll();
-    
-    $$('toggleHeader_Menu').setValue(0);
-    $$('toggleHeader_Options').setValue(0);
-    
-    $$('toolbarAutorisation').show();
-    $$('buttonAutorisationLogin').enable();
-	  $$('buttonAutorisationRegister').enable();
-  };
-
   offState();
 
-  webix.extend($$('tabviewCentral_User'), webix.ProgressBar);
+  webix.extend($$('tabview_CentralUser'), webix.ProgressBar);
+  webix.extend($$('tabview_CentralGroup'), webix.ProgressBar);
 
   webix.UIManager.addHotKey('enter', function() { 
     if($$('frameCentral_Register').isVisible()) {

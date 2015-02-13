@@ -12,7 +12,7 @@ var toggleHeader_Menu = {
 		  } else {
 		    $$('multiviewLeft').show();
 		    $$('scrollviewLeft_Segments').show();
-		    $$('listSegments_SegmentsSelector').refresh();
+		    $$('tree_SegmentsSelector').refresh();
 		  }	
 		}
 	}
@@ -60,64 +60,107 @@ App.Frame.toolbarHeader = {
 	         ]
 };
 
-var listSegments_SegmentsSelector = { 
-  view:'list', id:'listSegments_SegmentsSelector', css:'mainSelector',
-	borderless:true,  width:250, scroll:false,
-	template:'#value#',
-	type:{ height:40 },
-	select:true,
-	data:[
-		{ id:'listitemSegmentsSelector_MyProfile', value:'Мой профиль', count:0 },
-		{ id:'listitemSegmentsSelector_AllUsers', value:'Все пользователи', count:0 },
-		{ id:'listitemSegmentsSelector_AllGroups', value:'Все группы', count:0 },
-		{ id:'listitemSegmentsSelector_AllTasks', value:'Все задачи', count:0 },
-		{ id:'listitemSegmentsSelector_AllProjects', value:'Все проекты', count:0 },
-		{ id:'listitemSegmentsSelector_Templates', value:'Шаблоны', count:0 },
-		{ id:'listitemSegmentsSelector_Finances', value:'Финансы', count:0 },
-		{ id:'listitemSegmentsSelector_Notes', value:'Заметки', count:0 },
-		{ id:'listitemSegmentsSelector_Events', value:'События', count:1 },
-		{ id:'listitemSegmentsSelector_Messages', value:'Сообщения', count:3 },
-		{ value: '' },
-		{ id:'listitemSegmentsSelector_PersonalOptions', value:'Персональные настройки' },
-		{ id:'listitemSegmentsSelector_Exit', value:'Выйти' }
-	],
-	on:{"onAfterSelect": function(id){
-    switch(id) {
-      case 'listitemSegmentsSelector_MyProfile':
-        App.Router.navigate('id' + App.State.user.get('id'), {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_AllUsers':
-        App.Router.navigate('users', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_AllGroups':
-        App.Router.navigate('groups', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_AllTasks':
-        App.Router.navigate('tasks', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_AllProjects':
-        App.Router.navigate('projects', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_Templates':
-        App.Router.navigate('templates', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_Finances':
-        App.Router.navigate('finances', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_Notes':
-        App.Router.navigate('notes', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_Events':
-        App.Router.navigate('events', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_Messages':
-        App.Router.navigate('messages', {trigger:true} );
-        break;
-      case 'listitemSegmentsSelector_Exit':
-        App.Router.navigate('logout', {trigger:true} );
-        break;
-    }
-	}}
+// icon button with count marker
+webix.protoUI({
+	name:'icon',
+	$skin:function(){
+		this.defaults.height = webix.skin.$active.inputHeight;
+	},
+	defaults:{
+		template:function(obj){
+			var html = "<button style='height:100%;width:100%;line-height:"+obj.aheight+"px' class='webix_icon_button'>";
+			html += "<span class='webix_icon fa-"+obj.icon+"'></span>";
+			if(obj.value)
+				html += "<span class='webix_icon_count'>"+obj.value+"</span>";
+			html += "</button>";
+			return html;
+		},
+		width:33
+	},
+	_set_inner_size:function(){
+
+	}
+}, webix.ui.button);
+
+// Type for left menu
+webix.type(webix.ui.tree, {
+	name:'menuTree',
+	height: 40,
+	icon:function(obj, common) {
+		var html = '';
+		var open = '';
+		for (var i = 1; i <= obj.$level; i++) {
+			if (i == obj.$level && obj.$count) {
+				var dir = obj.open?'down':'right';
+				html+="<span class='"+open+" webix_icon fa-angle-"+dir+"'></span>";
+		    }
+		}
+		return html;
+	},
+	folder:function(obj, common) {
+		if(obj.icon)
+			return "<span class='webix_icon icon fa-"+obj.icon+"'></span>";
+		return '';
+	}
+});
+
+var tree_SegmentsSelector = {
+	width: 200,
+	rows:[
+		{
+			view: 'tree',	id: 'tree_SegmentsSelector',
+			type: 'menuTree',	css: 'menu',
+			activeTitle: true,
+			select: true,
+			tooltip: {
+				template: function(obj){
+					return obj.$count?"":obj.details;
+				}
+			},
+			on:{
+				onBeforeSelect:function(id){
+					return !this.getItem(id).$count;
+				},
+				onAfterSelect:function(id) {
+          switch(id) {
+            case 'SegmentsSelector_MyProfile':
+              App.Router.navigate('id' + App.State.user.get('id'), {trigger:true} );
+              break;
+            case 'SegmentsSelector_AllUsers':
+              App.Router.navigate('users', {trigger:true} );
+              break;
+            case 'SegmentsSelector_AllGroups':
+              App.Router.navigate('groups', {trigger:true} );
+              break;
+            case 'SegmentsSelector_AllTasks':
+              App.Router.navigate('tasks', {trigger:true} );
+              break;
+  		      case 'SegmentsSelector_LogOut':
+              App.Router.navigate('logout', {trigger:true} );
+              break;
+      		}
+				}
+			},
+			data:[
+			  {id: 'SegmentsSelector_MyProfile', value: 'Мой профиль', icon: 'user', $css: 'user', details:'Подробная информация профиля' },
+				{id: 'SegmentsSelector_Segments', value: 'Cегменты', open: true, data:[
+					{ id: 'SegmentsSelector_AllUsers', value: 'Все пользователи', icon: 'users', $css: 'user', details:'Список всех пользователей в системе' },
+					{ id: 'SegmentsSelector_AllGroups', value: 'Все группы', icon: 'sitemap', $css: 'products', details:'Список всех групп в системе' },
+					{ id: 'SegmentsSelector_AllTasks', value: 'Все задачи', icon: 'check-square-o', $css: "orders", details:'Список всех публичных задач' }
+				// 	{ id: 'SegmentsSelector_AllProjects', value:'Все проекты' },
+    //   		{ id: 'SegmentsSelector_Templates', value:'Шаблоны' },
+    //   		{ id: 'SegmentsSelector_Finances', value:'Финансы' },
+    //   		{ id: 'SegmentsSelector_Notes', value:'Заметки' },
+    //   		{ id: 'SegmentsSelector_Events', value:'События' },
+    //   		{ id: 'SegmentsSelector_Messages', value:'Сообщения' },
+				]},
+				{id: 'SegmentsSelector_More', open: false, value:'...', data:[
+					{ id: 'SegmentsSelector_Prefences', value: 'Настройки', icon: 'gear', details: 'Персональные настройки пользователя' },
+					{ id: 'SegmentsSelector_LogOut', value: 'Завершить сеанс', icon: 'sign-out', details: 'Закончить сеанс' }
+				]}
+			]
+		}
+	]
 };
 
 var scrollviewLeft_Segments = {
@@ -129,7 +172,7 @@ var scrollviewLeft_Segments = {
 		//type:'space',
 		rows:[//{ body: 'Task pull', autoheight:true,  },
 				  //{ view: 'resizer' },
-		      { body: listSegments_SegmentsSelector }
+		      { body: tree_SegmentsSelector }
 		]
   }
 };
@@ -199,8 +242,8 @@ var saveUserPermission = function(newv, oldv) {
   }
 };
 
-var scrollviewRight_UserFilter = {
-  view:'scrollview', id:'scrollviewRight_UserFilter',
+var scrollview_RightUserFilter = {
+  view:'scrollview', id:'scrollview_RightUserFilter',
   borderless: false, scroll:'y',
   $init: function(config) { },
   body:{
@@ -211,8 +254,17 @@ var scrollviewRight_UserFilter = {
   }
 };
 
-//**************************************************************************************************
-//GROUPS filter bar
+var scrollview_RightGroupFilter = {
+  view:'scrollview', id:'scrollview_RightGroupFilter',
+  borderless: false, scroll:'y',
+  $init: function(config) { },
+  body:{
+    rows:[
+      { view:'template', template:'Группа', type:'section', align:'center' }
+    ]
+  }
+};
+
 var scrollviewRight_GroupsFilter = {
   view:'scrollview', id:'scrollviewRight_GroupsFilter',
   borderless: false, scroll:'y',
@@ -228,14 +280,15 @@ App.Frame.multiviewRight = {
   view:'multiview', id:'multiviewRight',
 	width:250, animate: false,
   cells:[scrollviewRight_UsersFilter,
-  scrollviewRight_UserFilter,
+  scrollview_RightUserFilter,
+  scrollview_RightGroupFilter,
   scrollviewRight_GroupsFilter ]
 };
 
 //webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
 
-//***************************************************************************
-//GROUP frames
+//**************************************************************************************************
+//section: GROUPS frames
 App.Frame.toolbarMyGroups_Groupstool = {
   view:'toolbar', id:'toolbarMyGroups_Groupstool',
   cols:[
@@ -285,7 +338,9 @@ App.Frame.toolbarMyGroups_Groupstool = {
       click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'uplevel'); } },
     { view:'button', id:'buttonGroupstool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
       click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'downlevel'); } },
-    { }
+    { },
+    { view:'button', label:'Назад', width: 100,
+      click: function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } },
   ]
 };
 
@@ -336,11 +391,10 @@ App.Frame.treetableMyGroups_Groupstable = {
 	],
 	onClick:{
 		'fa-ellipsis-h': function(e, id, node) {
-		  webix.message('change');
 		  $$('toolpopupGroups').show(node.childNodes[0], { pos: 'right'});
 		},
 		'fa-eye': function(e, id, node) {
-		  webix.message('view');
+		  App.Router.navigate('gr' + id, { trigger:true } );
 		},
 		'fa-users': function(e, id, node) {
 		  webix.message('users');
@@ -400,10 +454,11 @@ App.Frame.tabviewCentral_Groups = {
     }
   ]
 };
+//end section: GROUPS frames
+//**************************************************************************************************
 
-//***************************************************************************
-//TASK frames
-
+//**************************************************************************************************
+//section: TASKS frames
 App.Frame.toolbarMytasks_Tasktool = {
   view:'toolbar',
   id:'toolbarMytasks_Tasktool',
@@ -505,9 +560,107 @@ App.Frame.tabviewCentral_Task = {
     }    
   ]
 };
+//end section: TASKS frames
+//**************************************************************************************************
 
-//***************************************************************************
-//USER frames
+//**************************************************************************************************
+//section AVATAR user
+var avatarUploadFiles = function() {
+	$$('upl1').send();
+};
+
+var avatarUploadCancel = function() {
+	var id = $$('upl1').files.getFirstId();
+	while (id) {
+		$$('upl1').stopUpload(id);
+		id = $$('upl1').files.getNextId(id);
+	}
+	$$('avatarLoaderFrame').hide();
+};
+
+webix.type(webix.ui.list, {
+	name:'myUploader',
+	template:function(f, type){
+		var html = "<div class='uploader_overall'><div class='uploader_name'>"+f.name+"</div>";
+		html += "<div class='uploader_remove_file'><span style='color:#AAA' class='uploader_cancel_icon'></span></div>";
+		html += "<div class='uploader_status'>";
+		html += "<div class='uploader_progress "+f.status+"' style='width:"+(f.status == 'transfer'||f.status=="server"?f.percent+"%": "0px")+"'></div>";
+		html += "<div class='uploader_message "+ f.status+"'>"+type.status(f)+"</div>";
+		html +=	 "</div>";
+		html += "<div class='uploader_size'>"+ f.sizetext+"</div></div>";
+		return html;
+	 },
+	status:function(f){
+		var messages = {
+			server: 'Done',
+			error: 'Error',
+			client: 'Ready',
+			transfer:  f.percent+'%'
+		};
+		return messages[f.status];
+	},
+	on_click:{
+		'uploader_remove_file':function(ev, id){
+			$$(this.config.uploader).files.remove(id);
+		}
+	},
+	height: 35
+});
+
+var avatarLoaderForm = {
+	view:'form',
+	borderless:true,
+	elements: [
+		{ view:'template', template:'<span>Было бы замечательно, если бы ваш профиль имел аватарку! Сейчас у вас замечательная возможность её выбрать!</span>' },
+		{ view:'uploader', 
+		  id:'upl1', 
+		  height:37, align:'center', 
+		  type:'iconButton', icon:'plus-circle', 
+		  label:'Add files', autosend:false, 
+		  link:'mylist', 
+		  upload:'api/v1/upload',
+		  accept:'image/png' },
+		  //accept:'image/png, image/gif, image/jpg' },
+		{
+			borderless:true,
+			view:'list', id:'mylist', type:'myUploader',
+			autoheight:true, minHeight:50
+  	},
+		{
+			id:'uploadButtons',
+			cols:[
+				{ view:'button', label:'Upload', type:'iconButton', icon:'upload', click:'avatarUploadFiles()', align:'center' },
+				{ width:5 },
+				{ view:'button', label:'Cancel', type:'iconButton', icon:'cancel-circle', click:'avatarUploadCancel()', align:'center' }
+			]
+		}
+	],
+	elementsConfig:{
+		labelPosition:'top',
+	}
+};
+
+webix.ui({
+  view:'window',
+  id:'avatarLoaderFrame',
+  width:450,
+  height:300,
+  position:'center',
+  modal:true,
+  head:'Загрузка новой фотографии',
+  body:webix.copy(avatarLoaderForm)
+});
+
+var changeAvatar = function() {
+  $$('avatarLoaderFrame').getBody().clear();
+  $$('avatarLoaderFrame').show();
+  $$('avatarLoaderFrame').getBody().focus();
+};
+//end section: AVATAR user
+//**************************************************************************************************
+
+//**************************************************************************************************
+//section: USER frames
 var _ignoreSaveUserAttributes;
 App.Func.loadUserAttributes = function() {
   var mydate = new Date();
@@ -701,101 +854,6 @@ var scrollviewProfile_viewedUserAttributes = {
   ]}
 };
 
-//**************************************************************************************************
-//АВАТАРКА ПРОФИЛЯ
-
-function avatarUploadFiles() {
-	$$('upl1').send();
-}
-
-function avatarUploadCancel() {
-	var id = $$('upl1').files.getFirstId();
-	while (id) {
-		$$('upl1').stopUpload(id);
-		id = $$('upl1').files.getNextId(id);
-	}
-	$$('avatarLoaderFrame').hide();
-}
-
-webix.type(webix.ui.list, {
-	name:'myUploader',
-	template:function(f, type){
-		var html = "<div class='uploader_overall'><div class='uploader_name'>"+f.name+"</div>";
-		html += "<div class='uploader_remove_file'><span style='color:#AAA' class='uploader_cancel_icon'></span></div>";
-		html += "<div class='uploader_status'>";
-		html += "<div class='uploader_progress "+f.status+"' style='width:"+(f.status == 'transfer'||f.status=="server"?f.percent+"%": "0px")+"'></div>";
-		html += "<div class='uploader_message "+ f.status+"'>"+type.status(f)+"</div>";
-		html +=	 "</div>";
-		html += "<div class='uploader_size'>"+ f.sizetext+"</div></div>";
-		return html;
-	 },
-	status:function(f){
-		var messages = {
-			server: 'Done',
-			error: 'Error',
-			client: 'Ready',
-			transfer:  f.percent+'%'
-		};
-		return messages[f.status];
-	},
-	on_click:{
-		'uploader_remove_file':function(ev, id){
-			$$(this.config.uploader).files.remove(id);
-		}
-	},
-	height: 35
-});
-
-var avatarLoaderForm = {
-	view:'form',
-	borderless:true,
-	elements: [
-		{ view:'template', template:'<span>Было бы замечательно, если бы ваш профиль имел аватарку! Сейчас у вас замечательная возможность её выбрать!</span>' },
-		{ view:'uploader', 
-		  id:'upl1', 
-		  height:37, align:'center', 
-		  type:'iconButton', icon:'plus-circle', 
-		  label:'Add files', autosend:false, 
-		  link:'mylist', 
-		  upload:'api/v1/upload',
-		  accept:'image/png' },
-		  //accept:'image/png, image/gif, image/jpg' },
-		{
-			borderless:true,
-			view:'list', id:'mylist', type:'myUploader',
-			autoheight:true, minHeight:50
-  	},
-		{
-			id:'uploadButtons',
-			cols:[
-				{ view:'button', label:'Upload', type:'iconButton', icon:'upload', click:'avatarUploadFiles()', align:'center' },
-				{ width:5 },
-				{ view:'button', label:'Cancel', type:'iconButton', icon:'cancel-circle', click:'avatarUploadCancel()', align:'center' }
-			]
-		}
-	],
-	elementsConfig:{
-		labelPosition:'top',
-	}
-};
-
-webix.ui({
-  view:'window',
-  id:'avatarLoaderFrame',
-  width:450,
-  height:300,
-  position:'center',
-  modal:true,
-  head:'Загрузка новой фотографии',
-  body:webix.copy(avatarLoaderForm)
-});
-
-var changeAvatar = function() {
-  $$('avatarLoaderFrame').getBody().clear();
-  $$('avatarLoaderFrame').show();
-  $$('avatarLoaderFrame').getBody().focus();
-};
-
 var frameProfile_user = {
   id: 'frameProfile_user',
   rows:[
@@ -903,8 +961,8 @@ var frameUser_Message = {
   ]
 };
 
-App.Frame.tabviewCentral_User = {
-  view:'tabview', id:'tabviewCentral_User',
+App.Frame.tabview_CentralUser = {
+  view:'tabview', id:'tabview_CentralUser',
   autoheight:true, autowidth:true,
   animate:true,
   tabbar : { optionWidth : 200 },
@@ -933,11 +991,11 @@ App.Frame.tabviewCentral_User = {
 };
 
 //**************************************************************************************************
-//GROUP frames
+//section: GROUP frames
 var _ignoreSaveGroupAttributes;
 App.Func.loadGroupAttributes = function() {
-  if($$('frame_GroupProfile').isVisible()) {
-    $$('bar_GroupProfile').data.value = App.State.viewedGroup.get('name');
+  //if($$('frame_GroupProfile').isVisible()) {
+    $$('bar_GroupProfile').data.label = App.State.viewedGroup.get('name');
     $$('bar_GroupProfile').refresh();
     
     $$('avatar_GroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
@@ -947,16 +1005,16 @@ App.Func.loadGroupAttributes = function() {
     $$('text_GroupProfile_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
     $$('text_GroupProfile_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
     _ignoreSaveGroupAttributes = false;
-  } else {
-    $$('bar_ViewedGroupProfile').data.value = App.State.viewedGroup.get('name');
-    $$('bar_ViewedGroupProfile').refresh();
+  // } else {
+  //   $$('bar_ViewedGroupProfile').data.value = App.State.viewedGroup.get('name');
+  //   $$('bar_ViewedGroupProfile').refresh();
     
-    $$('avatar_ViewedGroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
+  //   $$('avatar_ViewedGroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
     
-    $$('label_GroupProfile_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
-    $$('label_GroupProfile_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
-    $$('label_GroupProfile_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
-  }
+  //   $$('label_GroupProfile_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
+  //   $$('label_GroupProfile_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
+  //   $$('label_GroupProfile_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
+  // }
 };
 
 var list_GroupProfile_Menu = {
@@ -1042,7 +1100,7 @@ var saveGroupAttributes = function(newv, oldv) {
         check(newv, 'Такое имя группы не подходит').not(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
         
         App.State.viewedGroup.set('name', newv);
-        $$('bar_GroupProfile').data.value = newv;
+        $$('bar_GroupProfile').data.label = newv;
         $$('bar_GroupProfile').refresh();
 
         break;
@@ -1071,7 +1129,7 @@ var scrollview_GroupProfile_Attributes = {
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'text_GroupProfile_Attributes_Name', label:'Имя пользователя', labelWidth:150, on:{'onChange': saveGroupAttributes } },
+      { view:'text', id:'text_GroupProfile_Attributes_Name', label:'Название группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
       { view:'text', id:'text_GroupProfile_Attributes_Email', label:'Email', labelWidth:150, disabled:true },
       { view:'text', id:'text_GroupProfile_Attributes_Description', label:'Описание группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
   ]}
@@ -1092,7 +1150,13 @@ var scrollview_ViewedGroupProfile_Attributes = {
 var frame_GroupProfile = {
   id: 'frame_GroupProfile',
   rows:[
-    { view:'template', id:'bar_GroupProfile', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    {
+    	view:'toolbar',
+    	elements:[{ view: 'label', id:'bar_GroupProfile', label:'i' },
+    	          {},
+    	          { view: 'label', label:'Назад', width:100, on:{ 'onItemClick': function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } } }
+    	         ]
+    },
     { height:3 },
     { cols:[
       { rows: [
@@ -1223,6 +1287,8 @@ App.Frame.tabview_CentralGroup = {
     },    
   ]
 };
+//end section: GROUP frames
+//**************************************************************************************************
 
 //bru: функция вызываемая при нажатии на ссылке с именем пользователя, для перехода на профиль пользователя
 var UserRout = function(id) {
@@ -1495,7 +1561,7 @@ App.Frame.multiviewCentral = {
     App.Frame.tabviewCentral_Task,
     App.Frame.frameCentral_Register,
     App.Frame.frameCentral_Login,
-    App.Frame.tabviewCentral_User,
+    App.Frame.tabview_CentralUser,
     App.Frame.tabview_CentralGroup,
     App.Frame.frameCentral_Users],
   fitBiggest:true,
