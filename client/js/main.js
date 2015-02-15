@@ -9,6 +9,15 @@ var implementFunction = (function() {
       clientRoute : '',
       segment     : '',   //user, users, groups, tasks, templates, finances, process, files, notes
     }],                          //Стек состояний
+    _segments : [{
+      id      : null,
+      segment : null
+    }],
+    SelectedSegmentProfile : {
+      id : null,
+      type : null,
+      name : null
+    },
     user             : null,     //Пользователь системы
     viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
     viewedGroup      : null,
@@ -49,7 +58,8 @@ var implementFunction = (function() {
       //if(this.tasks != null) { this.tasks = null; }
       //this.tasks = this.tasksModelInit();
 
-      this._st                       = [ { clientRoute: '', segment: '' } ];
+      this._st                      = [ { clientRoute: '', segment: '' } ];
+      this.SelectedSegmentProfile   = { id: null, type:null, name:null };
       this.serverRoute              = '';
       this.prevClientRoute          = '',
       this.segmentUserId            = null;
@@ -128,6 +138,11 @@ var implementFunction = (function() {
   	  //при опросе состояния сервера мы получили url, который пользователь ввел отправляя запрос на сервер
   	  //но клиентское приложение имеет самостоятельный роут, поэтому мы должны сообщить url пользователя этому роуту
   	  //и если пользователь авторизирован, перейти по этому урлу, после чего сообщить серверу, что урл обработан
+  	  
+  	  //добавим пользователя в меню профиля сегментов
+  	  var userProfile = { id: model.get('id'), name: model.get('username'), segment: 'Мой профиль', type:'myprofile' };
+  	  if(!$$('list_InnerProfile').exists(userProfile.id))
+  	    $$('list_InnerProfile').add(userProfile, 0);
   	  
       if(App.State.serverRoute !== '') {
     	  var promise = webix.ajax().post('api/v1/state', { serverRoute: '' }, App.State.$srvUrlChanged);
@@ -314,14 +329,14 @@ var implementFunction = (function() {
   };
 
   var offState = function() {
-    $$('multiviewLeft').hide();
-    $$('multiviewRight').hide();
+    $$('multiview_Left').hide();
+    $$('multiview_Right').hide();
 
     $$('treetableMytasks_Tasktable').clearAll();
     $$('treetableMyGroups_Groupstable').clearAll();
     
-    $$('toggleHeader_Menu').setValue(0);
-    $$('toggleHeader_Options').setValue(0);
+    $$('toggle_HeaderMenu').setValue(0);
+    $$('toggle_HeaderOptions').setValue(0);
     
     $$('toolbarAutorisation').show();
     $$('buttonAutorisationLogin').enable();
@@ -340,26 +355,27 @@ var implementFunction = (function() {
     
     //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
+      App.State.SelectedSegmentProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
       //В основном меню выделим пункт профиля
-      if('SegmentsSelector_MyProfile' != $$('tree_SegmentsSelector').getSelectedId()) {
-        $$('tree_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
-        $$('tree_SegmentsSelector').select('SegmentsSelector_MyProfile'); //Программно выбираем пункт меню
-        $$('tree_SegmentsSelector').unblockEvent();
-      }      
+      // if('SegmentsSelector_MyProfile' != $$('tree_SegmentsSelector').getSelectedId()) {
+      //   $$('tree_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+      //   $$('tree_SegmentsSelector').select('SegmentsSelector_MyProfile'); //Программно выбираем пункт меню
+      //   $$('tree_SegmentsSelector').unblockEvent();
+      // }      
       
-      $$('listProfile_UserAttributesSelector').unselectAll();
       $$('frameProfile_user').show();
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
-      $$('listProfile_viewedUserAttributesSelector').unselectAll();
+      App.State.SelectedSegmentProfile = { id: model.get('id'), type:'userprofile', name: model.get('username') };      
       $$('tree_SegmentsSelector').unselectAll();
       
       $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
-      if($$('multiviewRight').isVisible()) $$('multiviewRight').hide();       //Если панель настроек доступа видима, то скроем
-      if($$('toggleHeader_Options').getValue()) $$('toggleHeader_Options').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
-      $$('toggleHeader_Options').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
+      if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();       //Если панель настроек доступа видима, то скроем
+      if($$('toggle_HeaderOptions').getValue()) $$('toggle_HeaderOptions').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
+      $$('toggle_HeaderOptions').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
     }
     
+    $$('tree_SegmentsSelector').refresh();
     App.Func.loadUserAttributes();
     
     //App.State.groups.fetch({ success: showGroupDataAfterFetch });
@@ -376,7 +392,6 @@ var implementFunction = (function() {
     
     $$('scrollview_RightGroupFilter').show();
 
-    $$('list_ViewedGroupProfile_Menu').unselectAll();
     $$('frame_GroupProfile').show();
     //App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
 
@@ -417,7 +432,7 @@ var implementFunction = (function() {
     //если пользователь залогинился (получаем при опросе состояния сервера)
   	if(user.get('mainUserLogged')) {
   	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
-  	  if(!$$('toggleHeader_Options').isEnabled()) $$('toggleHeader_Options').enable();
+  	  if(!$$('toggle_HeaderOptions').isEnabled()) $$('toggle_HeaderOptions').enable();
   	  
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
   	  switch(App.State.getState('segment')) {
@@ -448,8 +463,8 @@ var implementFunction = (function() {
           //в противном случае снимаем выделение
           $$('tree_SegmentsSelector').blockEvent();
           if(App.State.usersFilter.userId === 0) {
-            if('SegmentsSelector_AllUsers' != $$('tree_SegmentsSelector').getSelectedId()) {
-              $$('tree_SegmentsSelector').select('SegmentsSelector_AllUsers');
+            if('SegmentsSelector_Users' != $$('tree_SegmentsSelector').getSelectedId()) {
+              $$('tree_SegmentsSelector').select('SegmentsSelector_Users');
             }
           } else {
             $$('tree_SegmentsSelector').unselectAll();
@@ -470,8 +485,8 @@ var implementFunction = (function() {
           //в противном случае снимаем выделение          
           $$('tree_SegmentsSelector').blockEvent();
           if(App.State.usersFilter.userId === 0) {
-            if('SegmentsSelector_AllGroups' != $$('tree_SegmentsSelector').getSelectedId()) {
-              $$('tree_SegmentsSelector').select('SegmentsSelector_AllGroups');
+            if('SegmentsSelector_Groups' != $$('tree_SegmentsSelector').getSelectedId()) {
+              $$('tree_SegmentsSelector').select('SegmentsSelector_Groups');
             }
           } else {
             $$('tree_SegmentsSelector').unselectAll();
@@ -491,7 +506,7 @@ var implementFunction = (function() {
           
           break;
         case 'tasks':
-          $$('tree_SegmentsSelector').select('SegmentsSelector_AllTasks');
+          $$('tree_SegmentsSelector').select('SegmentsSelector_Tasks');
           
           App.State.tasks.fetch({ success: showTaskDataAfterFetch });
           $$('tabviewCentral_Task').show();
@@ -509,6 +524,11 @@ var implementFunction = (function() {
           break;
         case 'notes':
           // code
+          break;
+        case 'home':
+          App.State.SelectedSegmentProfile = { id: 2, type:'community', name:'Сообщество' };
+          $$('tree_SegmentsSelector').refresh();
+          $$('frameBlank').show();
           break;
   	  }
   	} else {
@@ -546,8 +566,8 @@ var implementFunction = (function() {
 		},
 		//home выбрасывает в корень
 		home:function() {
-		  //App.State.clientRoute = '/home';
-		  this.navigate('', {trigger: true});
+		  //this.navigate('', {trigger: true});
+		  App.State.segmentChange('/home', 'home');
 		},
 		//корень приложения
 		index:function() {
@@ -614,12 +634,12 @@ var implementFunction = (function() {
 	}))();
 
   App.State.init();
-
+  
   //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
   var frameBase = new webix.ui({
     id:'frameBase',
     rows:[App.Frame.multiviewToolbar, 
-      { cols: [App.Frame.multiviewLeft, App.Frame.multiviewCentral, App.Frame.multiviewRight] }
+      { cols: [App.Frame.multiview_Left, App.Frame.multiviewCentral, App.Frame.multiview_Right] }
     ]
   });
 
