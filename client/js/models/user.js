@@ -11,7 +11,8 @@ App.Models.User = Backbone.Model.extend({
     familystatus: 'Выбор статуса',    
     thisTry: false,
     mainUserLogged: false,
-    permissionVisibleProfile: 0
+    permissionVisibleProfile: 0,
+    lastProfileSegment: [] //{ id: 2, name: 'mice', segment: 'Профиль пользователя', type:'userprofile' }
   },
  
   urlRoot: '/api/v1/users'

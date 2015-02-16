@@ -69,16 +69,16 @@ webix.ui({
 			},		  
 			{	css: 'show_all', height: 40, template: "Последние просмотренные профили <span class='webix_icon fa-angle-double-right'></span>"	},
 			{
-				view: 'list', id: 'list_OuterProfile',
+				view: 'list', id: 'list_lastProfile',
 				autoheight: true,
-				data: [
-					{id: 1, name: 'ice', segment: 'Профиль пользователя', type:'userprofile' },
-					{id: 2, name: 'mice', segment: 'Профиль пользователя', type:'userprofile' }
-				],
+				data: [],
 				type:{
 					height: 45,
 					template: function(obj) {
-					  return "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					  if(obj.type === 'userprofile')
+					    return "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					   else if(obj.type === 'groupprofile')
+					    return "<img class='photo' src='img/gravatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					}
 				},
 				on:{
@@ -86,10 +86,12 @@ webix.ui({
 				    var itm = this.getItem(id);
 				    if(itm.type === 'userprofile')
 				      App.Router.navigate('id' + itm.id, {trigger:true} );
+				    else if(itm.type === 'groupprofile')
+				      App.Router.navigate('gr' + itm.id, {trigger:true} );
 
 				    $$('profilePopup').hide();
-
-				  }}
+				  }
+				}
 			}
 		]
 	}
@@ -196,8 +198,8 @@ webix.type(webix.ui.tree, {
 		var open = '';
 		for (var i = 1; i <= obj.$level; i++) {
 			if (i === obj.$level && obj.$count) {
-				var dir = obj.open?'down':'right';
-				html+="<span class='"+open+" webix_icon fa-angle-"+dir+"'></span>";
+				  var dir = obj.open?'down':'right';
+				  html+="<span class='"+open+" webix_icon fa-angle-"+dir+"'></span>";
 		    }
 		}
 		return html;
@@ -222,6 +224,8 @@ var tree_SegmentsSelector = {
   		    var html;
   		    if(App.State.SelectedSegmentProfile.type === 'community') {
 					  html = "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		    } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
+  		      html = "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    } else {
 					  html = "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    }
@@ -245,6 +249,8 @@ var tree_SegmentsSelector = {
             case 'SegmentsSelector_Profile':
               if(App.State.SelectedSegmentProfile.type === 'community') {
                 App.Router.navigate('home', {trigger:true} );
+              } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
+                App.Router.navigate('gr' + App.State.SelectedSegmentProfile.id, {trigger:true} );
               } else {
                 App.Router.navigate('id' + App.State.SelectedSegmentProfile.id, {trigger:true} );
               }
@@ -872,7 +878,7 @@ var saveUserAttributes = function(newv, oldv) {
 
 var scrollviewProfile_UserAttributes = {
   view:'scrollview', id:'scrollviewProfile_UserAttributes',
-  borderless: true, scroll:'y',
+  borderless: true, scroll:'y',autoheight:true,
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
@@ -915,7 +921,7 @@ var frameProfile_user = {
             <img src="img/avatars/200/'+obj.src+'"></div>';
         }, //onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false; } } //blocks default onclick event 
         },
-        { height:10 }
+        {  }
       ]},
       { width:10 },
       scrollviewProfile_UserAttributes
@@ -933,7 +939,7 @@ var frameProfile_viewedUser = {
         { view:'template', id:'avatarProfile_vieweduser', width:200, height:200, borderless:true, template:function(obj) {
           return '<img src="img/avatars/200/'+obj.src+'">';
         } },
-        { height:10 }
+        {  }
       ]},
       { width:10 },
       scrollviewProfile_viewedUserAttributes
@@ -1141,7 +1147,7 @@ var frame_GroupProfile = {
             <a href="javascript:changeGroupAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
             <img src="img/gravatars/200/'+obj.src+'"></div>';
         }},
-        { height:10 }
+        {  }
       ]},
       { width:10 },
       scrollview_GroupProfile_Attributes
@@ -1159,7 +1165,7 @@ var frame_ViewedGroupProfile = {
         { view:'template', id:'avatar_ViewedGroupProfile', width:200, height:200, borderless:true, template:function(obj) {
           return '<img src="img/gravatars/200/'+obj.src+'">';
         } },
-        { height:10 }
+        {  }
       ]},
       { width:10 },
       scrollview_ViewedGroupProfile_Attributes

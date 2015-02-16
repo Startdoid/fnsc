@@ -8,16 +8,14 @@ var implementFunction = (function() {
     _st : [{
       clientRoute : '',
       segment     : '',   //user, users, groups, tasks, templates, finances, process, files, notes
-    }],                          //Стек состояний
-    _segments : [{
-      id      : null,
-      segment : null
-    }],
+    }],                   //Стек переходов пользователя по роутам
+    _ConstLen_st   : 4,    //Размер стека переходов
     SelectedSegmentProfile : {
       id : null,
       type : null,
       name : null
-    },
+    },                    //Данный атрибут указывает на профиль относительно которого показываются все сегменты
+    _ConstLen_lastProfileSegment: 5, //Размер стека последних просмотренных профилей
     user             : null,     //Пользователь системы
     viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
     viewedGroup      : null,
@@ -85,7 +83,7 @@ var implementFunction = (function() {
     setState: function(state) {
       if (typeof state === 'object') {
         var len = this._st.length;
-        if(len > 3) this._st.shift();
+        if(len > this._ConstLen_st) this._st.shift();
         len = this._st.push({ clientRoute: '', segment: '' });
         
           for (var prop in this._st[len - 1]) {
@@ -143,7 +141,11 @@ var implementFunction = (function() {
   	  var userProfile = { id: model.get('id'), name: model.get('username'), segment: 'Мой профиль', type:'myprofile' };
   	  if(!$$('list_InnerProfile').exists(userProfile.id))
   	    $$('list_InnerProfile').add(userProfile, 0);
-  	  
+
+  	  //var forParse = [{ id: 1, name: 'ice', segment: 'Профиль пользователя', type:'userprofile' },
+			//		{ id: 2, name: 'mice', segment: 'Профиль пользователя', type:'userprofile' }];  	  
+  	  $$('list_lastProfile').parse(model.get('lastProfileSegment'));
+
       if(App.State.serverRoute !== '') {
     	  var promise = webix.ajax().post('api/v1/state', { serverRoute: '' }, App.State.$srvUrlChanged);
   	        
@@ -343,6 +345,43 @@ var implementFunction = (function() {
 	  $$('buttonAutorisationRegister').enable();
   };
 
+  /**
+  * addLastProfileList
+  *   функция добавляет новый профиль в список последних просмотренных профилей (меню сегментов), 
+  *   при этом при добавлении учитывает предельный размер списка в переменной _ConstLen_lastProfileSegment
+  *   и при достижении предела удаляет первый элемент и добавляет новый в конец списка,
+  *   так же функция обновляет значения в элементе интерфейса отвечающего за список просм. профилей
+  * Attributes:
+  *   newProfile - новый профиль, который добавляется в список, соответствует следующей структуре
+  *   { id: идентификатор объекта профиля, type: тип объекта профиля, name: имя профиля, segment: 
+  *   какому сегменту соответствует профиль };
+  *   type следующих типов community - сообщество (публичная инфа); myprofile - профиль основного пользователя;
+  *   userprofile - профиль пользователей; groupprofile - профиль группы; и т.д.
+  * Result:
+  *****************************************************************************/  
+  var addLastProfileList = function(newProfile) {
+    var arrProfileSegment = App.State.user.get('lastProfileSegment');
+    
+    var needAdd = true;
+    for (var i = 0; i < arrProfileSegment.length; i++) 
+      if(arrProfileSegment[i].id === newProfile.id) {
+        needAdd = false;
+      }
+      
+    if(needAdd) {
+      if(arrProfileSegment.length >= App.State._ConstLen_lastProfileSegment) {
+        $$('list_lastProfile').remove(arrProfileSegment[0].id);
+        arrProfileSegment.shift();
+      }
+      
+      arrProfileSegment.push(newProfile);
+      App.State.user.save();//Обновим модель основного пользователя на сервере, добавив туда элемент списка просмотренных профилей
+        
+      if(!$$('list_lastProfile').exists(newProfile.id))
+        $$('list_lastProfile').add(newProfile);
+    }
+  };
+
 	//***************************************************************************
 	//AFTER FETCH FUNCTIONs
 	
@@ -366,8 +405,14 @@ var implementFunction = (function() {
       $$('frameProfile_user').show();
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
-      App.State.SelectedSegmentProfile = { id: model.get('id'), type:'userprofile', name: model.get('username') };      
-      $$('tree_SegmentsSelector').unselectAll();
+      //установим в состоянии приложения новый профиль
+      App.State.SelectedSegmentProfile = { id: model.get('id'), type:'userprofile', name: model.get('username') };
+      
+      //*Добавление профиля в список последних профилей*
+      var newProfile = { id: model.get('id'), type:'userprofile', name: model.get('username'), segment: 'Профиль пользователя' };
+      addLastProfileList(newProfile);
+      
+      //$$('tree_SegmentsSelector').unselectAll();
       
       $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
       if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();       //Если панель настроек доступа видима, то скроем
@@ -375,10 +420,12 @@ var implementFunction = (function() {
       $$('toggle_HeaderOptions').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
     }
     
+    //*Обновление дерева меню*
+    //т.к. изменился профиль, то необходимо обновить дерево меню для отображения новых элементов
     $$('tree_SegmentsSelector').refresh();
-    App.Func.loadUserAttributes();
     
-    //App.State.groups.fetch({ success: showGroupDataAfterFetch });
+    //*Заполнение атрибутов в открывшемся окне профиля*
+    App.Func.loadUserAttributes();
   };
 	
 	var showUserDataAfterError = function(model, xhr, options) {
@@ -391,6 +438,17 @@ var implementFunction = (function() {
     $$('tabview_CentralGroup').hideProgress();
     
     $$('scrollview_RightGroupFilter').show();
+
+    //*Установим в состоянии приложения новый профиль
+    App.State.SelectedSegmentProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name') };
+
+    //*Добавление профиля в список последних профилей*
+    var newProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name'), segment: 'Профиль группы' };
+    addLastProfileList(newProfile);
+    
+    //*Обновление дерева меню*
+    //т.к. изменился профиль, то необходимо обновить дерево меню для отображения новых элементов
+    $$('tree_SegmentsSelector').refresh();    
 
     $$('frame_GroupProfile').show();
     //App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
