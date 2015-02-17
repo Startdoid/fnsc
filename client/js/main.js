@@ -138,13 +138,15 @@ var implementFunction = (function() {
   	  //и если пользователь авторизирован, перейти по этому урлу, после чего сообщить серверу, что урл обработан
   	  
   	  //добавим пользователя в меню профиля сегментов
-  	  var userProfile = { id: model.get('id'), name: model.get('username'), segment: 'Мой профиль', type:'myprofile' };
-  	  if(!$$('list_InnerProfile').exists(userProfile.id))
-  	    $$('list_InnerProfile').add(userProfile, 0);
+  	  $$('list_InnerProfile').clearAll();
+	    $$('list_InnerProfile').add({ id: 1, name: model.get('username'), segment: 'Мой профиль', type:'myprofile', profile_id:model.get('id') });
+	    $$('list_InnerProfile').add({ id: 2, name: 'Сообщество', segment: 'Публичные профили', type:'community' });
 
-  	  //var forParse = [{ id: 1, name: 'ice', segment: 'Профиль пользователя', type:'userprofile' },
-			//		{ id: 2, name: 'mice', segment: 'Профиль пользователя', type:'userprofile' }];  	  
+			$$('list_lastProfile').clearAll();
   	  $$('list_lastProfile').parse(model.get('lastProfileSegment'));
+  	  
+  	  if(App.State.SelectedSegmentProfile.id === null)
+  	    App.State.SelectedSegmentProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
 
       if(App.State.serverRoute !== '') {
     	  var promise = webix.ajax().post('api/v1/state', { serverRoute: '' }, App.State.$srvUrlChanged);
@@ -343,6 +345,8 @@ var implementFunction = (function() {
     $$('toolbarAutorisation').show();
     $$('buttonAutorisationLogin').enable();
 	  $$('buttonAutorisationRegister').enable();
+	  
+	  $$('tree_SegmentsSelector').unselectAll();
   };
 
   /**
@@ -759,7 +763,7 @@ var implementFunction = (function() {
   };
   
   $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
-    webix.ajax('api/v1/users', { start:start, count:count, userId: App.State.usersFilter.userId }, centralUsers_DataRefresh);
+    webix.ajax().get('api/v1/users', { start:start, count:count, userId: App.State.usersFilter.userId }, centralUsers_DataRefresh);
     return false;
   });
 

@@ -29,9 +29,9 @@ webix.ui({
 	view: 'popup', id: 'profilePopup',
 	width: 300,	padding: 0,
 	css:'list_popup',
-	on:{ 'onShow': function() { $$('tree_SegmentsSelector').blockEvent(); },
-	  'onHide': function() { $$('tree_SegmentsSelector').unblockEvent(); }
-	},
+//	on:{ 'onShow': function() { $$('tree_SegmentsSelector').blockEvent(); },
+//	  'onHide': function() { $$('tree_SegmentsSelector').unblockEvent(); }
+//	},
 	body:{
 		type: 'clean',
 		borderless:true,
@@ -39,9 +39,7 @@ webix.ui({
 			{
 				view: 'list', id: 'list_InnerProfile',
 				autoheight: true,
-				data: [
-				  { id: 2, name: 'Сообщество', segment: 'Публичные профили', type:'community' }
-				],
+				data: [],
 				type:{
 					height: 45,
 					template: function(obj) {
@@ -50,7 +48,7 @@ webix.ui({
 					    html = "<img class='photo' src='img/globe40.png'";
 					    html +="' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					  } else {
-					    html = "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png";
+					    html = "<img class='photo' src='img/avatars/40/avtr"+obj.profile_id+".png";
 					    html +="' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					  }
 					  return html;
@@ -60,7 +58,7 @@ webix.ui({
 				  onItemClick: function(id) {
 				    var itm = this.getItem(id);
 				    if(itm.type === 'myprofile')
-				      App.Router.navigate('id' + itm.id, {trigger:true} );
+				      App.Router.navigate('id' + itm.profile_id, {trigger:true} );
             else
 				      App.Router.navigate('home', {trigger:true} ); 
 				    
@@ -222,14 +220,15 @@ var tree_SegmentsSelector = {
   		template: function(obj, common) {
   		  if(obj.id === 'SegmentsSelector_Profile') {
   		    var html;
+  		    html = "<span class='webix_icon fa-angle-down' onclick='$$(\"profilePopup\").show(this)' style='float:right;margin-top:10px'></span>";					
   		    if(App.State.SelectedSegmentProfile.type === 'community') {
-					  html = "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+					  html += "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
-  		      html = "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    } else {
-					  html = "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    }
-					html += "<span class='webix_icon fa-angle-down' onclick='$$(\"profilePopup\").show(this)' style='float:right;margin-top:10px'></span>";					
+					
 					return html;
   		  }
   		  else
@@ -1308,7 +1307,7 @@ var deleteUserFriend = function(id) {
 //bru: фрейм выводящий список пользователей и друзей
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
-  borderless:true, scroll:'y', xCount:1,
+  borderless:true, scroll:'y', xCount:2,
   type:{ height:110, width:450 },
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
