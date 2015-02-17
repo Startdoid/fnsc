@@ -180,6 +180,13 @@ module.exports = {
         client.query('SELECT count("id") as count FROM "Users" where "id"<>$1',[loggedUser.id], function(err, result) {
       	  if(err) { console.log(err); }
       	  
+      	  if(result.rows.length===0){
+            usersList.total_count = 0;
+            callback(errors.restStat_isOk, '', usersList);
+            done();
+            return usersList;
+          }
+      	  
       	  usersList.total_count = Number(result.rows[0].count);
           
           //первая порция
@@ -253,6 +260,12 @@ module.exports = {
       client.query(queryCount,[Number(UserId), Number(loggedUser.id)], function(err, result){
         if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList;}
         
+        if(result.rows.length===0){
+          usersList.total_count = 0;
+          callback(errors.restStat_isOk, '', usersList);
+          done();
+          return usersList;
+        }
         usersList.total_count = Number(result.rows[0].count);
         
         //получаем список
