@@ -12,10 +12,6 @@ var global       = require('../global'); //Чтение настроек под�
 
 var userFields = {
   id: Number,
-  grouplist: [{ groupId: Number, permission: Number }],
-  friendlist: [{ userId: Number }],
-  fotolist: [{ fotoId: Number }],
-  avatar: Number,
   username : String,
   email: String,
   password : String,
@@ -23,7 +19,8 @@ var userFields = {
   city: Number,
   dateofbirth: Date,
   gender: Number,
-  familystatus: Number
+  familystatus: Number,
+  lastProfileSegment: [mongoose.Schema.Types.Mixed],
 };
 
 var userSchema = mongoose.Schema(userFields);
@@ -360,9 +357,16 @@ module.exports = {
     if(validationResult.status === errors.restStat_isOk) {
       var newSet = {};
       for(var key in userFields) {
-        if((key === 'avatar') || (key === 'permissionVisibleProfile')) continue;
-        newSet[key] = body[key];
+        if(key === 'lastProfileSegment') {
+          newSet[key] = [];
+          for (var i = 0; i < body[key].length; i++) {
+            newSet[key].push(body[key][i]);
+          }
+        } else {
+          newSet[key] = body[key];
+        }
       }
+      
       //mongo
       module.exports.model.update({ id: loggedUser.id }, newSet, function (err) {
         if (err) {

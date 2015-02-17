@@ -1,27 +1,123 @@
 var App = window.App;
 var webix = window.webix;
 
-var toggleHeader_Menu = {
-	view:'toggle', id:'toggleHeader_Menu',
+//Не удалять эти комменты
+// webix.ui({
+// 	view: 'submenu', id: 'profilePopup',
+// 	width: 200,	padding: 0,
+// 	data: [
+// 		{ id: 1, icon: 'user', value: 'Мой профиль' },
+// 		{ id: 2, icon: 'globe', value: 'Всё сообщество' },
+// 		{ $template: 'Separator' },
+// 		{ id: 4, icon: "sign-out", value: "Logout", profile: true }
+// 	],
+// 	type:{
+// 	  height: 40,
+// 		template: function(obj) {
+// 			if(obj.type) {
+// 				return "<div class='separator'></div>";
+// 			} else if(obj.profile) {
+// 			  return "<img class='photo' src='img/avatars/1.png' /><span class='name'> "+obj.value+"</span>";
+// 			} else {
+// 			  return "<span class='webix_icon alerts fa-"+obj.icon+"'></span><span>"+obj.value+"</span>";
+// 			}
+// 		}
+// 	}
+// });
+
+webix.ui({
+	view: 'popup', id: 'profilePopup',
+	width: 300,	padding: 0,
+	css:'list_popup',
+	on:{ 'onShow': function() { $$('tree_SegmentsSelector').blockEvent(); },
+	  'onHide': function() { $$('tree_SegmentsSelector').unblockEvent(); }
+	},
+	body:{
+		type: 'clean',
+		borderless:true,
+		rows:[
+			{
+				view: 'list', id: 'list_InnerProfile',
+				autoheight: true,
+				data: [
+				  { id: 2, name: 'Сообщество', segment: 'Публичные профили', type:'community' }
+				],
+				type:{
+					height: 45,
+					template: function(obj) {
+					  var html = '';
+					  if(obj.type === 'community') {
+					    html = "<img class='photo' src='img/globe40.png'";
+					    html +="' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					  } else {
+					    html = "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png";
+					    html +="' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					  }
+					  return html;
+					}
+				},
+				on:{
+				  onItemClick: function(id) {
+				    var itm = this.getItem(id);
+				    if(itm.type === 'myprofile')
+				      App.Router.navigate('id' + itm.id, {trigger:true} );
+            else
+				      App.Router.navigate('home', {trigger:true} ); 
+				    
+				    $$('profilePopup').hide();
+				  }}
+			},		  
+			{	css: 'show_all', height: 40, template: "Последние просмотренные профили <span class='webix_icon fa-angle-double-right'></span>"	},
+			{
+				view: 'list', id: 'list_lastProfile',
+				autoheight: true,
+				data: [],
+				type:{
+					height: 45,
+					template: function(obj) {
+					  if(obj.type === 'userprofile')
+					    return "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					   else if(obj.type === 'groupprofile')
+					    return "<img class='photo' src='img/gravatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					}
+				},
+				on:{
+				  onItemClick:function(id) {
+				    var itm = this.getItem(id);
+				    if(itm.type === 'userprofile')
+				      App.Router.navigate('id' + itm.id, {trigger:true} );
+				    else if(itm.type === 'groupprofile')
+				      App.Router.navigate('gr' + itm.id, {trigger:true} );
+
+				    $$('profilePopup').hide();
+				  }
+				}
+			}
+		]
+	}
+});
+
+var toggle_HeaderMenu = {
+	view:'toggle', id:'toggle_HeaderMenu',
 	type:'icon', icon:'bars', 
 	width:30,	//height:30,
 	on:{
 		'onItemClick': function() {
-		  if($$('multiviewLeft').isVisible()) {
-		    $$('multiviewLeft').hide();
+		  if($$('multiview_Left').isVisible()) {
+		    $$('multiview_Left').hide();
 		  } else {
-		    $$('multiviewLeft').show();
-		    $$('scrollviewLeft_Segments').show();
+		    $$('multiview_Left').show();
+		    $$('tree_SegmentsSelector').show();
 		    $$('tree_SegmentsSelector').refresh();
 		  }	
 		}
 	}
 };
 
-var labelHeader_InTask = {
-	view: 'label', id:'labelHeader_InTask',
-	width:100,
-	label:'InTask.me',
+var label_HeaderInTask = {
+	view: 'label', id: 'label_HeaderInTask',
+	width: 175, align: 'center',
+	label: "<span class='headerLabel'>InTask.me</span>",
 	on:{
 		'onItemClick': function() { 
 		  App.Router.navigate('home', {trigger:true} ); 
@@ -29,45 +125,57 @@ var labelHeader_InTask = {
 	}
 };
 
-var toggleHeader_Options = {
-	view: 'toggle',  id: 'toggleHeader_Options',
+var toggle_HeaderOptions = {
+	view: 'toggle',  id: 'toggle_HeaderOptions',
 	type: 'icon', icon: 'tasks',
 	width: 30,	//height: 30,
 	on:{
 		'onItemClick': function() { 
-		  if($$('multiviewRight').isVisible()) {
-		    $$('multiviewRight').hide();
+		  if($$('multiview_Right').isVisible()) {
+		    $$('multiview_Right').hide();
 		  } else {
-		    $$('multiviewRight').show();
+		    $$('multiview_Right').show();
 		  }	
 		}
 	}	
 };
 
-var searchHeader_Master = {
-	view:'search', id: 'searchHeader_Master',
+var search_HeaderMaster = {
+	view:'search', id: 'search_HeaderMaster',
 	placeholder:'Найти тут всё...'
 };
+
+//Не удалять эти комменты
+// var popup_HeaderProfile = { 
+//   height:46, id: 'person_template', css: 'headerProfile', borderless:true, width: 180, 
+//   data: {id:3, name: 'Bruian blake' },
+//   template: function(obj) {
+//   	var html = 	"<div style='height:100%;width:100%;' onclick='$$(\"profilePopup\").show(this)'>";
+//     html += "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png' /><span class='name'>"+obj.name+"</span>";
+//     html += "<span class='webix_icon fa-angle-down'></span></div>";
+//     return html;
+//   }
+// };
 
 App.Frame.toolbarHeader = {
 	view:'toolbar', id: 'toolbarHeader',
 	//height:32, //maxWidth:App.WinSize.windowWidth / 100 * 80,
-	elements:[toggleHeader_Menu,
-	          labelHeader_InTask,
-	          searchHeader_Master,
-	          //{},
-	          toggleHeader_Options
+	elements:[toggle_HeaderMenu,
+	          label_HeaderInTask,
+	          //popup_HeaderProfile,
+	          search_HeaderMaster,
+	          toggle_HeaderOptions
 	         ]
 };
 
 // icon button with count marker
 webix.protoUI({
 	name:'icon',
-	$skin:function(){
+	$skin:function() {
 		this.defaults.height = webix.skin.$active.inputHeight;
 	},
 	defaults:{
-		template:function(obj){
+		template:function(obj) {
 			var html = "<button style='height:100%;width:100%;line-height:"+obj.aheight+"px' class='webix_icon_button'>";
 			html += "<span class='webix_icon fa-"+obj.icon+"'></span>";
 			if(obj.value)
@@ -77,8 +185,7 @@ webix.protoUI({
 		},
 		width:33
 	},
-	_set_inner_size:function(){
-
+	_set_inner_size:function() {
 	}
 }, webix.ui.button);
 
@@ -90,9 +197,9 @@ webix.type(webix.ui.tree, {
 		var html = '';
 		var open = '';
 		for (var i = 1; i <= obj.$level; i++) {
-			if (i == obj.$level && obj.$count) {
-				var dir = obj.open?'down':'right';
-				html+="<span class='"+open+" webix_icon fa-angle-"+dir+"'></span>";
+			if (i === obj.$level && obj.$count) {
+				  var dir = obj.open?'down':'right';
+				  html+="<span class='"+open+" webix_icon fa-angle-"+dir+"'></span>";
 		    }
 		}
 		return html;
@@ -105,13 +212,29 @@ webix.type(webix.ui.tree, {
 });
 
 var tree_SegmentsSelector = {
-	width: 200,
+	width: 220,
 	rows:[
 		{
 			view: 'tree',	id: 'tree_SegmentsSelector',
 			type: 'menuTree',	css: 'menu',
 			activeTitle: true,
-			select: true,
+			select: 'multiselect',
+  		template: function(obj, common) {
+  		  if(obj.id === 'SegmentsSelector_Profile') {
+  		    var html;
+  		    if(App.State.SelectedSegmentProfile.type === 'community') {
+					  html = "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		    } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
+  		      html = "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		    } else {
+					  html = "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		    }
+					html += "<span class='webix_icon fa-angle-down' onclick='$$(\"profilePopup\").show(this)' style='float:right;margin-top:10px'></span>";					
+					return html;
+  		  }
+  		  else
+  			  return ""+(common.icon?common.icon.apply(this, arguments):"")+" "+(common.folder?common.folder.apply(this, arguments):"")+" <span>"+(obj.value)+"</span>";
+  		},
 			tooltip: {
 				template: function(obj){
 					return obj.$count?"":obj.details;
@@ -123,16 +246,33 @@ var tree_SegmentsSelector = {
 				},
 				onAfterSelect:function(id) {
           switch(id) {
-            case 'SegmentsSelector_MyProfile':
-              App.Router.navigate('id' + App.State.user.get('id'), {trigger:true} );
+            case 'SegmentsSelector_Profile':
+              if(App.State.SelectedSegmentProfile.type === 'community') {
+                App.Router.navigate('home', {trigger:true} );
+              } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
+                App.Router.navigate('gr' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+              } else {
+                App.Router.navigate('id' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+              }
               break;
-            case 'SegmentsSelector_AllUsers':
-              App.Router.navigate('users', {trigger:true} );
+            case 'SegmentsSelector_Users':
+              switch(App.State.SelectedSegmentProfile.type) {
+                case 'community':
+                  App.Router.navigate('users', {trigger:true} );
+                  break;
+                case 'userprofile':
+                  App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+                  break;
+                case 'myprofile':
+                  App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+                  break;
+              }
+
               break;
-            case 'SegmentsSelector_AllGroups':
+            case 'SegmentsSelector_Groups':
               App.Router.navigate('groups', {trigger:true} );
               break;
-            case 'SegmentsSelector_AllTasks':
+            case 'SegmentsSelector_Tasks':
               App.Router.navigate('tasks', {trigger:true} );
               break;
   		      case 'SegmentsSelector_LogOut':
@@ -142,17 +282,15 @@ var tree_SegmentsSelector = {
 				}
 			},
 			data:[
-			  {id: 'SegmentsSelector_MyProfile', value: 'Мой профиль', icon: 'user', $css: 'user', details:'Подробная информация профиля' },
+			  {id: 'SegmentsSelector_Profile', value: 'Мой профиль', icon: 'globe', $css: 'user', details:'Подробная информация профиля' },
 				{id: 'SegmentsSelector_Segments', value: 'Cегменты', open: true, data:[
-					{ id: 'SegmentsSelector_AllUsers', value: 'Все пользователи', icon: 'users', $css: 'user', details:'Список всех пользователей в системе' },
-					{ id: 'SegmentsSelector_AllGroups', value: 'Все группы', icon: 'sitemap', $css: 'products', details:'Список всех групп в системе' },
-					{ id: 'SegmentsSelector_AllTasks', value: 'Все задачи', icon: 'check-square-o', $css: "orders", details:'Список всех публичных задач' }
-				// 	{ id: 'SegmentsSelector_AllProjects', value:'Все проекты' },
-    //   		{ id: 'SegmentsSelector_Templates', value:'Шаблоны' },
-    //   		{ id: 'SegmentsSelector_Finances', value:'Финансы' },
-    //   		{ id: 'SegmentsSelector_Notes', value:'Заметки' },
-    //   		{ id: 'SegmentsSelector_Events', value:'События' },
-    //   		{ id: 'SegmentsSelector_Messages', value:'Сообщения' },
+					{ id: 'SegmentsSelector_Users', value: 'Друзья', icon: 'users', $css: 'user', details:'Список пользователей профиля' },
+					{ id: 'SegmentsSelector_Groups', value: 'Группы', icon: 'sitemap', $css: 'products', details:'Список групп профиля' },
+					{ id: 'SegmentsSelector_Tasks', value: 'Задачи', icon: 'check-square-o', $css: "orders", details:'Список задач профиля' },
+				 	{ id: 'SegmentsSelector_Projects', value:'Проекты', icon: 'briefcase', details:'Список проектов профиля' },
+       		{ id: 'SegmentsSelector_Templates', value:'Шаблоны', icon: 'star', details:'Подборка шаблонов' },
+       		{ id: 'SegmentsSelector_Events', value:'События', icon: 'bell' },
+       		{ id: 'SegmentsSelector_Messages', value:'Сообщения', icon: 'envelope' }
 				]},
 				{id: 'SegmentsSelector_More', open: false, value:'...', data:[
 					{ id: 'SegmentsSelector_Prefences', value: 'Настройки', icon: 'gear', details: 'Персональные настройки пользователя' },
@@ -163,25 +301,11 @@ var tree_SegmentsSelector = {
 	]
 };
 
-var scrollviewLeft_Segments = {
-  view:'scrollview', id:'scrollviewLeft_Segments',
-  borderless: true, scroll:'y', //vertical scrolling
-  body:{
-		multi:false,
-		//view:'accordion',
-		//type:'space',
-		rows:[//{ body: 'Task pull', autoheight:true,  },
-				  //{ view: 'resizer' },
-		      { body: tree_SegmentsSelector }
-		]
-  }
-};
-
-App.Frame.multiviewLeft = {
-  view:'multiview', id:'multiviewLeft',
+App.Frame.multiview_Left = {
+  view:'multiview', id:'multiview_Left',
 	autowidth:true,
 	borderless: false,
-	cells:[scrollviewLeft_Segments]
+	cells:[tree_SegmentsSelector]
 };
 
 //Фильтр в панели опции
@@ -276,8 +400,8 @@ var scrollviewRight_GroupsFilter = {
   }
 };
 
-App.Frame.multiviewRight = {
-  view:'multiview', id:'multiviewRight',
+App.Frame.multiview_Right = {
+  view:'multiview', id:'multiview_Right',
 	width:250, animate: false,
   cells:[scrollviewRight_UsersFilter,
   scrollview_RightUserFilter,
@@ -704,76 +828,6 @@ App.Func.loadUserAttributes = function() {
   }
 };
 
-var listProfile_UserAttributesSelector = {
-  view:'list', id:'listProfile_UserAttributesSelector', css:'mainSelector',
-	borderless:true,  width:200, scroll:false,
-	template:'#value#',
-	type:{ height:50 },
-	select:true,
-	data:[
-		{ id:'listitemUserAtributesSelector_Users', value:'Друзья' },
-		{ id:'listitemUserAtributesSelector_Groups',	value:'Группы' },
-		{ id:'listitemUserAtributesSelector_Tasks',	value:'Задачи' },
-		{ id:'listitemUserAtributesSelector_Projects',	value:'Проекты' },
-		{ id:'listitemUserAtributesSelector_Tags',	value:'Теги' }
-	],
-	on:{'onAfterSelect': function(id) {
-    switch(id) {
-      case 'listitemUserAtributesSelector_Users':
-        App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
-        break;
-      case 'listitemUserAtributesSelector_Groups':
-        App.Router.navigate('groups', {trigger:true} );
-        break;
-      case 'listitemUserAtributesSelector_Tasks':
-        App.Router.navigate('tasks', {trigger:true} );
-        break;
-      case 'listitemUserAtributesSelector_Projects':
-        App.Router.navigate('projects', {trigger:true} );
-        break;
-      case 'listitemUserAtributesSelector_Tags':
-        App.Router.navigate('tags', {trigger:true} );
-        break;
-      }
-	  }
-	}
-};
-
-var listProfile_viewedUserAttributesSelector = {
-  view:'list', id:'listProfile_viewedUserAttributesSelector', css:'mainSelector',
-	borderless:true,  width:200, scroll:false,
-	template:'#value#',
-	type:{ height:50 },
-	select:true,
-	data:[
-		{ id:'listitemViewedUserAtributesSelector_Users', value:'Друзья' },
-		{ id:'listitemViewedUserAtributesSelector_Groups',	value:'Группы' },
-		{ id:'listitemViewedUserAtributesSelector_Tasks',	value:'Задачи' },
-		{ id:'listitemViewedUserAtributesSelector_Projects',	value:'Проекты' },
-		{ id:'listitemViewedUserAtributesSelector_Tags',	value:'Теги' }
-	],
-	on:{'onAfterSelect': function(id) {
-    switch(id) {
-      case 'listitemViewedUserAtributesSelector_Users':
-        App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
-        break;
-      case 'listitemViewedUserAtributesSelector_Groups':
-        App.Router.navigate('groups', {trigger:true} );
-        break;
-      case 'listitemViewedUserAtributesSelector_Tasks':
-        App.Router.navigate('tasks', {trigger:true} );
-        break;
-      case 'listitemViewedUserAtributesSelector_Projects':
-        App.Router.navigate('projects', {trigger:true} );
-        break;
-      case 'listitemViewedUserAtributesSelector_Tags':
-        App.Router.navigate('tags', {trigger:true} );
-        break;
-      }
-	  }
-	}
-};
-
 var saveUserAttributes = function(newv, oldv) {
   if(_ignoreSaveUserAttributes) return;
   //получаем идентификатор атрибута в котором изменились данные
@@ -824,7 +878,7 @@ var saveUserAttributes = function(newv, oldv) {
 
 var scrollviewProfile_UserAttributes = {
   view:'scrollview', id:'scrollviewProfile_UserAttributes',
-  borderless: true, scroll:'y',
+  borderless: true, scroll:'y',autoheight:true,
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
@@ -867,8 +921,7 @@ var frameProfile_user = {
             <img src="img/avatars/200/'+obj.src+'"></div>';
         }, //onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false; } } //blocks default onclick event 
         },
-        { height:10 },
-        listProfile_UserAttributesSelector
+        {  }
       ]},
       { width:10 },
       scrollviewProfile_UserAttributes
@@ -886,8 +939,7 @@ var frameProfile_viewedUser = {
         { view:'template', id:'avatarProfile_vieweduser', width:200, height:200, borderless:true, template:function(obj) {
           return '<img src="img/avatars/200/'+obj.src+'">';
         } },
-        { height:10 },
-        listProfile_viewedUserAttributesSelector
+        {  }
       ]},
       { width:10 },
       scrollviewProfile_viewedUserAttributes
@@ -1017,76 +1069,6 @@ App.Func.loadGroupAttributes = function() {
   // }
 };
 
-var list_GroupProfile_Menu = {
-  view:'list', id:'list_GroupProfile_Menu', css:'mainSelector',
-	borderless:true,  width:200, scroll:false,
-	template:'#value#',
-	type:{ height:50 },
-	select:true,
-	data:[
-		{ id:'item_GroupProfile_Menu_Users', value:'Участники' },
-		{ id:'item_GroupProfile_Menu_Groups',	value:'Группы' },
-		{ id:'item_GroupProfile_Menu_Tasks',	value:'Задачи' },
-		{ id:'item_GroupProfile_Menu_Projects',	value:'Проекты' },
-		{ id:'item_GroupProfile_Menu_Tags',	value:'Теги' }
-	],
-	on:{'onAfterSelect': function(id) {
-    switch(id) {
-      case 'item_GroupProfile_Menu_Users':
-        //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
-        break;
-      case 'item_GroupProfile_Menu_Groups':
-        //App.Router.navigate('groups', {trigger:true} );
-        break;
-      case 'item_GroupProfile_Menu_Tasks':
-        //App.Router.navigate('tasks', {trigger:true} );
-        break;
-      case 'item_GroupProfile_Menu_Projects':
-        //App.Router.navigate('projects', {trigger:true} );
-        break;
-      case 'item_GroupProfile_Menu_Tags':
-        //App.Router.navigate('tags', {trigger:true} );
-        break;
-      }
-	  }
-	}
-};
-
-var list_ViewedGroupProfile_Menu = {
-  view:'list', id:'list_ViewedGroupProfile_Menu', css:'mainSelector',
-	borderless:true,  width:200, scroll:false,
-	template:'#value#',
-	type:{ height:50 },
-	select:true,
-	data:[
-		{ id:'item_ViewedGroupProfile_Menu_Users', value:'Участники' },
-		{ id:'item_ViewedGroupProfile_Menu_Groups',	value:'Группы' },
-		{ id:'item_ViewedGroupProfile_Menu_Tasks',	value:'Задачи' },
-		{ id:'item_ViewedGroupProfile_Menu_Projects',	value:'Проекты' },
-		{ id:'item_ViewedGroupProfile_Menu_Tags',	value:'Теги' }
-	],
-	on:{'onAfterSelect': function(id) {
-    switch(id) {
-      case 'item_ViewedGroupProfile_Menu_Users':
-        //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
-        break;
-      case 'item_ViewedGroupProfile_Menu_Groups':
-        //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
-        break;
-      case 'item_ViewedGroupProfile_Menu_Tasks':
-        //App.Router.navigate('tasks', {trigger:true} );
-        break;
-      case 'item_ViewedGroupProfile_Menu_Projects':
-        //App.Router.navigate('projects', {trigger:true} );
-        break;
-      case 'item_ViewedGroupProfile_Menu_Tags':
-        //App.Router.navigate('tags', {trigger:true} );
-        break;
-      }
-	  }
-	}
-};
-
 var saveGroupAttributes = function(newv, oldv) {
   if(_ignoreSaveGroupAttributes) return;
   //получаем идентификатор атрибута в котором изменились данные
@@ -1165,8 +1147,7 @@ var frame_GroupProfile = {
             <a href="javascript:changeGroupAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
             <img src="img/gravatars/200/'+obj.src+'"></div>';
         }},
-        { height:10 },
-        list_GroupProfile_Menu
+        {  }
       ]},
       { width:10 },
       scrollview_GroupProfile_Attributes
@@ -1184,8 +1165,7 @@ var frame_ViewedGroupProfile = {
         { view:'template', id:'avatar_ViewedGroupProfile', width:200, height:200, borderless:true, template:function(obj) {
           return '<img src="img/gravatars/200/'+obj.src+'">';
         } },
-        { height:10 },
-        list_ViewedGroupProfile_Menu
+        {  }
       ]},
       { width:10 },
       scrollview_ViewedGroupProfile_Attributes
@@ -1527,9 +1507,9 @@ App.Frame.frameBlank = {
 
 App.Frame.toolbarAutorisation = {
 	view:'toolbar', id: 'toolbarAutorisation',
-	//height:32, 
+	//height: 49, 
 	elements:[{ view:'toggle', type:'icon', icon:'bars', width:30, height:30, disabled:true },
-	          { view: 'label', label:'InTask.me', width:100 },
+	          { view: 'label', label: "<span class='headerLabel'>InTask.me</span>", width:175, align: 'center' },
 	          {},
 	          { view:'button', id:'buttonAutorisationLogin', label:'Войти', type:'icon', icon:'sign-in', width: 100, 
 	            on:{ 'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); } } },

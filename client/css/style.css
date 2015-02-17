@@ -92,8 +92,92 @@
 	font-size: 18px;
 }
 
-.menu .webix_tree_leaves .webix_tree_leaves {
+.menu .webix_tree_leaves .webix_tree_leaves{
 	margin-left: 0px;
+}
+
+.headerLabel{
+  font-size: 20px;
+}
+
+.show_all{
+	background-color: #fbfbfb;
+}
+.show_all .webix_template{
+	line-height: 30px;
+	padding: 5px 10px;
+
+}
+.show_all .webix_template .webix_icon{
+	line-height: 30px;
+	float:right;
+}
+
+.photo{
+	width: 38px;
+	height: 38px;
+	float: left;
+	-margin-top: 5px;
+	margin-left: 6px;
+	margin-right: 5px;
+	margin-bottom:10px;
+	-moz-border-radius: 50%;
+	-ms-border-radius: 50%;
+	border-radius: 50%;
+}
+
+.headerProfile{
+	background: transparent !important;
+}
+.headerProfile .webix_template{
+	padding: 0;
+	line-height: 46px;
+}
+.headerProfile .photo{
+	width: 38px;
+	height: 38px;
+	float: left;
+	margin-top: 5px;
+	-moz-border-radius: 50%;
+	-ms-border-radius: 50%;
+	border-radius: 50%;
+}
+.headerProfile span{
+	color: #fff;
+	float: left;
+	padding-left: 7px;
+}
+.headerProfile .webix_icon{
+	line-height: inherit;
+}
+
+.list_popup .webix_list_item{
+	position:relative;
+	line-height: 36px;
+}
+.list_popup .photo{
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+}
+.list_popup .text{
+	padding-left:10px;
+	display: inline-block;
+	max-width:180px;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.list_popup .name{
+	color:#3498db;
+	font-size: 12px;
+	display: block;
+	font-style: italic;
+	overflow: hidden;
+	padding:0 2px 0 4px;
+	position: absolute;
+	right: 10px;
+	background: #fff;
+	top:3px;
 }
 
 .itmTextBold {

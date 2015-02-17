@@ -50,8 +50,8 @@ db.once('open', function callback () {
 
 	app.set('trust proxy', 1); // trust first proxy
 
- 	var accessLogStream = fs.createWriteStream(__dirname + '/access.log', {flags: 'a'});
-	app.use(morgan('combined', {stream: accessLogStream}));
+ 	//var accessLogStream = fs.createWriteStream(__dirname + '/access.log', {flags: 'a'});
+	//app.use(morgan('combined', {stream: accessLogStream}));
 	
  	app.use(cookieParser());
  	app.use(favicon(path.join(__dirname, '/client/img/favicon.ico')));
