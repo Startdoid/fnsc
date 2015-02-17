@@ -8,6 +8,7 @@ var implementFunction = (function() {
     _st : [{
       clientRoute : '',
       segment     : '',   //user, users, groups, tasks, templates, finances, process, files, notes
+      segmentId   : null
     }],                   //Стек переходов пользователя по роутам
     _ConstLen_st   : 4,    //Размер стека переходов
     SelectedSegmentProfile : {
@@ -24,8 +25,8 @@ var implementFunction = (function() {
     //groups           : null,     //коллекция групп пользователя системы
     //tasks            : null,     //коллекция задач пользователя системы
     serverRoute      : '',
-    segmentUserId    : null,
-    segmentGroupId   : null,
+    //segmentUserId    : null,
+    //segmentGroupId   : null,
     usrCRC           : null,
     group            : 0,        //Выбранная группа, по которой фильтруются задачи
     usersFilter      : { userId: 0 },
@@ -60,8 +61,8 @@ var implementFunction = (function() {
       this.SelectedSegmentProfile   = { id: null, type:null, name:null };
       this.serverRoute              = '';
       this.prevClientRoute          = '',
-      this.segmentUserId            = null;
-      this.segmentGroupId           = null;
+      //this.segmentUserId            = null;
+      //this.segmentGroupId           = null;
       this.usrCRC                   = null;
       this.group                    = 0;
       this.usersFilter              = { userId: 0 };
@@ -211,8 +212,10 @@ var implementFunction = (function() {
     *   ok: $loadState - управление сменой сегмена в зависимости от состояния на сервере
     *   error: $autonomeState - переход к автономному режиму, когда состояние от сервера не получено
     *****************************************************************************/
-    segmentChange: function(clientRoute, segment) {
-      this.setState( {clientRoute:clientRoute, segment:segment} );
+    segmentChange: function(clientRoute, segment, segmentId) {
+      this.setState( { clientRoute:clientRoute, segment:segment, segmentId:segmentId } );
+      if(segmentId !== undefined)
+        App.State.SelectedSegmentProfile.id = segmentId;
 
       var promise = webix.ajax().get('api/v1/state', {}, this.$loadState);
       promise.then(function(realdata) {
@@ -504,7 +507,8 @@ var implementFunction = (function() {
             delay:200
           });
   
-          viewedUser.url = '/api/v1/users/' + App.State.segmentUserId;
+          //viewedUser.url = '/api/v1/users/' + App.State.segmentUserId;
+          viewedUser.url = '/api/v1/users/' + App.State.SelectedSegmentProfile.id;
           viewedUser.fetch({ success: showUserDataAfterSuccess, error: showUserDataAfterError, silent:true });
 
           break;
@@ -514,7 +518,8 @@ var implementFunction = (function() {
             delay:200
           });
           
-          viewedGroup.url = '/api/v1/groups/' + App.State.segmentGroupId;
+          //viewedGroup.url = '/api/v1/groups/' + App.State.segmentGroupId;
+          viewedGroup.url = '/api/v1/groups/' + App.State.SelectedSegmentProfile.id;
           viewedGroup.fetch({ success: showGroupDataAfterSuccess, error: showGroupDataAfterError, silent:true });
           
           break;
@@ -524,13 +529,13 @@ var implementFunction = (function() {
           //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
           //в противном случае снимаем выделение
           $$('tree_SegmentsSelector').blockEvent();
-          if(App.State.usersFilter.userId === 0) {
+          //if(App.State.usersFilter.userId === 0) {
             if('SegmentsSelector_Users' != $$('tree_SegmentsSelector').getSelectedId()) {
               $$('tree_SegmentsSelector').select('SegmentsSelector_Users');
             }
-          } else {
-            $$('tree_SegmentsSelector').unselectAll();
-          }
+          //} else {
+          //  $$('tree_SegmentsSelector').unselectAll();
+          //}
           $$('tree_SegmentsSelector').unblockEvent();
           
           $$('dataviewCentral_Users').clearAll();
@@ -646,17 +651,17 @@ var implementFunction = (function() {
 		  App.State.segmentChange('/users', 'users');
 		},
 		user:function(id) {
-		  App.State.segmentUserId = id;
-		  App.State.segmentChange('/id' + id, 'user');
+		  //App.State.segmentUserId = id;
+		  App.State.segmentChange('/id' + id, 'user', id);
 		},
 		group:function(id) {
-		  App.State.segmentGroupId = id;
-		  App.State.segmentChange('/gr' + id, 'group');
+		  //App.State.segmentGroupId = id;
+		  App.State.segmentChange('/gr' + id, 'group', id);
 		},
 		userUsers:function(id) {
 		  App.State.usersFilter.userId = id;
-		  App.State.segmentUserId = id;
-		  App.State.segmentChange('users?id=' + id, 'users');
+		  //App.State.segmentUserId = id;
+		  App.State.segmentChange('users?id=' + id, 'users', id);
 		},
 		login:function() {
 		  //App.State.clientRoute = '/login';

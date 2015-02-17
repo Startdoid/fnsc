@@ -1,30 +1,6 @@
 var App = window.App;
 var webix = window.webix;
 
-//Не удалять эти комменты
-// webix.ui({
-// 	view: 'submenu', id: 'profilePopup',
-// 	width: 200,	padding: 0,
-// 	data: [
-// 		{ id: 1, icon: 'user', value: 'Мой профиль' },
-// 		{ id: 2, icon: 'globe', value: 'Всё сообщество' },
-// 		{ $template: 'Separator' },
-// 		{ id: 4, icon: "sign-out", value: "Logout", profile: true }
-// 	],
-// 	type:{
-// 	  height: 40,
-// 		template: function(obj) {
-// 			if(obj.type) {
-// 				return "<div class='separator'></div>";
-// 			} else if(obj.profile) {
-// 			  return "<img class='photo' src='img/avatars/1.png' /><span class='name'> "+obj.value+"</span>";
-// 			} else {
-// 			  return "<span class='webix_icon alerts fa-"+obj.icon+"'></span><span>"+obj.value+"</span>";
-// 			}
-// 		}
-// 	}
-// });
-
 webix.ui({
 	view: 'popup', id: 'profilePopup',
 	width: 300,	padding: 0,
@@ -143,18 +119,6 @@ var search_HeaderMaster = {
 	placeholder:'Найти тут всё...'
 };
 
-//Не удалять эти комменты
-// var popup_HeaderProfile = { 
-//   height:46, id: 'person_template', css: 'headerProfile', borderless:true, width: 180, 
-//   data: {id:3, name: 'Bruian blake' },
-//   template: function(obj) {
-//   	var html = 	"<div style='height:100%;width:100%;' onclick='$$(\"profilePopup\").show(this)'>";
-//     html += "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png' /><span class='name'>"+obj.name+"</span>";
-//     html += "<span class='webix_icon fa-angle-down'></span></div>";
-//     return html;
-//   }
-// };
-
 App.Frame.toolbarHeader = {
 	view:'toolbar', id: 'toolbarHeader',
 	//height:32, //maxWidth:App.WinSize.windowWidth / 100 * 80,
@@ -260,16 +224,31 @@ var tree_SegmentsSelector = {
                   App.Router.navigate('users', {trigger:true} );
                   break;
                 case 'userprofile':
-                  App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+                  //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+                  App.Router.navigate('users?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
                   break;
                 case 'myprofile':
-                  App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+                  //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
+                  App.Router.navigate('users?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
                   break;
               }
 
               break;
             case 'SegmentsSelector_Groups':
-              App.Router.navigate('groups', {trigger:true} );
+              switch(App.State.SelectedSegmentProfile.type) {
+                case 'community':
+                  App.Router.navigate('groups', {trigger:true} );
+                  break;
+                case 'userprofile':
+                  //App.Router.navigate('groups?id=' + App.State.segmentUserId, {trigger:true} );
+                  App.Router.navigate('groups?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  break;
+                case 'myprofile':
+                  App.Router.navigate('groups?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  //App.Router.navigate('groups?id=' + App.State.segmentUserId, {trigger:true} );
+                  break;
+              }
+
               break;
             case 'SegmentsSelector_Tasks':
               App.Router.navigate('tasks', {trigger:true} );
@@ -493,8 +472,8 @@ var treetableMyGroups_Groupstable_loadSuccess = function(data) {
 
 App.Frame.treetableMyGroups_Groupstable = {
   view:'treetable', id:'treetableMyGroups_Groupstable',
-	editable:true, 
-	autoheight:true, 
+	editable:true, editaction:'dblclick',
+	autoheight:true, rowHeight:45,
 	select: true,
 	drag:true,
 	updateFromResponse:true,
@@ -521,7 +500,13 @@ App.Frame.treetableMyGroups_Groupstable = {
 		},
 		'fa-users': function(e, id, node) {
 		  webix.message('users');
-		}		
+		},
+		'fa-angle-down': function(e, id) {
+			this.close(id);
+		},
+		'fa-angle-right': function(e, id) {
+			this.open(id);
+		}
 	},
 	on: {
 	  onItemClick: function() { 
@@ -550,6 +535,28 @@ App.Frame.treetableMyGroups_Groupstable = {
     }    
 	},
 	//url: 'GroupData->load'
+	type: {
+		icon:function(obj,common){
+			if (obj.$count){
+				if (obj.open)
+					return "<span class='webix_icon fa-angle-down'></span>";
+				else
+					return "<div class='webix_icon fa-angle-right'></div>";
+			} else
+				return "<div class='webix_tree_none'></div>";
+		},
+		folder:function(obj, common){
+		// 	if (obj.$count){
+		// 		if (obj.open)
+		// 			return "<span class='webix_icon fa-tree'></span>";
+		// 		else
+		// 			return "<span class='webix_icon fa-tree'></span>";
+		// 	}
+		// 	return "<div class='webix_icon fa-leaf'></div>";
+		//return "<img class='photo' src='img/gravatars/40/avtr1.png' />";
+		  return '';
+		}
+	},
 };
 
 App.Frame.tabviewCentral_Groups = {
