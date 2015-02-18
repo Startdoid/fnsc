@@ -399,15 +399,16 @@ var implementFunction = (function() {
     
     $$('scrollview_RightUserFilter').show();
     
+    //В основном меню выделим пункт профиля
+    if('SegmentsSelector_Profile' != $$('tree_SegmentsSelector').getSelectedId()) {
+      $$('tree_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+      $$('tree_SegmentsSelector').select('SegmentsSelector_Profile'); //Программно выбираем пункт меню
+      $$('tree_SegmentsSelector').unblockEvent();
+    }      
+
     //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
       App.State.SelectedSegmentProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
-      //В основном меню выделим пункт профиля
-      // if('SegmentsSelector_MyProfile' != $$('tree_SegmentsSelector').getSelectedId()) {
-      //   $$('tree_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
-      //   $$('tree_SegmentsSelector').select('SegmentsSelector_MyProfile'); //Программно выбираем пункт меню
-      //   $$('tree_SegmentsSelector').unblockEvent();
-      // }      
       
       $$('frameProfile_user').show();
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
@@ -418,8 +419,6 @@ var implementFunction = (function() {
       //*Добавление профиля в список последних профилей*
       var newProfile = { id: model.get('id'), type:'userprofile', name: model.get('username'), segment: 'Профиль пользователя' };
       addLastProfileList(newProfile);
-      
-      //$$('tree_SegmentsSelector').unselectAll();
       
       $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
       if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();       //Если панель настроек доступа видима, то скроем

@@ -188,15 +188,15 @@ var tree_SegmentsSelector = {
   		    if(App.State.SelectedSegmentProfile.type === 'community') {
 					  html += "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
-  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='pop'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    } else {
-					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
+					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='pop'> "+App.State.SelectedSegmentProfile.name+"</span>";
   		    }
 					
 					return html;
   		  }
   		  else
-  			  return ""+(common.icon?common.icon.apply(this, arguments):"")+" "+(common.folder?common.folder.apply(this, arguments):"")+" <span>"+(obj.value)+"</span>";
+  			  return ""+(common.icon?common.icon.apply(this, arguments):"")+" "+(common.folder?common.folder.apply(this, arguments):"")+" <span class='grow'>"+(obj.value)+"</span>";
   		},
 			tooltip: {
 				template: function(obj){
@@ -394,7 +394,7 @@ App.Frame.multiview_Right = {
 App.Frame.toolbarMyGroups_Groupstool = {
   view:'toolbar', id:'toolbarMyGroups_Groupstool',
   cols:[
-    { view:'button', id:'buttonGroupstool_AddRoot', value:'Добавить основную', width:140, align:'left', 
+    { view:'button', id:'buttonGroupstool_AddRoot', value:'Создать группу', width:140, align:'left', 
       click: function() { 
         //App.State.groups.newGroup(0); 
         var countElems = $$('treetableMyGroups_Groupstable').count();
@@ -403,43 +403,6 @@ App.Frame.toolbarMyGroups_Groupstool = {
           numUsers: 1
         }, countElems);
       } },
-    { view:'button', id:'buttonGroupstool_Add', value:'Добавить', width:100, align:'left', 
-      click: function() { App.State.groups.newGroup(App.State.groupstable_ItemSelected); } },
-    { view:'button', id:'buttonGroupstool_Delete', value:'Удалить', width:100, align:'left', 
-      click: function() {
-        $$('treetableMyGroups_Groupstable').remove($$('treetableMyGroups_Groupstable').getSelectedId());
-        
-        // var selectedId = App.State.groupstable_ItemSelected;
-        // if (selectedId !== 0) {
-        //   var firstModels = App.State.groups.findWhere( { parent_id: selectedId } );
-        //   var text = '';
-        //   if (typeof firstModels === 'undefined') {
-        //     text = 'Вы пожелали удалить выбранную группу?';
-        //   } else {
-        //     text = 'Группа содержит другие группы, вы желаете удалить корневую группу вместе с потомками?';
-        //   }
-
-        //   webix.confirm({
-        //     title:'Запрос на удаление группы',
-        //     ok:'Да', 
-        //     cancel:'Нет',
-        //     type:'confirm-warning',
-        //     text:text,
-        //     callback: function(result) { 
-        //       if (result) { App.State.groups.removeGroup(App.State.groupstable_ItemSelected); }
-        //       }
-        //   });
-        // }
-      }
-    },
-    { view:'button', id:'buttonGroupstool_Up', value:'Вверх', width:100, align:'left', 
-      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'up'); } },
-    { view:'button', id:'buttonGroupstool_Down', value:'Вниз', width:100, align:'left', 
-      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'down'); } },
-    { view:'button', id:'buttonGroupstool_UpLevel', value:'На ур. вверх', width:100, align:'left', 
-      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'uplevel'); } },
-    { view:'button', id:'buttonGroupstool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
-      click: function() { App.State.groups.moveGroup(App.State.groupstable_ItemSelected, 'downlevel'); } },
     { },
     { view:'button', label:'Назад', width: 100,
       click: function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } },
@@ -447,23 +410,60 @@ App.Frame.toolbarMyGroups_Groupstool = {
 };
 
 webix.ui({
-	view:'popup', id:'toolpopupGroups',
-  head:'Submenu',
-	width:200,
-	body:{
-		view:'list', 
-		data:[ { id: 'grMoveUp', value: 'Переместить выше', icon: 'arrow-up', $css: 'grMoveUp' },
-		  { id: 'grMoveDown', value: 'Переместить ниже', icon: 'arrow-down', $css: 'grMoveDown' },
-		  { id: 'grLevelUp', value: 'На уровень выше', icon: 'level-up', $css: 'grLevelUp' },
-		  { id: 'grLevelDown', value: 'На уровень ниже', icon: 'level-down', $css: 'grLevelDown' },
-		  { id: 'grAddGroup', value: 'Добавить группу', icon: 'plus', $css: 'grAddGroup' },
-		  { id: 'grDeleteGroup', value: 'Удалить группу', icon: 'trash-o', $css: 'grDeleteGroup' }
-		],
-		datatype:'json',
-		template:"<span style='cursor:pointer;' class='webix_icon fa-#icon#'></span><span>#value#</span>",
-		autoheight:true,
-		select:true
-	}
+	view: 'submenu', id: 'toolpopupGroups',
+ 	width: 200,	padding: 0,
+ 	data: [
+ 		{ id: 'grMoveUp', value: 'Переместить выше', icon: 'arrow-up', $css: 'grMoveUp' },
+ 		{ id: 'grMoveDown', value: 'Переместить ниже', icon: 'arrow-down', $css: 'grMoveDown' },
+ 		{ id: 'grLevelUp', value: 'На уровень выше', icon: 'level-up', $css: 'grLevelUp' },
+ 		{ id: 'grLevelDown', value: 'На уровень ниже', icon: 'level-down', $css: 'grLevelDown' },
+ 		{ id: 'grAddGroup', value: 'Создать подгруппу', icon: 'plus', $css: 'grAddGroup' },
+ 		{ id: 'grDeleteGroup', value: 'Удалить группу', icon: 'trash-o', $css: 'grDeleteGroup' }
+ 	],
+ 	type:{
+ 	  height: 40,
+ 		template: function(obj) {
+ 			return "<span style='cursor:pointer;' class='webix_icon fa-"+obj.icon+"'></span><span>"+obj.value+"</span>";
+ 		}
+ 	},
+	on:{
+	  onItemClick: function(id) {
+	    var itm = this.getItem(id);
+      switch (id) {
+        case 'grAddGroup':
+          // code
+          break;
+        case 'grDeleteGroup':
+          $$('treetableMyGroups_Groupstable').remove($$('treetableMyGroups_Groupstable').getSelectedId());
+          
+          // var selectedId = App.State.groupstable_ItemSelected;
+          // if (selectedId !== 0) {
+          //   var firstModels = App.State.groups.findWhere( { parent_id: selectedId } );
+          //   var text = '';
+          //   if (typeof firstModels === 'undefined') {
+          //     text = 'Вы пожелали удалить выбранную группу?';
+          //   } else {
+          //     text = 'Группа содержит другие группы, вы желаете удалить корневую группу вместе с потомками?';
+          //   }
+  
+          //   webix.confirm({
+          //     title:'Запрос на удаление группы',
+          //     ok:'Да', 
+          //     cancel:'Нет',
+          //     type:'confirm-warning',
+          //     text:text,
+          //     callback: function(result) { 
+          //       if (result) { App.State.groups.removeGroup(App.State.groupstable_ItemSelected); }
+          //       }
+          //   });
+          // }
+          break;
+        
+        default:
+          // code
+      }
+	    $$('toolpopupGroups').hide();
+	  }}
 });
 
 var treetableMyGroups_Groupstable_loadSuccess = function(data) {
@@ -472,8 +472,9 @@ var treetableMyGroups_Groupstable_loadSuccess = function(data) {
 
 App.Frame.treetableMyGroups_Groupstable = {
   view:'treetable', id:'treetableMyGroups_Groupstable',
+  css:'treetable',
 	editable:true, editaction:'dblclick',
-	autoheight:true, rowHeight:45,
+	autoheight:true, rowHeight:47,
 	select: true,
 	drag:true,
 	updateFromResponse:true,
@@ -486,7 +487,7 @@ App.Frame.treetableMyGroups_Groupstable = {
 	columns:[
 		{ id:'id', header:'&nbsp;', css:{'text-align':'center'}, width:40 },
 		{ id:'grIcoChange', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-ellipsis-h'></span>" },
-		{ id:'grIcoView', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
+		{ id:'grIcoView', header:'&nbsp;', width:56, template:"<img class='photointable' src='img/gravatars/40/avtr1.png' />"},//"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
 		{ id:'grIcoUsers', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-users'></span>" },
 		{ id:'name', editor:'text', header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
 		{ id:'numUsers', header:'Польз.', width:50 }
@@ -495,7 +496,7 @@ App.Frame.treetableMyGroups_Groupstable = {
 		'fa-ellipsis-h': function(e, id, node) {
 		  $$('toolpopupGroups').show(node.childNodes[0], { pos: 'right'});
 		},
-		'fa-eye': function(e, id, node) {
+		'photointable': function(e, id, node) {
 		  App.Router.navigate('gr' + id, { trigger:true } );
 		},
 		'fa-users': function(e, id, node) {
