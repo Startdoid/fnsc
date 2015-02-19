@@ -388,6 +388,16 @@ function saveUser(req, res, next) {
   }
 }
 
+var testGroups = [
+  { id: 1, parent_id: 0, owner_id: 3, name: 'Branch', email: 'branch@maus.ru', description: 'Это корневая ветка в тестовом дереве групп', numUsers: 1, webix_kids:true },
+  { id: 2, parent_id: 0, owner_id: 3, name: 'Branch two', email: 'branch_two@maus.ru', description: 'Это вторая корневая ветка в тестовом дереве групп', numUsers: 1 },
+  { id: 3, parent_id: 1, owner_id: 3, name: 'Sub-Branch', email: 'sub-branch@maus.ru', description: 'Это подветка в корневой ветке в тестовом дереве групп', numUsers: 1, webix_kids:true },
+  { id: 4, parent_id: 1, owner_id: 3, name: 'Sub-Branch two', email: 'sub-branch_two@maus.ru', description: 'Это вторая подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
+  { id: 7, parent_id: 1, owner_id: 4, name: 'Sub-Branch two with user 4', email: 'sub-branch_twous4@maus.ru', description: 'Это вторая подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
+  { id: 5, parent_id: 3, owner_id: 3, name: 'Sub-sub-Branch', email: 'sub-sub-branch@maus.ru', description: 'Глубокая подветка, третий уровнеь', numUsers: 1 },
+  { id: 6, parent_id: 0, owner_id: 4, name: 'Branch other use with id 4', email: 'branchuser4@maus.ru', description: 'Для пользователя с id 4', numUsers: 1 },
+];
+
 /**
 * getGroups
 *  Функция извлекает группу из DB по переданному ID
@@ -396,18 +406,15 @@ function saveUser(req, res, next) {
 * Result:
 *****************************************************************************/
 function getGroup(req, res, next) {
-  var groupID = req.param('group_id');
+  var groupID = Number(req.param('group_id'));
   
-  var zaglushka = {
-    id: groupID,
-    parent_id: 0,
-    owner_id: 0,
-    name: 'Mauz groupz',
-    email: 'Maus@maus.maus',
-    description: 'Это просто тестовая маусянская группа для отладки маусинных возможностей',
-    numUsers: 1
-  };
-  res.status(errors.restStat_isOk).send(zaglushka);
+  for (var i = 0; i < testGroups.length; i++) {
+    if (groupID === testGroups[i].id) {
+      return res.status(errors.restStat_isOk).json(testGroups[i]);
+    }
+  }
+  
+  return res.status(errors.restStat_DbReadError).send(errors.restMess_DbReadError);
 }
 
 /**
@@ -422,24 +429,46 @@ function getGroup(req, res, next) {
 function getGroups(req, res, next) {
   //bru: если значение === 0, то отдаются все пользователи. 
   //В противном случает отдаются друзья пользователя с id = userId
-  var userId = Number(req.param('userId'));
-  var cont = req.param('continue');
-  var parent = req.param('parent');
+  var userId = req.param('userId'),
+  cont = req.param('continue'),
+  parent = req.param('parent');
   
+  var returnData = [];
+  
+  if(typeof userId === 'undefined')
+    userId = 0;
+  else
+    userId = Number(userId);
+
   if(cont) {
-    if(parent === '1') {
-      var data2 = [{ id:'3', name:'Sub-Branch', numUsers:1, webix_kids:true },
-      { id:'4', name:'Sub-sub-Branch', numUsers:1 }];
-      res.status(errors.restStat_isOk).json({ parent:1, data:data2 });
-    } else if(parent === '3') {
-      var data3 = [{ id:'5', name:'Sub-2-Branch', numUsers:1 }];
-      res.status(errors.restStat_isOk).json({ parent:3, data:data3 });
+    //Вторая порция данных (потомки веток), при раскрытии веток
+    for (var i = 0; i < testGroups.length; i++) {
+      if(testGroups[i].parent_id === Number(parent)) {
+        //проверяем на принадлежность к пользователю
+        if(userId === 0) { //отдаем все элементы
+          returnData.push( testGroups[i] );
+        } else if(testGroups[i].owner_id === userId) {
+          returnData.push( testGroups[i] );
+        }
+      }
     }
+    res.status(errors.restStat_isOk).json( { 'parent':Number(parent), 'data':returnData } );
   } else {
-    var data1 = [{ id:'1', name:'Branch', numUsers:1, webix_kids:true },
-    { id:'2', name:'leaf', numUsers:1 }];
-    res.status(errors.restStat_isOk).json(data1);
+    //Первая порция данных (инициирующая), отдаем только корневые элементы
+    for (var i = 0; i < testGroups.length; i++) {
+      //проверяем на корневые элементы по нулевому родителю
+      if(testGroups[i].parent_id === 0) {
+        //проверяем на принадлежность к пользователю
+        if(userId === 0) { //отдаем все элементы
+          returnData.push(testGroups[i]);
+        } else if(testGroups[i].owner_id === userId) {
+          returnData.push(testGroups[i]);
+        }
+      }
+    }
+    res.status(errors.restStat_isOk).json(returnData);
   }
+
   //старое содержимое функции
   // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
   

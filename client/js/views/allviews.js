@@ -260,19 +260,19 @@ var tree_SegmentsSelector = {
 				}
 			},
 			data:[
-			  {id: 'SegmentsSelector_Profile', value: 'Мой профиль', icon: 'globe', $css: 'user', details:'Подробная информация профиля' },
-				{id: 'SegmentsSelector_Segments', value: 'Cегменты', open: true, data:[
-					{ id: 'SegmentsSelector_Users', value: 'Друзья', icon: 'users', $css: 'user', details:'Список пользователей профиля' },
-					{ id: 'SegmentsSelector_Groups', value: 'Группы', icon: 'sitemap', $css: 'products', details:'Список групп профиля' },
-					{ id: 'SegmentsSelector_Tasks', value: 'Задачи', icon: 'check-square-o', $css: "orders", details:'Список задач профиля' },
-				 	{ id: 'SegmentsSelector_Projects', value:'Проекты', icon: 'briefcase', details:'Список проектов профиля' },
-       		{ id: 'SegmentsSelector_Templates', value:'Шаблоны', icon: 'star', details:'Подборка шаблонов' },
-       		{ id: 'SegmentsSelector_Events', value:'События', icon: 'bell' },
-       		{ id: 'SegmentsSelector_Messages', value:'Сообщения', icon: 'envelope' }
+			  {id: 'SegmentsSelector_Profile', value: 'Мой профиль', hidden:false, icon: 'globe', $css: 'user', details:'Подробная информация профиля' },
+				{id: 'SegmentsSelector_Segments', value: 'Cегменты', hidden:false, open: true, data:[
+					{ id: 'SegmentsSelector_Users', value: 'Друзья', hidden:false, icon: 'users', $css: 'user', details:'Список пользователей профиля' },
+					{ id: 'SegmentsSelector_Groups', value: 'Группы', hidden:false, icon: 'sitemap', $css: 'products', details:'Список групп профиля' },
+					{ id: 'SegmentsSelector_Tasks', value: 'Задачи', hidden:false, icon: 'check-square-o', $css: "orders", details:'Список задач профиля' },
+				 	{ id: 'SegmentsSelector_Projects', value:'Проекты', hidden:false, icon: 'briefcase', details:'Список проектов профиля' },
+       		{ id: 'SegmentsSelector_Templates', value:'Шаблоны', hidden:false, icon: 'star', details:'Подборка шаблонов' },
+       		{ id: 'SegmentsSelector_Events', value:'События', hidden:false, icon: 'bell' },
+       		{ id: 'SegmentsSelector_Messages', value:'Сообщения', hidden:false, icon: 'envelope' }
 				]},
-				{id: 'SegmentsSelector_More', open: false, value:'...', data:[
-					{ id: 'SegmentsSelector_Prefences', value: 'Настройки', icon: 'gear', details: 'Персональные настройки пользователя' },
-					{ id: 'SegmentsSelector_LogOut', value: 'Завершить сеанс', icon: 'sign-out', details: 'Закончить сеанс' }
+				{id: 'SegmentsSelector_More', open: false, hidden:false, value:'...', data:[
+					{ id: 'SegmentsSelector_Prefences', value: 'Настройки', hidden:false, icon: 'gear', details: 'Персональные настройки пользователя' },
+					{ id: 'SegmentsSelector_LogOut', value: 'Завершить сеанс', hidden:false, icon: 'sign-out', details: 'Закончить сеанс' }
 				]}
 			]
 		}
@@ -398,10 +398,7 @@ App.Frame.toolbarMyGroups_Groupstool = {
       click: function() { 
         //App.State.groups.newGroup(0); 
         var countElems = $$('treetableMyGroups_Groupstable').count();
-        $$("treetableMyGroups_Groupstable").add({
-          name: 'Новый элемент', //data users enter into an input field 
-          numUsers: 1
-        }, countElems);
+        $$("treetableMyGroups_Groupstable").add({ name: 'Новый элемент', numUsers: 1 }, countElems);
       } },
     { },
     { view:'button', label:'Назад', width: 100,
@@ -431,7 +428,8 @@ webix.ui({
 	    var itm = this.getItem(id);
       switch (id) {
         case 'grAddGroup':
-          // code
+          var row_id = $$('treetableMyGroups_Groupstable').add({ name: 'Новый элемент', numUsers: 1 }, 0, $$('treetableMyGroups_Groupstable').getSelectedId());
+          $$('treetableMyGroups_Groupstable').open($$('treetableMyGroups_Groupstable').getSelectedId())
           break;
         case 'grDeleteGroup':
           $$('treetableMyGroups_Groupstable').remove($$('treetableMyGroups_Groupstable').getSelectedId());
@@ -530,7 +528,7 @@ App.Frame.treetableMyGroups_Groupstable = {
     //     this.loadBranch(id);
     // },
     onDataRequest: function (id) {
-      webix.ajax().get('api/v1/groups?continue=true&parent='+id).then(treetableMyGroups_Groupstable_loadSuccess);
+      webix.ajax().get('api/v1/groups?continue=true&parent='+id, { userId: App.State.SelectedSegmentProfile.id }).then(treetableMyGroups_Groupstable_loadSuccess);
       //cancelling default behaviour
       return false;
     }    

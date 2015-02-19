@@ -444,6 +444,12 @@ var implementFunction = (function() {
     $$('tabview_CentralGroup').hideProgress();
     
     $$('scrollview_RightGroupFilter').show();
+    
+    if('SegmentsSelector_Profile' != $$('tree_SegmentsSelector').getSelectedId()) {
+      $$('tree_SegmentsSelector').blockEvent(); //Блокируем срабатывание события при программном выборе пункта меню
+      $$('tree_SegmentsSelector').select('SegmentsSelector_Profile'); //Программно выбираем пункт меню
+      $$('tree_SegmentsSelector').unblockEvent();
+    }      
 
     //*Установим в состоянии приложения новый профиль
     App.State.SelectedSegmentProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name') };
@@ -498,6 +504,13 @@ var implementFunction = (function() {
   	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
   	  if(!$$('toggle_HeaderOptions').isEnabled()) $$('toggle_HeaderOptions').enable();
   	  
+  	  //*Установим видимость пункта меню "Группы"
+  	 // $$('tree_SegmentsSelector').unselectAll();
+  	 // var item = $$('tree_SegmentsSelector').getItem('SegmentsSelector_Groups');
+    //   item.hidden = App.State.getState('segment') === 'group'?true:false;
+    //   $$('tree_SegmentsSelector').updateItem('SegmentsSelector_Groups', item);
+    //   $$('tree_SegmentsSelector').refresh();
+
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
   	  switch(App.State.getState('segment')) {
         case 'user':
@@ -550,18 +563,13 @@ var implementFunction = (function() {
           //если фильтр по пользователю не выбран, выделяем пункт групп в основном меню
           //в противном случае снимаем выделение          
           $$('tree_SegmentsSelector').blockEvent();
-          if(App.State.usersFilter.userId === 0) {
-            if('SegmentsSelector_Groups' != $$('tree_SegmentsSelector').getSelectedId()) {
-              $$('tree_SegmentsSelector').select('SegmentsSelector_Groups');
-            }
-          } else {
-            $$('tree_SegmentsSelector').unselectAll();
+          if('SegmentsSelector_Groups' != $$('tree_SegmentsSelector').getSelectedId()) {
+            $$('tree_SegmentsSelector').select('SegmentsSelector_Groups');
           }
           $$('tree_SegmentsSelector').unblockEvent();
           
-          //App.State.groups.fetch({ success: showGroupDataAfterFetch });
           $$('treetableMyGroups_Groupstable').clearAll();
-          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.usersFilter.userId }, showGroupsDataAfterSuccess);
+          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.SelectedSegmentProfile.id }, showGroupsDataAfterSuccess);
           promise.then(function(realdata) {}).fail(showGroupsDataAfterError);
 
           //$$('treetableMyGroups_Groupstable').load('api/v1/groups');
@@ -592,7 +600,7 @@ var implementFunction = (function() {
           // code
           break;
         case 'home':
-          App.State.SelectedSegmentProfile = { id: 2, type:'community', name:'Сообщество' };
+          App.State.SelectedSegmentProfile = { id: 0, type:'community', name:'Сообщество' };
           $$('tree_SegmentsSelector').refresh();
           $$('frameBlank').show();
           break;
