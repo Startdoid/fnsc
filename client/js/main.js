@@ -7,13 +7,13 @@ var implementFunction = (function() {
   App.State = {
     _st : [{
       clientRoute : '',
-      segment     : '',   //user, users, groups, tasks, templates, finances, process, files, notes
+      segment     : '',   //user, users, group, groups, tasks, templates, finances, process, files, notes
       segmentId   : null
     }],                   //Стек переходов пользователя по роутам
     _ConstLen_st   : 4,    //Размер стека переходов
     SelectedSegmentProfile : {
       id : null,
-      type : null,
+      type : null,  //myprofile, userprofile, groupprofile, community
       name : null
     },                    //Данный атрибут указывает на профиль относительно которого показываются все сегменты
     _ConstLen_lastProfileSegment: 5, //Размер стека последних просмотренных профилей
@@ -29,7 +29,6 @@ var implementFunction = (function() {
     //segmentGroupId   : null,
     usrCRC           : null,
     group            : 0,        //Выбранная группа, по которой фильтруются задачи
-    usersFilter      : { userId: 0 },
     //флаги состояния приложения this_view_action
     //groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
     //groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
@@ -65,7 +64,6 @@ var implementFunction = (function() {
       //this.segmentGroupId           = null;
       this.usrCRC                   = null;
       this.group                    = 0;
-      this.usersFilter              = { userId: 0 };
       //this.groupstable_ItemSelected = 0;
       //this.groupstable_ItemEdited   = null;
       //this.tasktable_ItemSelected   = 0;
@@ -340,7 +338,7 @@ var implementFunction = (function() {
     $$('multiview_Right').hide();
 
     $$('treetableMytasks_Tasktable').clearAll();
-    $$('treetableMyGroups_Groupstable').clearAll();
+    $$('treetable_Groups').clearAll();
     
     $$('toggle_HeaderMenu').setValue(0);
     $$('toggle_HeaderOptions').setValue(0);
@@ -475,8 +473,8 @@ var implementFunction = (function() {
   var showGroupsDataAfterSuccess = function(text, data) {
     //App.State.groupTreeManager.treeBuild(App.State.groups.models);
     
-    //$$('treetableMyGroups_Groupstable').load('GroupData->load');
-    $$("treetableMyGroups_Groupstable").parse(text);
+    //$$('treetable_Groups').load('GroupData->load');
+    $$("treetable_Groups").parse(text);
   };
 
   var showGroupsDataAfterError = function(model, xhr, options) {
@@ -541,13 +539,9 @@ var implementFunction = (function() {
           //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
           //в противном случае снимаем выделение
           $$('tree_SegmentsSelector').blockEvent();
-          //if(App.State.usersFilter.userId === 0) {
-            if('SegmentsSelector_Users' != $$('tree_SegmentsSelector').getSelectedId()) {
-              $$('tree_SegmentsSelector').select('SegmentsSelector_Users');
-            }
-          //} else {
-          //  $$('tree_SegmentsSelector').unselectAll();
-          //}
+          if('SegmentsSelector_Users' != $$('tree_SegmentsSelector').getSelectedId()) {
+            $$('tree_SegmentsSelector').select('SegmentsSelector_Users');
+          }
           $$('tree_SegmentsSelector').unblockEvent();
           
           $$('dataviewCentral_Users').clearAll();
@@ -568,14 +562,14 @@ var implementFunction = (function() {
           }
           $$('tree_SegmentsSelector').unblockEvent();
           
-          $$('treetableMyGroups_Groupstable').clearAll();
+          $$('treetable_Groups').clearAll();
           var promise = webix.ajax().get('api/v1/groups', { userId: App.State.SelectedSegmentProfile.id }, showGroupsDataAfterSuccess);
           promise.then(function(realdata) {}).fail(showGroupsDataAfterError);
 
-          //$$('treetableMyGroups_Groupstable').load('api/v1/groups');
-          //$$('treetableMyGroups_Groupstable').loadNext(10, 0, null, 'api/v1/groups');
+          //$$('treetable_Groups').load('api/v1/groups');
+          //$$('treetable_Groups').loadNext(10, 0, null, 'api/v1/groups');
 
-          $$('tabviewCentral_Groups').show();
+          $$('frame_Groups').show();
           $$('scrollviewRight_GroupsFilter').show();
           
           break;
@@ -634,41 +628,39 @@ var implementFunction = (function() {
 			'id:id(/)':'user',
 			'gr:id(/)':'group',
 			'users?id=:id(/)':'userUsers',
+			'users?gr=:id(/)':'groupUsers',
 			'users(/)':'users',
 			'home(/)':'home',
 			'':'index'
 		},
 		//home выбрасывает в корень
 		home:function() {
-		  //this.navigate('', {trigger: true});
-		  App.State.segmentChange('/home', 'home');
+		  App.State.segmentChange('home', 'home');
 		},
 		//корень приложения
 		index:function() {
 		  App.State.segmentChange('', undefined);
 		},
 		groups:function() {
-		  App.State.segmentChange('/groups', 'groups');
+		  App.State.segmentChange('groups', 'groups');
 		},
 		tasks:function() {
-		  App.State.segmentChange('/tasks', 'tasks');
+		  App.State.segmentChange('tasks', 'tasks');
 		},
 		users:function() {
-		  App.State.usersFilter.userId = 0;
-		  App.State.segmentChange('/users', 'users');
+		  App.State.segmentChange('users', 'users');
 		},
 		user:function(id) {
-		  //App.State.segmentUserId = id;
-		  App.State.segmentChange('/id' + id, 'user', id);
+		  App.State.segmentChange('id' + id, 'user', id);
 		},
 		group:function(id) {
-		  //App.State.segmentGroupId = id;
-		  App.State.segmentChange('/gr' + id, 'group', id);
+		  App.State.segmentChange('gr' + id, 'group', id);
 		},
 		userUsers:function(id) {
-		  App.State.usersFilter.userId = id;
-		  //App.State.segmentUserId = id;
 		  App.State.segmentChange('users?id=' + id, 'users', id);
+		},
+		groupUsers:function(id) {
+		  App.State.segmentChange('users?gr=' + id, 'users', id);
 		},
 		login:function() {
 		  //App.State.clientRoute = '/login';
@@ -732,11 +724,11 @@ var implementFunction = (function() {
 
   //************************************************************************************************
   //Обработчики событий
-  $$('treetableMyGroups_Groupstable').attachEvent('onAfterEditStart', function(id) {
+  $$('treetable_Groups').attachEvent('onAfterEditStart', function(id) {
     App.State.groupstable_ItemEdited = id;
   });
 
-  $$('treetableMyGroups_Groupstable').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+  $$('treetable_Groups').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
     var ItemEdited = App.State.groupstable_ItemEdited;
     var ItemSelected = App.State.groupstable_ItemSelected;
     if (editor.column === 'name') {
@@ -775,7 +767,9 @@ var implementFunction = (function() {
   };
   
   $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
-    webix.ajax().get('api/v1/users', { start:start, count:count, userId: App.State.usersFilter.userId }, centralUsers_DataRefresh);
+    webix.ajax().get('api/v1/users', { start:start, count:count, 
+      segment_id: App.State.SelectedSegmentProfile.id, 
+      segment_type: App.State.SelectedSegmentProfile.type }, centralUsers_DataRefresh);
     return false;
   });
 
@@ -784,7 +778,7 @@ var implementFunction = (function() {
     $$('avatarLoaderFrame').hide();
   });
   
-  var dp = webix.dp('treetableMyGroups_Groupstable');
+  var dp = webix.dp('treetable_Groups');
   dp.config.updateFromResponse = true;  
   dp.attachEvent('onAfterSaveError', function(id, status, response, detail) {
     // structure of status: {
@@ -807,15 +801,15 @@ var implementFunction = (function() {
     return true;
   });
   dp.attachEvent('onBeforeInsert', function(id, object) {
-    $$('treetableMyGroups_Groupstable').showOverlay('Добавление группы...');
+    $$('treetable_Groups').showOverlay('Добавление группы...');
     return true;
   });
   dp.attachEvent('onBeforeUpdate', function(id, object) {
-    $$('treetableMyGroups_Groupstable').showOverlay('Изменение в группе...');
+    $$('treetable_Groups').showOverlay('Изменение в группе...');
     return true;
   });  
   dp.attachEvent('onAfterSave', function(response, id, update) {
-    $$('treetableMyGroups_Groupstable').hideOverlay();
+    $$('treetable_Groups').hideOverlay();
     return true;
   });
 

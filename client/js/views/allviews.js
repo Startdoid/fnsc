@@ -224,12 +224,13 @@ var tree_SegmentsSelector = {
                   App.Router.navigate('users', {trigger:true} );
                   break;
                 case 'userprofile':
-                  //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
                   App.Router.navigate('users?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
                   break;
                 case 'myprofile':
-                  //App.Router.navigate('users?id=' + App.State.segmentUserId, {trigger:true} );
                   App.Router.navigate('users?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  break;
+                case 'groupprofile':
+                  App.Router.navigate('users?gr=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
                   break;
               }
 
@@ -391,14 +392,15 @@ App.Frame.multiview_Right = {
 
 //**************************************************************************************************
 //section: GROUPS frames
-App.Frame.toolbarMyGroups_Groupstool = {
-  view:'toolbar', id:'toolbarMyGroups_Groupstool',
+
+//Конфигурация панели управления в списке групп
+var toolbar_Groups = {
+  view:'toolbar', id:'toolbar_Groups',
   cols:[
-    { view:'button', id:'buttonGroupstool_AddRoot', value:'Создать группу', width:140, align:'left', 
+    { view:'button', id:'button_toolbar_Groups_AddRoot', value:'Создать группу', width:140, align:'left', 
       click: function() { 
-        //App.State.groups.newGroup(0); 
-        var countElems = $$('treetableMyGroups_Groupstable').count();
-        $$("treetableMyGroups_Groupstable").add({ name: 'Новый элемент', numUsers: 1 }, countElems);
+        var countElems = $$('treetable_Groups').count();
+        $$("treetable_Groups").add({ name: 'Новый элемент', numUsers: 1 }, countElems);
       } },
     { },
     { view:'button', label:'Назад', width: 100,
@@ -406,8 +408,9 @@ App.Frame.toolbarMyGroups_Groupstool = {
   ]
 };
 
+//Меню управления в списке групп, для каждой группы
 webix.ui({
-	view: 'submenu', id: 'toolpopupGroups',
+	view: 'submenu', id: 'submenu_Groups',
  	width: 200,	padding: 0,
  	data: [
  		{ id: 'grMoveUp', value: 'Переместить выше', icon: 'arrow-up', $css: 'grMoveUp' },
@@ -425,14 +428,18 @@ webix.ui({
  	},
 	on:{
 	  onItemClick: function(id) {
-	    var itm = this.getItem(id);
+	    //var itm = this.getItem(id);
       switch (id) {
         case 'grAddGroup':
-          var row_id = $$('treetableMyGroups_Groupstable').add({ name: 'Новый элемент', numUsers: 1 }, 0, $$('treetableMyGroups_Groupstable').getSelectedId());
-          $$('treetableMyGroups_Groupstable').open($$('treetableMyGroups_Groupstable').getSelectedId())
+          var selectedId = $$('treetable_Groups').getSelectedId();
+          var row_id = $$('treetable_Groups').add({ }, 0, selectedId);
+          if(!$$('treetable_Groups').isBranchOpen(selectedId))
+            $$('treetable_Groups').open(selectedId);
           break;
         case 'grDeleteGroup':
-          $$('treetableMyGroups_Groupstable').remove($$('treetableMyGroups_Groupstable').getSelectedId());
+          webix.ajax().del('api/v1/groups', { webix_operation: 'delete', id: $$('treetable_Groups').getSelectedId().id }).then(function() {
+            $$("treetable_Groups").remove($$('treetable_Groups').getSelectedId());
+          });
           
           // var selectedId = App.State.groupstable_ItemSelected;
           // if (selectedId !== 0) {
@@ -460,16 +467,16 @@ webix.ui({
         default:
           // code
       }
-	    $$('toolpopupGroups').hide();
+	    $$('submenu_Groups').hide();
 	  }}
 });
 
-var treetableMyGroups_Groupstable_loadSuccess = function(data) {
-  $$('treetableMyGroups_Groupstable').parse(data.json());
+var treetable_Groups_loadSuccess = function(data) {
+  $$('treetable_Groups').parse(data.json());
 };
 
-App.Frame.treetableMyGroups_Groupstable = {
-  view:'treetable', id:'treetableMyGroups_Groupstable',
+var treetable_Groups = {
+  view:'treetable', id:'treetable_Groups',
   css:'treetable',
 	editable:true, editaction:'dblclick',
 	autoheight:true, rowHeight:47,
@@ -479,7 +486,7 @@ App.Frame.treetableMyGroups_Groupstable = {
   save:{
     'insert':'api/v1/groups',
     'update':'api/v1/groups',
-    'delete':'api/v1/groups',
+    //'delete':'api/v1/groups',
     updateFromResponse:true
   },	
 	columns:[
@@ -488,11 +495,12 @@ App.Frame.treetableMyGroups_Groupstable = {
 		{ id:'grIcoView', header:'&nbsp;', width:56, template:"<img class='photointable' src='img/gravatars/40/avtr1.png' />"},//"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
 		{ id:'grIcoUsers', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-users'></span>" },
 		{ id:'name', editor:'text', header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
-		{ id:'numUsers', header:'Польз.', width:50 }
+		{ id:'user_type', header:'Отношение к групп', width:100 },
+		{ id:'order', header:'отладочая', width:50 }
 	],
 	onClick:{
 		'fa-ellipsis-h': function(e, id, node) {
-		  $$('toolpopupGroups').show(node.childNodes[0], { pos: 'right'});
+		  $$('submenu_Groups').show(node.childNodes[0], { pos: 'right'});
 		},
 		'photointable': function(e, id, node) {
 		  App.Router.navigate('gr' + id, { trigger:true } );
@@ -513,7 +521,7 @@ App.Frame.treetableMyGroups_Groupstable = {
 	  },
     onBeforeDrop: function(context, event) {
       // var id_conf = context.to.config.id;
-      // if(id_conf === 'treetableMyGroups_Groupstable') {
+      // if(id_conf === 'treetable_Groups') {
       //   App.State.groups.moveGroup(context.start, 'jump', context.index, context.parent);
       // }
   	 },
@@ -528,7 +536,7 @@ App.Frame.treetableMyGroups_Groupstable = {
     //     this.loadBranch(id);
     // },
     onDataRequest: function (id) {
-      webix.ajax().get('api/v1/groups?continue=true&parent='+id, { userId: App.State.SelectedSegmentProfile.id }).then(treetableMyGroups_Groupstable_loadSuccess);
+      webix.ajax().get('api/v1/groups?continue=true&parent='+id, { userId: App.State.SelectedSegmentProfile.id }).then(treetable_Groups_loadSuccess);
       //cancelling default behaviour
       return false;
     }    
@@ -558,29 +566,11 @@ App.Frame.treetableMyGroups_Groupstable = {
 	},
 };
 
-App.Frame.tabviewCentral_Groups = {
-	view:'tabview', id:'tabviewCentral_Groups',
-	autowidth: true,
-	animate: true,
-	tabbar : { optionWidth : 200 },
-  cells:[
-    {
-      header:'Мои группы',
-      body:{
-        id:'frameGroups_Mygroups',
-        rows:[
-          App.Frame.toolbarMyGroups_Groupstool,
-          App.Frame.treetableMyGroups_Groupstable]
-      }
-    }, 
-    {
-      header:'Общественные группы',
-      body:{
-        id:'frameGroups_Communitygroups',
-        rows:[
-          {}]        
-      }
-    }
+var frame_Groups = {
+  id: 'frame_Groups',
+  rows:[
+    toolbar_Groups,
+    treetable_Groups
   ]
 };
 //end section: GROUPS frames
@@ -1323,7 +1313,7 @@ var dataviewCentral_Users = {
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
     //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
-    if(Number(App.State.usersFilter.userId) === App.State.user.get('id')) {
+    if(App.State.SelectedSegmentProfile.id === App.State.user.get('id') && App.State.SelectedSegmentProfile.type === 'myprofile') {
       htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
     } else {
       //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
@@ -1542,7 +1532,7 @@ App.Frame.multiviewCentral = {
   view:'multiview', id:'multiviewCentral', container:'multiviewCentral',
   cells:[App.Frame.frameBlank,
     App.Frame.frameCentral_Greeting,
-    App.Frame.tabviewCentral_Groups,
+    frame_Groups,
     App.Frame.tabviewCentral_Task,
     App.Frame.frameCentral_Register,
     App.Frame.frameCentral_Login,

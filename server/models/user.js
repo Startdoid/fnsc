@@ -76,12 +76,10 @@ var rollback = function(client, done) {
   });
 };
 
-var commit = function(client, callback) {
-    
-    // commit
-    client.query('COMMIT');
-    done();
-    return callback(validationResult.status);
+var commit = function(client, callback, done) {
+  client.query('COMMIT');
+  done();
+  return callback(validationResult.status);
 };
 
 //var userModel = {
@@ -199,9 +197,8 @@ module.exports = {
         	  usersList.data = arrUsrs;
         	  done();
         	  callback(errors.restStat_isOk, '', usersList);
-        	  });
+        	});
         });
-        
       } else { // задан диапазон
     
       //след порция
@@ -232,7 +229,7 @@ module.exports = {
     var usersList = { data: [{}] };
     
     pg.connect(global.url_pg, function(err, client, done) {
-      if(err){console.log(err); return usersList}
+      if(err) { console.log(err); return usersList }
       
       /*$1 - чьи друзья
       * $2 - текущий пользователь
@@ -257,20 +254,22 @@ module.exports = {
                         Order by "Users"."id" LIMIT $3 OFFSET $4;';
       
       //количество для списка
-      client.query(queryCount,[Number(UserId), Number(loggedUser.id)], function(err, result){
-        if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList;}
+      client.query(queryCount, [Number(UserId), Number(loggedUser.id)], function(err, result) {
+        if(err) { callback(errors.restStat_DbReadError, err, usersList); return usersList; }
         
-        if(result.rows.length===0){
+        if(result.rows.length===0) {
           usersList.total_count = 0;
           callback(errors.restStat_isOk, '', usersList);
           done();
           return usersList;
         }
+        //ДЕНИС!!! Тут баг, только для первой порции данных должно быть поле total_count в возвращаемом масиве,
+        //для последующих порций этого поля быть не должно, см. как сделано в функции выше, там всё правильно вроде
         usersList.total_count = Number(result.rows[0].count);
         
         //получаем список
-        client.query(querySelect,[Number(UserId), Number(loggedUser.id), Number(count), Number(from)], function(err, result){
-    	  if(err) {callback(errors.restStat_DbReadError, err, usersList); return usersList}
+        client.query(querySelect,[Number(UserId), Number(loggedUser.id), Number(count), Number(from)], function(err, result) {
+    	  if(err) { callback(errors.restStat_DbReadError, err, usersList); return usersList }
     	  
     	  var arrUsrs = result.rows.map(function(object) { 
         	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', status:object.status, isFriend:object.isfriend };

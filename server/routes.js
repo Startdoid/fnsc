@@ -1,3 +1,9 @@
+/**
+* Модуль роутинга серверных запросо
+* @module Global
+* @author bruian, iceflash
+*/
+
 var _          = require('underscore');
 var path       = require('path');
 var taskModel  = require('./models/task');
@@ -388,38 +394,89 @@ function saveUser(req, res, next) {
   }
 }
 
-var testGroups = [
-  { id: 1, parent_id: 0, owner_id: 3, name: 'Branch', email: 'branch@maus.ru', description: 'Это корневая ветка в тестовом дереве групп', numUsers: 1, webix_kids:true },
-  { id: 2, parent_id: 0, owner_id: 3, name: 'Branch two', email: 'branch_two@maus.ru', description: 'Это вторая корневая ветка в тестовом дереве групп', numUsers: 1 },
-  { id: 3, parent_id: 1, owner_id: 3, name: 'Sub-Branch', email: 'sub-branch@maus.ru', description: 'Это подветка в корневой ветке в тестовом дереве групп', numUsers: 1, webix_kids:true },
-  { id: 4, parent_id: 1, owner_id: 3, name: 'Sub-Branch two', email: 'sub-branch_two@maus.ru', description: 'Это вторая подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
-  { id: 7, parent_id: 1, owner_id: 4, name: 'Sub-Branch two with user 4', email: 'sub-branch_twous4@maus.ru', description: 'Это вторая подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
-  { id: 5, parent_id: 3, owner_id: 3, name: 'Sub-sub-Branch', email: 'sub-sub-branch@maus.ru', description: 'Глубокая подветка, третий уровнеь', numUsers: 1 },
-  { id: 6, parent_id: 0, owner_id: 4, name: 'Branch other use with id 4', email: 'branchuser4@maus.ru', description: 'Для пользователя с id 4', numUsers: 1 },
+//{ Отладочные данные (заглушкка), для отладки клиента, пока не сделано на сервере
+//groupVisible: 0 - видна только владельцу, 1 - видна куратору и владельцу, 2 - видна членам группы, куратору и владельцу, 3 - видна всем
+var tableGroups = [
+  { id: 1, parent_id: 0, webix_kids:true,  groupVisible: 3, name: 'Branch', email: 'branch@maus.ru', description: 'Это корневая ветка в тестовом дереве групп', numUsers: 1 },
+  { id: 2, parent_id: 0, webix_kids:false, groupVisible: 3, name: 'Branch two', email: 'branch_two@maus.ru', description: 'Это вторая корневая ветка в тестовом дереве групп', numUsers: 1 },
+  { id: 3, parent_id: 1, webix_kids:true,  groupVisible: 3, name: 'Sub-Branch', email: 'sub-branch@maus.ru', description: 'Это подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
+  { id: 4, parent_id: 1, webix_kids:false, groupVisible: 3, name: 'Sub-Branch two', email: 'sub-branch_two@maus.ru', description: 'Это вторая подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
+  { id: 7, parent_id: 1, webix_kids:false, groupVisible: 2, name: 'Sub-Branch two with user 4', email: 'sub-branch_twous4@maus.ru', description: 'Это вторая подветка в корневой ветке в тестовом дереве групп', numUsers: 1 },
+  { id: 5, parent_id: 3, webix_kids:false, groupVisible: 3, name: 'Sub-sub-Branch', email: 'sub-sub-branch@maus.ru', description: 'Глубокая подветка, третий уровнеь', numUsers: 1 },
+  { id: 6, parent_id: 0, webix_kids:false, groupVisible: 0, name: 'Branch other use with id 4', email: 'branchuser4@maus.ru', description: 'Для пользователя с id 4', numUsers: 1 },
 ];
 
+var indexIdGroups = [1, 2, 3, 4, 7, 5, 6];
+
+//userType: 0 - owner, 1 - curator, 2 - member
+var tableGroups_Member = [
+  { id: 1, user_id: 3, userType: 0 },
+  { id: 2, user_id: 3, userType: 0 },
+  { id: 3, user_id: 3, userType: 0 },
+  { id: 4, user_id: 3, userType: 0 },
+  { id: 5, user_id: 3, userType: 0 },
+  { id: 6, user_id: 4, userType: 0 },
+  { id: 7, user_id: 3, userType: 0 },
+  { id: 7, user_id: 4, userType: 2 }
+];
+
+var indexIdGroups_Member = [1, 2, 3, 4, 5, 6, 7, 7];
+//}
+
 /**
-* getGroups
-*  Функция извлекает группу из DB по переданному ID
+* getGroup
+*  Функция извлекает группу из DB по переданному ID, при извлечении группы из DB важно учитывать 
+* видимость этой группы, видима ли она для осн. пользователя. Если пользователя нет в списках доступа,
+* то необходимо проверить обладает ли данная группа публичной видимостью. В противном случае возвращать
+* отказ в запросе данной группы
 * Attributes:
-*  groupID - группа, которая извлекается из DB
+*  group_id - группа, которая извлекается из DB
 * Result:
 *****************************************************************************/
 function getGroup(req, res, next) {
-  var groupID = Number(req.param('group_id'));
+  if(!req.isAuthenticated()) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
+  var loggedUser = userModel.getLoggedUser();
+  if(loggedUser === null) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
   
-  for (var i = 0; i < testGroups.length; i++) {
-    if (groupID === testGroups[i].id) {
-      return res.status(errors.restStat_isOk).json(testGroups[i]);
+  var group_id = Number(req.param('group_id'));
+  
+  //сперва найдем права на группу для осн.пользователя, userType - по умолчанию равный 4 означает, 
+  //что прав на просмотр пользователь не имеет
+  var member = { id: group_id, user_id: loggedUser.id, userType: 4 };
+  for(var i = 0; i < tableGroups_Member.length; i++ ) {
+    if(tableGroups_Member[i].id === member.id && tableGroups_Member[i] === member.user_id) {
+      member.userType = tableGroups_Member[i].userType;
     }
   }
   
+  //после извлечения прав на группу, находим саму группу
+  for(var i2 = 0; i2 < tableGroups.length; i2++) {
+    if (group_id === tableGroups[i2].id) {
+      //нашли группу и проверяем её видимость
+      if(tableGroups[i2].groupVisible === 3) {
+        //группа видима всем, можно отдавать клиенту
+        return res.status(errors.restStat_isOk).json(tableGroups[i2]);
+      } else if(tableGroups[i2].groupVisible >= member.userType) {
+        //простая проверка на видимость и тип пользователя, т.к. видимость распространяется от
+        //владельца группы к простому члену группы, то сравнив тип пользователя и видимость мы 
+        //учтем его право на просмотр
+        return res.status(errors.restStat_isOk).json(tableGroups[i2]);
+      } else {
+        //осн. пользователю нельзя показывать эту группу, возвращаем наименование группы и id
+        return res.status(errors.restStat_isOk).json( {id: tableGroups[i2].id, name: tableGroups[i2].name, notVisible: true } );
+      }
+    }
+  }
+  
+  //типа данные вообще не прочитались из базы данных
   return res.status(errors.restStat_DbReadError).send(errors.restMess_DbReadError);
 }
 
 /**
 * getGroups
-*  Функция извлекает группы из DB
+*  Функция извлекает группы из DB, это несколько сложная задача. Необходимо извлечь группы относительно 
+* пользователя чей id указан в userId, при этом учесть права видимости для извлекаемых групп относительно
+* осн.пользователя.
 * Attributes:
 *  userId - пользователь, относительно которого извлекается массив групп
 *  - если значение 0, то извлекаются все группы в соответствии с настройками приватности для групп
@@ -427,58 +484,46 @@ function getGroup(req, res, next) {
 * Result:
 *****************************************************************************/
 function getGroups(req, res, next) {
-  //bru: если значение === 0, то отдаются все пользователи. 
-  //В противном случает отдаются друзья пользователя с id = userId
+  if(!req.isAuthenticated()) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
+  var loggedUser = userModel.getLoggedUser();
+  if(loggedUser === null) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
+
   var userId = req.param('userId'),
   cont = req.param('continue'),
   parent = req.param('parent');
   
-  var returnData = [];
+  //Если cont = true, то значит запрошена вторая порция данных (т.е. раскрываются дополнительные ветки)
+  //если cont = false, то значит запрошена первая порция данных корни групп
   
   if(typeof userId === 'undefined')
     userId = 0;
   else
     userId = Number(userId);
-
-  if(cont) {
-    //Вторая порция данных (потомки веток), при раскрытии веток
-    for (var i = 0; i < testGroups.length; i++) {
-      if(testGroups[i].parent_id === Number(parent)) {
-        //проверяем на принадлежность к пользователю
-        if(userId === 0) { //отдаем все элементы
-          returnData.push( testGroups[i] );
-        } else if(testGroups[i].owner_id === userId) {
-          returnData.push( testGroups[i] );
-        }
-      }
-    }
-    res.status(errors.restStat_isOk).json( { 'parent':Number(parent), 'data':returnData } );
-  } else {
-    //Первая порция данных (инициирующая), отдаем только корневые элементы
-    for (var i = 0; i < testGroups.length; i++) {
-      //проверяем на корневые элементы по нулевому родителю
-      if(testGroups[i].parent_id === 0) {
-        //проверяем на принадлежность к пользователю
-        if(userId === 0) { //отдаем все элементы
-          returnData.push(testGroups[i]);
-        } else if(testGroups[i].owner_id === userId) {
-          returnData.push(testGroups[i]);
-        }
-      }
-    }
-    res.status(errors.restStat_isOk).json(returnData);
-  }
-
-  //старое содержимое функции
-  // if(!req.isAuthenticated()) return res.status(200).send({ id: 0, mainUserLogged: false });
-  
-  // var loggedUser = userModel.getLoggedUser();
-  // if(loggedUser === null) return res.status(200).send({ id: 0, mainUserLogged: false });
-  
-  // groupModel.getGroups(loggedUser, null, function(err, groups) {
-  //   if(err) return res.status(400).send(err);
     
-  //   res.status(200).json(groups);
+  if(typeof parent === 'undefined')
+    parent = 0;
+  else
+    parent = Number(parent);    
+    
+  if(typeof cont === 'undefined')
+    cont = false;
+  else if (cont === 'true')
+    cont = true;
+  else
+    cont = false;
+    
+  console.log(userId);
+  console.log(parent);
+  console.log(cont);
+  
+  if(!cont) {
+    return res.status(errors.restStat_isOk).json({ id: 2, parent_id: 0, webix_kids:false, groupVisible: 3, name: 'Branch two', email: 'branch_two@maus.ru', description: 'Это вторая корневая ветка в тестовом дереве групп', numUsers: 1 });
+  }
+  
+  // groupModel.getGroups(loggedUser, { user_id: userId, parent_id: parent, cont: cont }, function(err, groups) {
+  //   if(err) return res.status(err).send(groups);
+  //   console.log(groups);
+  //   return res.status(errors.restStat_isOk).json(groups);
   // });
 }
 
@@ -492,6 +537,10 @@ function getGroups(req, res, next) {
 * Result:
 *****************************************************************************/
 function setGroups(req, res, next) {
+  if(!req.isAuthenticated()) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
+  var loggedUser = userModel.getLoggedUser();
+  if(loggedUser === null) return res.status(errors.restStat_NoAutorisationUser).send(errors.restMess_NoAutorisationUser);
+
   console.log(req.param('index'));
   console.log(req.param('id'));
   console.log(req.body);
@@ -512,16 +561,34 @@ function setGroups(req, res, next) {
         //{ id:'1', name:'Branch', numUsers:1, webix_kids:true }, где webix_kids означает, что ветка
         //содержит потомков, false (или без этого атрибута) - нифига не содержит
         //Опять же всё делаем в коллбеке, добавление в базу и возврат ответа на клиент
+        var newGroup;
         
-        if(parent === 0) {
+        if(Number(parent) === 0) {
           //Родитель не указан, поэтому добавляем в корень дерева
           
-          //например конструкция ниже возвращает клиенту тоже что и получил, но с изм. id
-          delete req.body.webix_operation;
-          req.body.id = '7';
-          res.status(errors.restStat_isOk).json(req.body);
+          //ВНИМАНИЕ!! т.к. это данные-заглушка, то использование итератора для присваивание нового Id группе тут приемлемо, в рабочем варианте
+          //id должно назначаться механизмом базы данных с использованием автоинкремента
+          newGroup = { id: tableGroups.length + 1, parent_id: 0, owner_id: loggedUser.id, name: 'New group', email: '', description: '', numUsers: 1 };
+          tableGroups.push(newGroup);
+          
+          res.status(errors.restStat_isOk).json(newGroup);
         } else {
           //Есть родитель, поэтому добавляем в родителя
+        
+          //Необходимо обозначить родителю, что его ветка содержит детей, т.е. добавить webix_kids:true
+          for (var i = 0; i < tableGroups.length; i++) {
+            if(tableGroups[i].id === Number(parent)) {
+              tableGroups[i].webix_kids = true;
+              break;
+            }
+          }
+          
+          //ВНИМАНИЕ!! т.к. это данные-заглушка, то использование итератора для присваивание нового Id группе тут приемлемо, в рабочем варианте
+          //id должно назначаться механизмом базы данных с использованием автоинкремента
+          newGroup = { id: tableGroups.length + 1, parent_id: Number(parent), owner_id: loggedUser.id, name: 'New group', email: '', description: '', numUsers: 1 };
+          tableGroups.push(newGroup);
+          
+          res.status(errors.restStat_isOk).json(newGroup);
         }
         break;
       
@@ -540,7 +607,15 @@ function setGroups(req, res, next) {
         break;
       
       case 'delete':
-        //code
+          //При удалении ветки дерева необходимо удостовериться, что пользователь является владельцем этой ветки,
+          //и правильно обработать потомков в дереве
+          for (var i = 0; i < tableGroups.length; i++) {
+            if(tableGroups[i].id === Number(parent)) {
+              tableGroups[i].webix_kids = true;
+              break;
+            }
+          }        
+        
         res.status(errors.restStat_isOk).end();
         break;
     }
@@ -653,25 +728,53 @@ function deletetask(req, res, next) {
   res.status(400).end();
 }
 
-//bru: Получение списка пользователей и друзей
+/**
+ * Запрос массива пользователей у сервера, запрос происходит в несколько этапов (порциями)
+ * 1 этап - клиент запрашивает первую порцию пользователей и общее количество пользователей, как константу
+ * последующие этапы - криент в соответствии со скролингом списка пользователем запрашивает остальные порции 
+ * данных пока их количество не будет достигнуто значения константы
+ * @param {Integer} start - начальная позиция считывания
+ * @param {Integer} count - количество запрашиваемых элементов
+ * @param {Integer} segment_id - идентификатор сегмента, в разрезе которого запрашиваются пользователи
+ * @param {String} segment_type - тип сегмента, в разрезе которого запрашиваются пользователи
+ * {myprofile, userprofile, groupprofile, community}
+ * return:
+ * если start === 0, то необходимо вернуть данные согласно следующему шаблону
+ *  первая выдача данных { total_count: - количество элементов, data:[] - массив элементов }
+ * если start > 0, то необходимо вернуть данные согласно следующему шаблону
+ *  последующие порции данных { pos: start - стартовая позиция, data:[] - массив последующих элементов }
+ */
 function getUsers(req, res, next) {
   var start = req.param('start');
   var count = req.param('count');
+
   //bru: если значение === 0, то отдаются все пользователи. 
   //В противном случает отдаются друзья пользователя с id = userId
-  var userId = Number(req.param('userId'));
+  var segment_id = Number(req.param('segment_id'));
+  var segment_type = req.param('segment_type');
   
-  if(userId===0){
-    userModel.getUsersList(Number(start), Number(start) + Number(count), {}, function(status, message, userlist) {
-      if(status === errors.restStat_isOk)
-        res.status(status).json(userlist);
-    });
-  }else{
-    userModel.getFriends(userId, Number(start), Number(count), function(status, message, userlist) {
-      if(status === errors.restStat_isOk)
-        res.status(status).json(userlist);
-        else console.log(message);
-    });
+  switch(segment_type) {
+    case 'myprofile':
+      // code
+      //break;
+    case 'userprofile':
+      if(segment_id === 0) {
+        userModel.getUsersList(Number(start), Number(start) + Number(count), {}, function(status, message, userlist) {
+          if(status === errors.restStat_isOk)
+            res.status(status).json(userlist);
+        });
+      } else {
+        userModel.getFriends(segment_id, Number(start), Number(count), function(status, message, userlist) {
+          if(status === errors.restStat_isOk)
+            res.status(status).json(userlist);
+          else console.log(message);
+        });
+      }
+      break;
+    case 'groupprofile':
+      break;
+    case 'community':
+      break;
   }
 }
 
