@@ -547,7 +547,7 @@ var implementFunction = (function() {
           $$('dataviewCentral_Users').clearAll();
           $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/users');
 
-          $$('frameCentral_Users').show();
+          $$('frame_Users').show();
           $$('scrollviewRight_UsersFilter').show();
           
           break;

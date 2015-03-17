@@ -355,6 +355,7 @@ div.friend_info span {
   transform: translateZ(0);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0);
 }
+
 .menu .pop:hover, .pop:focus, .pop:active {
   -webkit-animation-name: pop;
   animation-name: pop;
@@ -364,4 +365,43 @@ div.friend_info span {
   animation-timing-function: linear;
   -webkit-animation-iteration-count: 1;
   animation-iteration-count: 1;
+}
+
+.search_Users input {
+  background: #ffffff;
+  -padding: 5px 40px 6px 20px;
+  -outline: none;
+  margin:0px;
+  color: #8C8E91;
+  border-radius: 0px; -webkit-border-radius: 0px;-moz-border-radius: 0px;
+  border: 1.182px solid;  
+  font-size: 11px;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+.frame_Users {
+  background: #F7F7F7;
+  border-bottom: 1px solid #E7EAED;
+}
+
+.itsk_button input{
+  background: inherit;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  border-color: #F7F7F7;
+  cursor: pointer;
+  color: #45688E;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px 4px;
+}
+
+.itsk_button input:hover{
+  background-color: #E1E7ED;
+}
+  
+.itsk_button input:focus{
+  background-color: #597DA3;
+  color: white;
+  cursor: default;
 }

@@ -1,9 +1,4 @@
-/**
-* Модуль роутинга серверных запросо
-* @module Global
-* @author bruian, iceflash
-*/
-
+var http       = require('http');
 var _          = require('underscore');
 var path       = require('path');
 var taskModel  = require('./models/task');
@@ -358,7 +353,8 @@ function logout(req, res, next) {
 function throwInRoot(req, res, next) {
   if(routeExclude.indexOf(req.url) != -1) return next();
   console.log(req.url);
-  global.state.serverRoute = req.path;
+  //global.state.serverRoute = req.path;
+  global.state.serverRoute = req.url;
   res.redirect('/');
 }
 

@@ -1303,12 +1303,13 @@ var deleteUserFriend = function(id) {
 //bru: фрейм выводящий список пользователей и друзей
 var dataviewCentral_Users = {
   view:'dataview', id:'dataviewCentral_Users',
-  borderless:true, scroll:'y', xCount:2,
-  type:{ height:110, width:450 },
+  borderless:true, scroll:'y', xCount:1,
+  type:{ height:110, width:500 },
   //template:'html->dataviewCentral_Users_template',
   template:function(obj) {
     //bru: построение элемента в списке друзей
-    var htmlCode = '<div class="friend_avatar"><img style="width:100px; height:100px;" src="/img/avatars/100/'+obj.img+'"/></div>';
+    var htmlCode = '<div>';
+    htmlCode = htmlCode + '<div class="friend_avatar"><img style="width:100px; height:100px;" src="/img/avatars/100/'+obj.img+'"/></div>';
     htmlCode = htmlCode + '<div class="friend_info"><a class="itmTextBold" href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
@@ -1322,6 +1323,7 @@ var dataviewCentral_Users = {
         htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
       }
     }
+    htmlCode = htmlCode + '</div>'
     return htmlCode;
   },
 	//select:1,
@@ -1335,31 +1337,63 @@ var dataviewCentral_Users = {
 	}
 };
 
-var labelToolbarCentral_Users = {
-	view: 'label', id:'labelToolbarCentral_Users',
-	width:100,
-	label:'Назад',
+var button_Users_Members = {
+  view:'button', id:'button_Users_Members',
+  css:'itsk_button',
+  label:'Друзья',
+  height:28,
+  gravity:2  
+};
+
+var button_Users_Request = {
+  view:'button', id:'button_Users_Request',
+  css:'itsk_button',
+  label:'Заявки',
+  height:28,
+  gravity:2
+};
+
+var button_Users_Invitations = {
+  view:'button', id:'button_Users_Invitations',
+  css:'itsk_button',
+  label:'Пригласить',
+  height:28,
+  gravity:2  
+};
+
+var button_Users_Back = {
+  view:'button', id:'button_Users_Back',
+  css:'itsk_button',
+  label:'Назад',
+  height:28,
+  gravity:1,
 	on:{
 		'onItemClick': function() { 
 		  App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); 
 		}
-	}
+	}  
 };
 
-var toolbarCentral_Users = {
-	view:'toolbar', id: 'toolbarCentral_Users',
-	height:32,
-	elements:[{}, labelToolbarCentral_Users]
+var search_Users = {
+  view:'search', id:'search_Users',
+  css:'search_Users',
+  align:'center', 
+  height:28,
+  placeholder:'Введите любое имя, название или слово'
 };
 
-App.Frame.frameCentral_Users = {
-  id:'frameCentral_Users',
+var frame_Users = {
+  id:'frame_Users',
+  css:'frame_Users',
   autoheight:true, autowidth:true,
-  cols:[
-    {},
-    { rows:[toolbarCentral_Users, dataviewCentral_Users] },
-    {}
-  ]
+  cols:[{ css:{ 'background':'white' } }, 
+  { rows:[
+      search_Users,
+      { cols:[ button_Users_Members, button_Users_Request, button_Users_Invitations, { gravity:2 }, button_Users_Back] },
+      { id:'labelUsersMessage', template:'Мамба маус', height:38, borderless:true },
+      dataviewCentral_Users ]
+  },
+  { css:{ 'background':'white' } }]
 };
 
 //**************************************************************************************************
@@ -1538,7 +1572,7 @@ App.Frame.multiviewCentral = {
     App.Frame.frameCentral_Login,
     App.Frame.tabview_CentralUser,
     App.Frame.tabview_CentralGroup,
-    App.Frame.frameCentral_Users],
+    frame_Users],
   fitBiggest:true,
   animate:false
 };
