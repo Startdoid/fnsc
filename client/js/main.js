@@ -8,32 +8,20 @@ var implementFunction = (function() {
     _st : [{
       clientRoute : '',
       segment     : '',   //user, users, group, groups, tasks, templates, finances, process, files, notes
-      segmentId   : null
+      filter      : {}
     }],                   //Стек переходов пользователя по роутам
-    _ConstLen_st   : 4,    //Размер стека переходов
-    SelectedSegmentProfile : {
+    _ConstLen_st   : 5,   //Размер стека переходов
+    SelectedProfile : {
       id : null,
       type : null,  //myprofile, userprofile, groupprofile, community
       name : null
-    },                    //Данный атрибут указывает на профиль относительно которого показываются все сегменты
+    },              //Данный атрибут указывает на профиль относительно которого показываются все сегменты
     _ConstLen_lastProfileSegment: 5, //Размер стека последних просмотренных профилей
     user             : null,     //Пользователь системы
     viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
     viewedGroup      : null,
-    //groupTreeManager : null,     //менеджер дерева для групп
-    //taskTreeManager  : null,     //менеджер дерева для задач
-    //groups           : null,     //коллекция групп пользователя системы
-    //tasks            : null,     //коллекция задач пользователя системы
     serverRoute      : '',
-    //segmentUserId    : null,
-    //segmentGroupId   : null,
     usrCRC           : null,
-    group            : 0,        //Выбранная группа, по которой фильтруются задачи
-    //флаги состояния приложения this_view_action
-    //groupstable_ItemSelected  : 0,    //выделенный элемент в области конструктора групп
-    //groupstable_ItemEdited    : null, //редактируемый элемент в области конструктора групп
-    //tasktable_ItemSelected    : 0,    //выделенный элемент в области конструктора задач
-    //tasktable_ItemEdited      : null,  //редактируемый элемент в области конструктора задач
     init: function() {
       if(this.user != null) { this.user = null; }
       this.user = this.userModelInit();
@@ -44,30 +32,10 @@ var implementFunction = (function() {
       if(this.viewedGroup != null) { this.viewedGroup = null; }
       this.viewedGroup = this.groupModelInit();
 
-      //if(this.groupTreeManager != null) { this.groupTreeManager = null; }
-      //this.groupTreeManager = new treeManager();
-
-      //if(this.taskTreeManager != null) { this.taskTreeManager = null; }
-      //this.taskTreeManager = new treeManager();
-
-      //if(this.groups != null) { this.groups = null; }
-      //this.groups = this.groupsModelInit();
-
-      //if(this.tasks != null) { this.tasks = null; }
-      //this.tasks = this.tasksModelInit();
-
-      this._st                      = [ { clientRoute: '', segment: '' } ];
-      this.SelectedSegmentProfile   = { id: null, type:null, name:null };
-      this.serverRoute              = '';
-      this.prevClientRoute          = '',
-      //this.segmentUserId            = null;
-      //this.segmentGroupId           = null;
-      this.usrCRC                   = null;
-      this.group                    = 0;
-      //this.groupstable_ItemSelected = 0;
-      //this.groupstable_ItemEdited   = null;
-      //this.tasktable_ItemSelected   = 0;
-      //this.tasktable_ItemEdited     = null;
+      this._st              = [ { clientRoute: '', segment: '' } ];
+      this.SelectedProfile  = { id: null, type:null, name:null };
+      this.serverRoute      = '';
+      this.usrCRC           = null;
     },
     /**
     * setState
@@ -83,7 +51,7 @@ var implementFunction = (function() {
       if (typeof state === 'object') {
         var len = this._st.length;
         if(len > this._ConstLen_st) this._st.shift();
-        len = this._st.push({ clientRoute: '', segment: '' });
+        len = this._st.push({ clientRoute: '', segment: '', filter: {} });
         
           for (var prop in this._st[len - 1]) {
             if(state[prop] === undefined) {
@@ -144,8 +112,8 @@ var implementFunction = (function() {
 			$$('list_lastProfile').clearAll();
   	  $$('list_lastProfile').parse(model.get('lastProfileSegment'));
   	  
-  	  if(App.State.SelectedSegmentProfile.id === null)
-  	    App.State.SelectedSegmentProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
+  	  if(App.State.SelectedProfile.id === null)
+  	    App.State.SelectedProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
 
       if(App.State.serverRoute !== '') {
     	  var promise = webix.ajax().post('api/v1/state', { serverRoute: '' }, App.State.$srvUrlChanged);
@@ -210,14 +178,13 @@ var implementFunction = (function() {
     *   ok: $loadState - управление сменой сегмена в зависимости от состояния на сервере
     *   error: $autonomeState - переход к автономному режиму, когда состояние от сервера не получено
     *****************************************************************************/
-    segmentChange: function(clientRoute, segment, segmentId) {
-      this.setState( { clientRoute:clientRoute, segment:segment, segmentId:segmentId } );
-      if(segmentId !== undefined)
-        App.State.SelectedSegmentProfile.id = segmentId;
+    segmentChange: function(clientRoute, segment, filter) {
+      this.setState( { clientRoute:clientRoute, segment:segment, filter:filter } );
+      //if(segmentId !== undefined)
+      //  App.State.SelectedProfile.id = segmentId;
 
       var promise = webix.ajax().get('api/v1/state', {}, this.$loadState);
       promise.then(function(realdata) {
-        //prevClientRoute = 
       }).fail(this.$autonomeState);
     },
     userModelInit: function() {
@@ -239,50 +206,6 @@ var implementFunction = (function() {
       
       return group;
     }
-    // groupsModelInit: function() {
-  	 // var groups = new collectionGroups();
-  
-    // 	groups.on('add', function(grp) {
-    // 	  App.State.groupTreeManager.treeAdd(grp);
-    // 	});
-  	
-    // 	groups.on('remove', function(ind) {
-    // 	  App.State.groupTreeManager.treeRemove(ind);
-    // 	});
-  
-    //   groups.on('change', function(model, options) {
-    //     App.State.groupTreeManager.treeChange(model);
-    //     model.save(); 
-    //   });
-      
-    //   groups.on('move', function(currentPosId, newPosId, parentId) {
-    //     App.State.groupTreeManager.move(currentPosId, newPosId, parentId);
-    //   });
-      
-    //   return groups;
-    // },
-    // tasksModelInit: function() {
-    //   var tasks = new collectionTasks();
-      
-    //   tasks.on('add', function(tsk) {
-    //     App.State.taskTreeManager.treeAdd(tsk);
-    //   });
-      
-    // 	tasks.on('remove', function(ind) {
-    // 	  App.State.taskTreeManager.treeRemove(ind);
-    // 	});
-    
-    //   tasks.on('change', function(model, options) {
-    //     App.State.taskTreeManager.treeChange(model);
-    //     model.save();
-    //   });
-      
-    //   tasks.on('move', function(currentPosId, newPosId, parentId) {
-    //     App.State.taskTreeManager.move(currentPosId, newPosId, parentId);
-    //   });
-      
-    //   return tasks;
-    // }
   };
   
   var dataCountry = new webix.DataCollection({ 
@@ -309,17 +232,17 @@ var implementFunction = (function() {
 	  id:'suggestFamilyStatus', view:'suggest', data:dataFamilyStatus
 	});
 	
-	webix.proxy.GroupData = {
-    $proxy: true,
-    init: function() {
-      //webix.extend(this, webix.proxy.offline);
-    },
-    load: function(view, callback) {
-      //Добавляем id вебиксовых вьюх для синхронизации с данными
-  	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
-      App.State.groupTreeManager.viewsAdd($$(view.config.id));
-    }
-  };
+// 	webix.proxy.GroupData = {
+//     $proxy: true,
+//     init: function() {
+//       //webix.extend(this, webix.proxy.offline);
+//     },
+//     load: function(view, callback) {
+//       //Добавляем id вебиксовых вьюх для синхронизации с данными
+//   	  //важно добавлять уже после создания всех вьюх, иначе будут добавлены пустые объекты
+//       App.State.groupTreeManager.viewsAdd($$(view.config.id));
+//     }
+//   };
   
   webix.proxy.TaskData = {
     $proxy: true,
@@ -391,7 +314,7 @@ var implementFunction = (function() {
 	//AFTER FETCH FUNCTIONs
 	
 	//Вывод данных пользовательского профиля во фрейм, после успешного получения с сервера (callback)
-  var showUserDataAfterSuccess = function(model, response, options) {
+  var showUserData = function(model, response, options) {
     $$('tabview_CentralUser').show();
     $$('tabview_CentralUser').hideProgress();
     
@@ -406,38 +329,30 @@ var implementFunction = (function() {
 
     //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
-      App.State.SelectedSegmentProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
-      
       $$('frameProfile_user').show();
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
-      //установим в состоянии приложения новый профиль
-      App.State.SelectedSegmentProfile = { id: model.get('id'), type:'userprofile', name: model.get('username') };
-      
-      //*Добавление профиля в список последних профилей*
-      var newProfile = { id: model.get('id'), type:'userprofile', name: model.get('username'), segment: 'Профиль пользователя' };
-      addLastProfileList(newProfile);
-      
       $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
-      if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();       //Если панель настроек доступа видима, то скроем
+      if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();     //Если панель настроек доступа видима, то скроем
       if($$('toggle_HeaderOptions').getValue()) $$('toggle_HeaderOptions').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
       $$('toggle_HeaderOptions').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
     }
     
     //*Обновление дерева меню*
     //т.к. изменился профиль, то необходимо обновить дерево меню для отображения новых элементов
+  	var SegmentsSelector_Users = $$('tree_SegmentsSelector').getItem('SegmentsSelector_Users');
+    SegmentsSelector_Users.value = 'Друзья';
+    if(!$$('tree_SegmentsSelector').exists('SegmentsSelector_Groups'))
+  	  $$('tree_SegmentsSelector').add({ id: 'SegmentsSelector_Groups', value: 'Группы', hidden:false, icon: 'sitemap', $css: 'products', details:'Список групп профиля' }, 
+  	    1, 'SegmentsSelector_Segments');
     $$('tree_SegmentsSelector').refresh();
-    
+
     //*Заполнение атрибутов в открывшемся окне профиля*
     App.Func.loadUserAttributes();
   };
 	
-	var showUserDataAfterError = function(model, xhr, options) {
-	  //заглушка
-	};
-	
   //Вывод данных профиля группы во фрейм, после успешного получения с сервера (callback)
-  var showGroupDataAfterSuccess = function(model, response, options) {
+  var showGroupData = function(model, response, options) {
     $$('tabview_CentralGroup').show();
     $$('tabview_CentralGroup').hideProgress();
     
@@ -449,31 +364,19 @@ var implementFunction = (function() {
       $$('tree_SegmentsSelector').unblockEvent();
     }      
 
-    //*Установим в состоянии приложения новый профиль
-    App.State.SelectedSegmentProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name') };
-
-    //*Добавление профиля в список последних профилей*
-    var newProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name'), segment: 'Профиль группы' };
-    addLastProfileList(newProfile);
-    
     //*Обновление дерева меню*
     //т.к. изменился профиль, то необходимо обновить дерево меню для отображения новых элементов
+	  var SegmentsSelector_Users = $$('tree_SegmentsSelector').getItem('SegmentsSelector_Users');
+    SegmentsSelector_Users.value = 'Участники';
+    $$('tree_SegmentsSelector').remove('SegmentsSelector_Groups');
     $$('tree_SegmentsSelector').refresh();    
 
     $$('frame_GroupProfile').show();
-    //App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
 
     App.Func.loadGroupAttributes();
   };
 	
-	var showGroupDataAfterError = function(model, xhr, options) {
-	  //заглушка
-	};
-	
   var showGroupsDataAfterSuccess = function(text, data) {
-    //App.State.groupTreeManager.treeBuild(App.State.groups.models);
-    
-    //$$('treetable_Groups').load('GroupData->load');
     $$("treetable_Groups").parse(text);
   };
 
@@ -481,12 +384,130 @@ var implementFunction = (function() {
 	  //заглушка
 	};
 
-  var showTaskDataAfterFetch = function(Tasks, response, options) {
-    //App.State.taskTreeManager.treeBuild(App.State.tasks.models);
-    
-    //$$('treetableMytasks_Tasktable').load('TaskData->load'); //!!!!!!!!!!!!!!!!!!!!!
+  var showTaskData = function(Tasks, response, options) {
   };
 
+  var showUsersData= function() {
+    //Обработка показа сегмента массива пользователей, сперва верно выделим пункты меню
+    //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
+    //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
+    $$('tree_SegmentsSelector').blockEvent();
+    if('SegmentsSelector_Users' != $$('tree_SegmentsSelector').getSelectedId()) {
+      $$('tree_SegmentsSelector').select('SegmentsSelector_Users');
+    }
+    $$('tree_SegmentsSelector').unblockEvent();
+
+    switch(App.State.SelectedProfile.type) {
+      case 'community':
+        $$('toggle_Users_Members').hide();
+        $$('toggle_Users_Request').hide();
+        $$('toggle_Users_Invitations').hide();
+        $$('label_UsersHeader').setValues({ title:'Список всех зарегистрированных в системе людей' }, true);
+        
+        break;
+      case 'userprofile':
+        $$('toggle_Users_Members').hide();
+        $$('toggle_Users_Request').hide();
+        $$('toggle_Users_Invitations').hide();
+        $$('label_UsersHeader').setValues({ title:'Список видимых друзей ' + App.State.SelectedProfile.name }, true);
+
+        break;
+      case 'myprofile':
+        $$('toggle_Users_Members').show();
+        $$('toggle_Users_Request').show();
+        $$('toggle_Users_Invitations').show();
+        $$('label_UsersHeader').setValues({ title:'Список ваших друзей' }, true);
+        
+        break;
+      case 'groupprofile':
+        $$('toggle_Users_Members').setValue('Участники');
+        $$('toggle_Users_Members').show();
+        $$('toggle_Users_Request').show();
+        $$('toggle_Users_Invitations').show();
+        $$('label_UsersHeader').setValues({ title:'Список участников группы' }, true);
+        
+        break;
+    }
+
+    if($$('toggle_Users_Invitations').getValue() === 1)
+      $$('toggle_Users_Invitations').toggle();
+      
+    if($$('toggle_Users_Members').getValue() === 1)
+      $$('toggle_Users_Members').toggle();
+      
+    if($$('toggle_Users_Request').getValue() === 1)
+      $$('toggle_Users_Request').toggle();            
+    
+    switch(App.State.SelectedProfile.type) {
+      case 'myprofile':
+        if(App.State.getState('filter').all === true) {
+          $$('toggle_Users_Invitations').toggle();
+        } else {
+          if(App.State.getState('filter').request === false)
+            $$('toggle_Users_Members').toggle();
+          else
+            $$('toggle_Users_Request').toggle();
+        }
+        
+        break;
+      case 'groupprofile':
+        break;
+    }
+
+    $$('frame_Users').show();
+    $$('scrollview_UsersFilter').show();
+
+    //Параметры загрузки массива пользователей передаются в обработчике событий onDataRequest 
+    //компоненты dataview_Users
+    $$('dataview_Users').clearAll();
+    $$('dataview_Users').loadNext(4, 0);
+  };
+  
+	var loadProfileDataSuccess = function(model, response, options) {
+    var stateFilter = App.State.getState('filter');
+    var newProfile = {};
+    
+    switch(stateFilter.profiletype) {
+      case 'userprofile':
+        //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
+        if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
+          App.State.SelectedProfile = { id: model.get('id'), type:'myprofile', name: model.get('username') };
+        } else {
+          //установим в состоянии приложения новый профиль
+          App.State.SelectedProfile = { id: model.get('id'), type:'userprofile', name: model.get('username') };
+          
+          //*Добавление профиля в список последних профилей*
+          newProfile = { id: model.get('id'), type:'userprofile', name: model.get('username'), segment: 'Профиль пользователя' };
+          addLastProfileList(newProfile);
+        }
+
+        if(App.State.getState('segment') === 'users')
+          showUsersData();
+        else
+          showUserData();
+
+        break;
+      case 'groupprofile':
+        //*Установим в состоянии приложения новый профиль
+        App.State.SelectedProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name') };
+    
+        //*Добавление профиля в список последних профилей*
+        newProfile = { id: model.get('id'), type:'groupprofile', name: model.get('name'), segment: 'Профиль группы' };
+        addLastProfileList(newProfile);
+        
+        if(App.State.getState('segment') === 'users')
+          showUsersData();
+        else
+          showGroupData();
+          
+        break;
+    }
+	};
+	
+	var loadProfileDataError = function(model, xhr, options) {
+	  //заглушка
+	};
+	
   //***************************************************************************
   //INTERFACE MANIPULATION
   //segmentSelector переключает состояние интерфейса в соответствии с теми сегментами, которые были
@@ -503,52 +524,60 @@ var implementFunction = (function() {
   	  if(!$$('toggle_HeaderOptions').isEnabled()) $$('toggle_HeaderOptions').enable();
   	  
   	  //*Установим видимость пункта меню "Группы"
-  	 // $$('tree_SegmentsSelector').unselectAll();
-  	 // var item = $$('tree_SegmentsSelector').getItem('SegmentsSelector_Groups');
-    //   item.hidden = App.State.getState('segment') === 'group'?true:false;
-    //   $$('tree_SegmentsSelector').updateItem('SegmentsSelector_Groups', item);
-    //   $$('tree_SegmentsSelector').refresh();
+  	  //$$('tree_SegmentsSelector').unselectAll();
+  	  //var item = $$('tree_SegmentsSelector').getItem('SegmentsSelector_Groups');
+      //item.hidden = App.State.getState('segment') === 'group'?true:false;
+      //$$('tree_SegmentsSelector').updateItem('SegmentsSelector_Groups', item);
+      //$$('tree_SegmentsSelector').refresh();
 
+      var stateFilter = {};
   	  //Отрисовка интерфейса в зависимости от выбранного сегмента
   	  switch(App.State.getState('segment')) {
         case 'user':
+          stateFilter = App.State.getState('filter');
        	  $$('tabview_CentralUser').showProgress({
             type:'icon',
             delay:200
           });
   
-          //viewedUser.url = '/api/v1/users/' + App.State.segmentUserId;
-          viewedUser.url = '/api/v1/users/' + App.State.SelectedSegmentProfile.id;
-          viewedUser.fetch({ success: showUserDataAfterSuccess, error: showUserDataAfterError, silent:true });
+          viewedUser.url = '/api/v1/users/' + stateFilter.id;
+          viewedUser.fetch({ success: loadProfileDataSuccess, error: loadProfileDataError, silent:true });
 
           break;
         case 'group':
+       	  stateFilter = App.State.getState('filter');
        	  $$('tabview_CentralGroup').showProgress({
             type:'icon',
             delay:200
           });
           
-          //viewedGroup.url = '/api/v1/groups/' + App.State.segmentGroupId;
-          viewedGroup.url = '/api/v1/groups/' + App.State.SelectedSegmentProfile.id;
-          viewedGroup.fetch({ success: showGroupDataAfterSuccess, error: showGroupDataAfterError, silent:true });
+          viewedGroup.url = '/api/v1/groups/' + stateFilter.id;
+          viewedGroup.fetch({ success: loadProfileDataSuccess, error: loadProfileDataError, silent:true });
           
           break;
         case 'users':
-          //Обработаем показ сегмента пользователей, сперва верно выделим пункты меню
-          //Само нажатие нам не нужно производить, поэтому блокируем срабатывание события
-          //если фильтр по пользователю не выбран, выделяем пункт пользователей в основном меню
-          //в противном случае снимаем выделение
-          $$('tree_SegmentsSelector').blockEvent();
-          if('SegmentsSelector_Users' != $$('tree_SegmentsSelector').getSelectedId()) {
-            $$('tree_SegmentsSelector').select('SegmentsSelector_Users');
-          }
-          $$('tree_SegmentsSelector').unblockEvent();
+          stateFilter = App.State.getState('filter');
+          var selectedProfileType = App.State.SelectedProfile.type === 'myprofile'?'userprofile':App.State.SelectedProfile.type;
           
-          $$('dataviewCentral_Users').clearAll();
-          $$('dataviewCentral_Users').loadNext(4, 0, null, 'api/v1/users');
+          if( ((selectedProfileType === stateFilter.profiletype) && (App.State.SelectedProfile.id === stateFilter.id)) || (stateFilter.id === null) ) {
+            showUsersData();
+          } else {
+            switch(stateFilter.profiletype) {
+              case 'userprofile':
+              case 'myprofile':
+                viewedUser.url = '/api/v1/users/' + stateFilter.id;
+                viewedUser.fetch({ success: loadProfileDataSuccess, error: loadProfileDataError, silent:true });
 
-          $$('frame_Users').show();
-          $$('scrollviewRight_UsersFilter').show();
+                break;
+              case 'groupprofile':
+                viewedGroup.url = '/api/v1/groups/' + stateFilter.id;
+                viewedGroup.fetch({ success: loadProfileDataSuccess, error: loadProfileDataError, silent:true });
+                
+                break;
+              case 'community':
+                showUsersData();
+            }
+          }
           
           break;
         case 'groups':
@@ -563,7 +592,7 @@ var implementFunction = (function() {
           $$('tree_SegmentsSelector').unblockEvent();
           
           $$('treetable_Groups').clearAll();
-          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.SelectedSegmentProfile.id }, showGroupsDataAfterSuccess);
+          var promise = webix.ajax().get('api/v1/groups', { userId: App.State.SelectedProfile.id }, showGroupsDataAfterSuccess);
           promise.then(function(realdata) {}).fail(showGroupsDataAfterError);
 
           //$$('treetable_Groups').load('api/v1/groups');
@@ -574,10 +603,10 @@ var implementFunction = (function() {
           
           break;
         case 'tasks':
-          $$('tree_SegmentsSelector').select('SegmentsSelector_Tasks');
+          //$$('tree_SegmentsSelector').select('SegmentsSelector_Tasks');
           
-          App.State.tasks.fetch({ success: showTaskDataAfterFetch });
-          $$('tabviewCentral_Task').show();
+          //App.State.tasks.fetch({ success: showTaskDataAfterFetch });
+          //$$('tabviewCentral_Task').show();
           break;
         case 'templates':
           // code
@@ -594,7 +623,7 @@ var implementFunction = (function() {
           // code
           break;
         case 'home':
-          App.State.SelectedSegmentProfile = { id: 0, type:'community', name:'Сообщество' };
+          App.State.SelectedProfile = { id: 0, type:'community', name:'Сообщество' };
           $$('tree_SegmentsSelector').refresh();
           $$('frameBlank').show();
           break;
@@ -612,8 +641,26 @@ var implementFunction = (function() {
       //defaultState();
       //App.Router.navigate('', {trigger: true});
     }
-    webix.message({type:'error', text:err.responseText});
+    webix.message( { type:'error', text:err.responseText } );
   };
+
+  function parseQueryString(queryString) {
+    if (!_.isString(queryString))
+      return;
+    queryString = queryString.substring( queryString.indexOf('?') + 1);
+    var params = {};
+    var queryParts = decodeURI(queryString).split(/&/g);
+    _.each(queryParts, function(val) {
+      var parts = val.split('=');
+      if (parts.length >= 1) {
+        var val = undefined;
+        if (parts.length == 2)
+          val = parts[1];
+        params[parts[0]] = val;
+      }
+    });
+    return params;
+  }
 
   //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
 	App.Router = new (Backbone.Router.extend({
@@ -627,9 +674,8 @@ var implementFunction = (function() {
 			'tasks(/)':'tasks',
 			'id:id(/)':'user',
 			'gr:id(/)':'group',
-			'users?id=:id(/)':'userUsers',
-			'users?gr=:id(/)':'groupUsers',
 			'users(/)':'users',
+			'users?*query':'users',
 			'home(/)':'home',
 			'':'index'
 		},
@@ -647,20 +693,39 @@ var implementFunction = (function() {
 		tasks:function() {
 		  App.State.segmentChange('tasks', 'tasks');
 		},
-		users:function() {
-		  App.State.segmentChange('users', 'users');
-		},
 		user:function(id) {
-		  App.State.segmentChange('id' + id, 'user', id);
+		  App.State.segmentChange('id' + id, 'user', { id:id, profiletype: 'userprofile' });
 		},
 		group:function(id) {
-		  App.State.segmentChange('gr' + id, 'group', id);
+		  App.State.segmentChange('gr' + id, 'group', { id:id, profiletype: 'groupprofile' });
 		},
-		userUsers:function(id) {
-		  App.State.segmentChange('users?id=' + id, 'users', id);
-		},
-		groupUsers:function(id) {
-		  App.State.segmentChange('users?gr=' + id, 'users', id);
+		users:function(query) {
+		  var url = 'users';
+		  var filter = { id: null, all: true, request: false, profiletype: 'userprofile' }; //userprofile, groupprofile, community
+		  
+		  //для роута inTask.me/users query будет иметь значение null, 
+		  //этот роут должен привести к отображению всех зарегистрированных пользователей системы
+		  //относительно прав видимости осн. пользователя
+		  //в остальных случаях список пользователей отображается относительно просматриваемого сегмента
+		  if(query !== null) {
+		    var params = parseQueryString(query);
+		    filter.all = false;
+		    if(typeof params.id !== 'undefined') {
+		      filter.id = Number(params.id);
+		      url = url + '?id=' + params.id;
+		    } else {
+		      filter.profiletype = 'groupprofile';
+		      filter.id = Number(params.gr);
+		      url = url + '?gr=' + params.gr;
+		    }
+		    
+  		  if(typeof params.request !== 'undefined') {
+  		    filter.request = Boolean(params.request);
+  		    url = url + '&request=' + params.request;
+  		  }
+		  }
+		  
+		  App.State.segmentChange(url, 'users', filter);
 		},
 		login:function() {
 		  //App.State.clientRoute = '/login';
@@ -762,14 +827,21 @@ var implementFunction = (function() {
     }
   });
   
-  var centralUsers_DataRefresh = function(data) {
-    $$('dataviewCentral_Users').parse(data);
+  var users_DataRefresh = function(data) {
+    $$('dataview_Users').parse(data);
   };
   
-  $$('dataviewCentral_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
-    webix.ajax().get('api/v1/users', { start:start, count:count, 
-      segment_id: App.State.SelectedSegmentProfile.id, 
-      segment_type: App.State.SelectedSegmentProfile.type }, centralUsers_DataRefresh);
+  $$('dataview_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
+    var filter = App.State.getState('filter');
+    var params = { start:start, count:count, 
+        segment_id: App.State.SelectedProfile.id, 
+        segment_type: App.State.SelectedProfile.type };
+    
+    if(typeof filter !== 'undefined') {
+      if(filter.id === null) params.segment_id = 0;
+    }
+    
+    webix.ajax().get('api/v1/users', params, users_DataRefresh);
     return false;
   });
 

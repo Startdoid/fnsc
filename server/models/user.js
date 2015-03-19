@@ -161,13 +161,10 @@ module.exports = {
   * 2. последующие порции данных { data }
   */
   getUsersList: function(from, to, filter, callback) {
-    
     var usersList = { data: [{}] };
-    
     var querySelect = 'SELECT id, username, email, "visibleProfile"  FROM "Users" where "id"<>$3 ORDER BY "id"  LIMIT $1 OFFSET $2;';
     
     pg.connect(global.url_pg, function(err, client, done) {
-      
   	  if(err) {
       	console.log('connection error (Postgres):' + err);
       	return callback(errors.restStat_DbReadError, err, usersList);
@@ -175,10 +172,10 @@ module.exports = {
       	
       if(from === 0) {
         // получим общее количество
-        client.query('SELECT count("id") as count FROM "Users" where "id"<>$1',[loggedUser.id], function(err, result) {
+        client.query('SELECT count("id") as count FROM "Users" where "id"<>$1', [ loggedUser.id ], function(err, result) {
       	  if(err) { console.log(err); }
       	  
-      	  if(result.rows.length===0){
+      	  if(result.rows.length === 0) {
             usersList.total_count = 0;
             callback(errors.restStat_isOk, '', usersList);
             done();
@@ -189,7 +186,7 @@ module.exports = {
           
           //первая порция
           client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
-      	    if(err) { console.log(err); return callback(errors.restStat_DbReadError, err, usersList);}
+      	    if(err) { console.log(err); return callback(errors.restStat_DbReadError, err, usersList); }
       	    
         	  var arrUsrs = result.rows.map(function(object) { 
         	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', isFriend: object.isfriend };
@@ -200,19 +197,18 @@ module.exports = {
         	});
         });
       } else { // задан диапазон
-    
-      //след порция
-          client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
-      	    if(err) { console.log(err); return callback(errors.restStat_DbReadError, err, usersList);}
+        //след порция
+        client.query(querySelect, [to-from, from, loggedUser.id], function(err, result) {
+    	    if(err) { console.log(err); return callback(errors.restStat_DbReadError, err, usersList); }
       	    
-        	  var arrUsrs = result.rows.map(function(object) { 
-        	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png' };
-        	  });
-        	  usersList.pos = from;
-        	  usersList.data = arrUsrs;
-        	  done();
-        	  callback(errors.restStat_isOk, '', usersList);
-        	  });
+      	  var arrUsrs = result.rows.map(function(object) { 
+      	    return { id: object.id, username: object.username, email: object.email, img:'avtr' + object.id + '.png', isFriend: object.isfriend };
+      	  });
+      	  usersList.pos = from;
+      	  usersList.data = arrUsrs;
+      	  done();
+      	  callback(errors.restStat_isOk, '', usersList);
+        });
     }      
     });
   },

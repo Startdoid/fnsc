@@ -13,7 +13,7 @@
     <link href='codebase/skins/compact.css' rel='stylesheet' type='text/css'></link>
     <link href='css/style.css' rel='stylesheet' type='text/css'></link>
     
-    <script type="text/javascript" src="js/main.js"></script>
+    <script type='text/javascript' src="js/main.js"></script>
   </head>
   
   <body>
@@ -26,11 +26,8 @@
         <div id='toolbarAutorisation'></div>
           <div id='buttonAutorisationLogin'></div>
           <div id='buttonAutorisationRegister'></div>
-      
       <div id='profilePopup'></div>
   		<div id='multiview_Left'></div>
-  		    <div id='listSegments_SegmentsSelector'></div>
-  		    <div id='listitemSegmentsSelector_MyProfile'></div>
   		<div id='multiviewCentral'></div>
   		  <div id='frameCentral_Greeting'></div>
   		  <div id='tabview_CentralGroup'></div>
@@ -45,10 +42,10 @@
   		    <div id='frameTask_Outcomingtasks'></div>
   		  <div id='frameCentral_Register'></div>
   		  <div id='frameCentral_Login'></div>
-  		    <div id="formLogin"></div>
-  		    <div id="formRegistration"></div>
+  		    <div id='formLogin'></div>
+  		    <div id='formRegistration'></div>
     		<div id='frame_Users'></div>
-      		<div id='dataviewCentral_Users'></div>
+      		<div id='dataview_Users'></div>
   		  <div id='tabview_CentralGroup'></div>
   		    <div id='multiview_GroupProfile'></div>
 		        <div id='frame_GroupProfile'></div>
@@ -68,14 +65,14 @@
   		    <div id='frameUser_Events'></div>
   		    <div id='frameUser_Message'></div>
   		<div id='multiview_Right'></div>
-  		  <div id='scrollviewRight_UsersFilter'></div>
+  		  <div id='scrollview_UsersFilter'></div>
   		  <div id='scrollview_RightUserFilter'></div>
   		  <div id='scrollview_RightGroupFilter'></div>
   		  <div id='scrollviewRight_GroupsFilter'></div>
   	<div id='frameCentralLogin_authenticateError'></div>
   	<div id='frameCentralRegister_authenticateError'></div>
 
-    <script type="text/javascript" charset="utf-8">
+    <script type='text/javascript' charset='utf-8'>
       var webix = window.webix;
 	    window.App = {
 	      State:      {},
@@ -141,13 +138,13 @@
       webix.ui.fullScreen();
 			webix.ready(implementFunction);
     </script>
-    <script type="text/javascript" src='js/datefunctions.js'></script>
-    <script type="text/javascript" src='js/models/task.js'></script>
-    <script type="text/javascript" src='js/models/user.js'></script>
-    <script type="text/javascript" src='js/models/group.js'></script>
-    <script type="text/javascript" src='js/collections/tasks.js'></script>
-    <script type="text/javascript" src='js/collections/groups.js'></script>
-    <script type="text/javascript" src='js/views/allviews.js'></script>
-    <script type="text/javascript" src='js/treemanager.js'></script>
+    <script type='text/javascript' src='js/datefunctions.js'></script>
+    <script type='text/javascript' src='js/models/task.js'></script>
+    <script type='text/javascript' src='js/models/user.js'></script>
+    <script type='text/javascript' src='js/models/group.js'></script>
+    <script type='text/javascript' src='js/collections/tasks.js'></script>
+    <script type='text/javascript' src='js/collections/groups.js'></script>
+    <script type='text/javascript' src='js/views/allviews.js'></script>
+    <script type='text/javascript' src='js/treemanager.js'></script>
   </body>
 </html>

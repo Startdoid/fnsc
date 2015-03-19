@@ -114,10 +114,10 @@ var toggle_HeaderOptions = {
 	}	
 };
 
-var search_HeaderMaster = {
-	view:'search', id: 'search_HeaderMaster',
-	placeholder:'Найти тут всё...'
-};
+// var search_HeaderMaster = {
+// 	view:'search', id: 'search_HeaderMaster',
+// 	placeholder:'Найти тут всё...'
+// };
 
 App.Frame.toolbarHeader = {
 	view:'toolbar', id: 'toolbarHeader',
@@ -125,7 +125,7 @@ App.Frame.toolbarHeader = {
 	elements:[toggle_HeaderMenu,
 	          label_HeaderInTask,
 	          //popup_HeaderProfile,
-	          search_HeaderMaster,
+	          //search_HeaderMaster,
 	          toggle_HeaderOptions
 	         ]
 };
@@ -185,12 +185,12 @@ var tree_SegmentsSelector = {
   		  if(obj.id === 'SegmentsSelector_Profile') {
   		    var html;
   		    html = "<span class='webix_icon fa-angle-down' onclick='$$(\"profilePopup\").show(this)' style='float:right;margin-top:10px'></span>";					
-  		    if(App.State.SelectedSegmentProfile.type === 'community') {
-					  html += "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedSegmentProfile.name+"</span>";
-  		    } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
-  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='pop'> "+App.State.SelectedSegmentProfile.name+"</span>";
+  		    if(App.State.SelectedProfile.type === 'community') {
+					  html += "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedProfile.name+"</span>";
+  		    } else if(App.State.SelectedProfile.type === 'groupprofile') {
+  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedProfile.id+".png' /><span class='pop'> "+App.State.SelectedProfile.name+"</span>";
   		    } else {
-					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedSegmentProfile.id+".png' /><span class='pop'> "+App.State.SelectedSegmentProfile.name+"</span>";
+					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedProfile.id+".png' /><span class='pop'> "+App.State.SelectedProfile.name+"</span>";
   		    }
 					
 					return html;
@@ -210,43 +210,41 @@ var tree_SegmentsSelector = {
 				onAfterSelect:function(id) {
           switch(id) {
             case 'SegmentsSelector_Profile':
-              if(App.State.SelectedSegmentProfile.type === 'community') {
-                App.Router.navigate('home', {trigger:true} );
-              } else if(App.State.SelectedSegmentProfile.type === 'groupprofile') {
-                App.Router.navigate('gr' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+              if(App.State.SelectedProfile.type === 'community') {
+                App.Router.navigate('home', { trigger:true } );
+              } else if(App.State.SelectedProfile.type === 'groupprofile') {
+                App.Router.navigate('gr' + App.State.SelectedProfile.id, { trigger:true } );
               } else {
-                App.Router.navigate('id' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                App.Router.navigate('id' + App.State.SelectedProfile.id, { trigger:true } );
               }
               break;
             case 'SegmentsSelector_Users':
-              switch(App.State.SelectedSegmentProfile.type) {
+              switch(App.State.SelectedProfile.type) {
                 case 'community':
-                  App.Router.navigate('users', {trigger:true} );
+                  App.Router.navigate('users', { trigger:true } );
                   break;
                 case 'userprofile':
-                  App.Router.navigate('users?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  App.Router.navigate('users?id=' + App.State.SelectedProfile.id, { trigger:true } );
                   break;
                 case 'myprofile':
-                  App.Router.navigate('users?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  App.Router.navigate('users?id=' + App.State.SelectedProfile.id, { trigger:true } );
                   break;
                 case 'groupprofile':
-                  App.Router.navigate('users?gr=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  App.Router.navigate('users?gr=' + App.State.SelectedProfile.id, { trigger:true } );
                   break;
               }
 
               break;
             case 'SegmentsSelector_Groups':
-              switch(App.State.SelectedSegmentProfile.type) {
+              switch(App.State.SelectedProfile.type) {
                 case 'community':
                   App.Router.navigate('groups', {trigger:true} );
                   break;
                 case 'userprofile':
-                  //App.Router.navigate('groups?id=' + App.State.segmentUserId, {trigger:true} );
-                  App.Router.navigate('groups?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
+                  App.Router.navigate('groups?id=' + App.State.SelectedProfile.id, {trigger:true} );
                   break;
                 case 'myprofile':
-                  App.Router.navigate('groups?id=' + App.State.SelectedSegmentProfile.id, {trigger:true} );
-                  //App.Router.navigate('groups?id=' + App.State.segmentUserId, {trigger:true} );
+                  App.Router.navigate('groups?id=' + App.State.SelectedProfile.id, {trigger:true} );
                   break;
               }
 
@@ -261,8 +259,8 @@ var tree_SegmentsSelector = {
 				}
 			},
 			data:[
-			  {id: 'SegmentsSelector_Profile', value: 'Мой профиль', hidden:false, icon: 'globe', $css: 'user', details:'Подробная информация профиля' },
-				{id: 'SegmentsSelector_Segments', value: 'Cегменты', hidden:false, open: true, data:[
+			  { id: 'SegmentsSelector_Profile', value: 'Мой профиль', hidden:false, icon: 'globe', $css: 'user', details:'Подробная информация профиля' },
+				{ id: 'SegmentsSelector_Segments', value: 'Cегменты', hidden:false, open: true, data:[
 					{ id: 'SegmentsSelector_Users', value: 'Друзья', hidden:false, icon: 'users', $css: 'user', details:'Список пользователей профиля' },
 					{ id: 'SegmentsSelector_Groups', value: 'Группы', hidden:false, icon: 'sitemap', $css: 'products', details:'Список групп профиля' },
 					{ id: 'SegmentsSelector_Tasks', value: 'Задачи', hidden:false, icon: 'check-square-o', $css: "orders", details:'Список задач профиля' },
@@ -271,7 +269,7 @@ var tree_SegmentsSelector = {
        		{ id: 'SegmentsSelector_Events', value:'События', hidden:false, icon: 'bell' },
        		{ id: 'SegmentsSelector_Messages', value:'Сообщения', hidden:false, icon: 'envelope' }
 				]},
-				{id: 'SegmentsSelector_More', open: false, hidden:false, value:'...', data:[
+				{ id: 'SegmentsSelector_More', open: false, hidden:false, value:'...', data:[
 					{ id: 'SegmentsSelector_Prefences', value: 'Настройки', hidden:false, icon: 'gear', details: 'Персональные настройки пользователя' },
 					{ id: 'SegmentsSelector_LogOut', value: 'Завершить сеанс', hidden:false, icon: 'sign-out', details: 'Закончить сеанс' }
 				]}
@@ -288,8 +286,8 @@ App.Frame.multiview_Left = {
 };
 
 //Фильтр в панели опции
-var scrollviewRight_UsersFilter = {
-  view:'scrollview', id:'scrollviewRight_UsersFilter', container:'scrollviewRight_UsersFilter',
+var scrollview_UsersFilter = {
+  view:'scrollview', id:'scrollview_UsersFilter', container:'scrollview_UsersFilter',
   borderless: false, scroll:'y',
   $init: function(config) { },
   body:{
@@ -382,7 +380,7 @@ var scrollviewRight_GroupsFilter = {
 App.Frame.multiview_Right = {
   view:'multiview', id:'multiview_Right',
 	width:250, animate: false,
-  cells:[scrollviewRight_UsersFilter,
+  cells:[scrollview_UsersFilter,
   scrollview_RightUserFilter,
   scrollview_RightGroupFilter,
   scrollviewRight_GroupsFilter ]
@@ -536,7 +534,7 @@ var treetable_Groups = {
     //     this.loadBranch(id);
     // },
     onDataRequest: function (id) {
-      webix.ajax().get('api/v1/groups?continue=true&parent='+id, { userId: App.State.SelectedSegmentProfile.id }).then(treetable_Groups_loadSuccess);
+      webix.ajax().get('api/v1/groups?continue=true&parent='+id, { userId: App.State.SelectedProfile.id }).then(treetable_Groups_loadSuccess);
       //cancelling default behaviour
       return false;
     }    
@@ -1301,11 +1299,11 @@ var deleteUserFriend = function(id) {
 };
 
 //bru: фрейм выводящий список пользователей и друзей
-var dataviewCentral_Users = {
-  view:'dataview', id:'dataviewCentral_Users',
+var dataview_Users = {
+  view:'dataview', id:'dataview_Users',
   borderless:true, scroll:'y', xCount:1,
   type:{ height:110, width:500 },
-  //template:'html->dataviewCentral_Users_template',
+  //template:'html->dataview_Users_template',
   template:function(obj) {
     //bru: построение элемента в списке друзей
     var htmlCode = '<div>';
@@ -1314,7 +1312,7 @@ var dataviewCentral_Users = {
     htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
     //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
-    if(App.State.SelectedSegmentProfile.id === App.State.user.get('id') && App.State.SelectedSegmentProfile.type === 'myprofile') {
+    if(App.State.SelectedProfile.id === App.State.user.get('id') && App.State.SelectedProfile.type === 'myprofile') {
       htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
     } else {
       //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
@@ -1337,28 +1335,57 @@ var dataviewCentral_Users = {
 	}
 };
 
-var button_Users_Members = {
-  view:'button', id:'button_Users_Members',
-  css:'itsk_button',
+var toggle_Users_Members = {
+  view:'toggle', id:'toggle_Users_Members',
+  //css:'itsk_button',
   label:'Друзья',
   height:28,
-  gravity:2  
+  gravity:2,
+	on:{
+		'onItemClick': function() { 
+      switch(App.State.SelectedProfile.type) {
+        case 'myprofile':
+          App.Router.navigate('users?id=' + App.State.SelectedProfile.id, { trigger:true } );
+          break;
+        case 'groupprofile':
+          App.Router.navigate('users?gr=' + App.State.SelectedProfile.id, { trigger:true } );
+          break;
+      }
+		}
+	}  
 };
 
-var button_Users_Request = {
-  view:'button', id:'button_Users_Request',
-  css:'itsk_button',
+var toggle_Users_Request = {
+  view:'toggle', id:'toggle_Users_Request',
+  //css:'itsk_button',
   label:'Заявки',
   height:28,
-  gravity:2
+  gravity:2,
+	on:{
+		'onItemClick': function() { 
+      switch(App.State.SelectedProfile.type) {
+        case 'myprofile':
+          App.Router.navigate('users?id=' + App.State.SelectedProfile.id + '&request=1', { trigger:true } );
+          break;
+        case 'groupprofile':
+          App.Router.navigate('users?gr=' + App.State.SelectedProfile.id + '&request=1', { trigger:true } );
+          break;
+      }
+		}
+	}  
 };
 
-var button_Users_Invitations = {
-  view:'button', id:'button_Users_Invitations',
-  css:'itsk_button',
+var toggle_Users_Invitations = {
+  view:'toggle', id:'toggle_Users_Invitations',
+  //css:'itsk_button',
   label:'Пригласить',
   height:28,
-  gravity:2  
+  gravity:2,
+	on:{
+		'onItemClick': function() { 
+		  App.Router.navigate('users', { trigger:true } );
+		}
+	}  
 };
 
 var button_Users_Back = {
@@ -1389,9 +1416,9 @@ var frame_Users = {
   cols:[{ css:{ 'background':'white' } }, 
   { rows:[
       search_Users,
-      { cols:[ button_Users_Members, button_Users_Request, button_Users_Invitations, { gravity:2 }, button_Users_Back] },
-      { id:'labelUsersMessage', template:'Мамба маус', height:38, borderless:true },
-      dataviewCentral_Users ]
+      { cols:[ toggle_Users_Members, toggle_Users_Request, toggle_Users_Invitations, { gravity:2 }, button_Users_Back] },
+      { id:'label_UsersHeader', template:'#title#', height:38, borderless:true, data: { title: '' } },
+      dataview_Users ]
   },
   { css:{ 'background':'white' } }]
 };

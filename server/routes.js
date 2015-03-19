@@ -12,6 +12,7 @@ var lwip       = require('lwip');
 var fs         = require('fs');
 
 var routeExclude = ['/img/avatars/',
+  '/img/gravatars/',
   '/js/jquery.min.map',
   '/favicon.ico',
   '/codebase/skins/fonts/PTS-webfont.ttf',
@@ -353,7 +354,6 @@ function logout(req, res, next) {
 function throwInRoot(req, res, next) {
   if(routeExclude.indexOf(req.url) != -1) return next();
   console.log(req.url);
-  //global.state.serverRoute = req.path;
   global.state.serverRoute = req.url;
   res.redirect('/');
 }

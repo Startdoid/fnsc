@@ -405,3 +405,25 @@ div.friend_info span {
   color: white;
   cursor: default;
 }
+
+.webix_el_toggle input{
+  background: inherit;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  border-color: #F7F7F7;
+  cursor: pointer;
+  color: #45688E;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px 4px;
+}
+  
+.webix_el_toggle input:hover{
+  background-color: #E1E7ED;
+}
+  
+.webix_el_box.webix_pressed input{
+  background-color: #597DA3;
+  color: white;
+  cursor: default;
+}
