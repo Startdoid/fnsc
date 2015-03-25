@@ -155,7 +155,7 @@ webix.protoUI({
 // Type for left menu
 webix.type(webix.ui.tree, {
 	name:'menuTree',
-	height: 40,
+	height: 20,
 	icon:function(obj, common) {
 		var html = '';
 		var open = '';
@@ -1368,6 +1368,7 @@ var dataview_Users = {
 var toggle_Users_Members = {
   view:'toggle', id:'toggle_Users_Members',
   label:'Друзья',
+  css:'itsk_button',
   height:28,
   gravity:2,
 	on:{
@@ -1387,6 +1388,7 @@ var toggle_Users_Members = {
 var toggle_Users_Request = {
   view:'toggle', id:'toggle_Users_Request',
   label:'Заявки',
+  css:'itsk_button',
   height:28,
   gravity:2,
 	on:{
@@ -1405,6 +1407,7 @@ var toggle_Users_Request = {
 
 var toggle_Users_Invitations = {
   view:'toggle', id:'toggle_Users_Invitations',
+  css:'itsk_button',
   label:'Все',
   height:28,
   gravity:2,

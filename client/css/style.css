@@ -55,11 +55,13 @@
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+  background: transparent !important;
 }
 
 .menu .grow:hover, .grow:focus, .grow:active {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
+  background: transparent !important;
 }
 
 .menu .webix_tree_item {
@@ -397,7 +399,7 @@ a.ChangePicture {
   cursor: default;
 }
 
-.webix_el_toggle input {
+.webix_el_toggle.itsk_button input, .webix_el_toggle.itsk_button button, .webix_control.itsk_button button {
   background: inherit;
   -moz-border-radius: 2px;
   border-radius: 2px;
@@ -409,10 +411,16 @@ a.ChangePicture {
   padding: 3px 8px 4px;
 }
   
-.webix_el_toggle input:hover {
+.webix_el_toggle.itsk_button input:hover, .webix_el_toggle.itsk_button button:hover, .webix_control.itsk_button button:hover {
   background-color: #E1E7ED;
 }
-  
+
+.webix_el_toggle.itsk_button input:focus, .webix_el_toggle.itsk_button button:focus, .webix_control.itsk_button button:focus {
+  background-color: #597DA3;
+  color: white;
+  cursor: default;
+}
+
 .webix_el_box.webix_pressed input {
   background-color: #597DA3;
   color: white;
@@ -481,7 +489,7 @@ a.ChangePicture {
   display: inline-block;
   height: 18px;
   padding: 0px 10px;
-  margin-bottom: 8px;
+  -margin-bottom: 8px;
   margin-left: 8px;
   outline: none;
   font-weight: bold;
