@@ -18,11 +18,11 @@
 /*  margin: -16px 0 0 -16px;*/
 /*}*/
 
-.webix_icon_button{
+.webix_icon_button {
 	position:relative;
 }
 
-.webix_layout_toolbar.webix_toolbar .webix_el_icon  .webix_icon{
+.webix_layout_toolbar.webix_toolbar .webix_el_icon  .webix_icon {
 	height:100%;
 	width:100%;
 	line-height: inherit;
@@ -56,6 +56,7 @@
   transform: translateZ(0);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0);
 }
+
 .menu .grow:hover, .grow:focus, .grow:active {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
@@ -68,46 +69,54 @@
 .webix_tree .webix_scroll_cont > .webix_tree_leaves {
 	padding: 0;
 }
-.menu.webix_view{
+
+.menu.webix_view {
 	background: #f1f1f1 !important;
 }
-.menu .webix_tree_item.webix_selected , .menu .webix_tree_item.webix_selected span{
+
+.menu .webix_tree_item.webix_selected , .menu .webix_tree_item.webix_selected span {
 	background-color: #27ae60;
 	padding-right:0;
 }
-.menu .webix_tree_branch_1 .webix_tree_item{
+
+.menu .webix_tree_branch_1 .webix_tree_item {
 	/*padding-left:10px;*/
 	padding-left:24px;
 	padding-right:10px;
 }
-.menu .webix_tree_branch_1>.webix_tree_item{
+
+.menu .webix_tree_branch_1>.webix_tree_item {
 	/*padding: 5px 12px;*/
 	padding: 5px 0 4px 0;
 	line-height:40px;
 	/*font-size: 12px;
 	text-transform: uppercase;*/
 }
-.menu .webix_tree_branch_1{
+
+.menu .webix_tree_branch_1 {
 	border-bottom:1px solid #e5e5e5;
 }
-.menu .webix_tree_item.webix_selected span, .menu .webix_tree_item span{
+
+.menu .webix_tree_item.webix_selected span, .menu .webix_tree_item span {
 	margin:0;
 	padding:1px;
 }
 
-.menu .webix_tree_item.webix_selected .webix_icon{
+.menu .webix_tree_item.webix_selected .webix_icon {
 	color: #fff;
 }
-.menu .webix_icon{
+
+.menu .webix_icon {
 	width: 25px;
 	padding-left: 12px !important;
 	text-align: center;
 }
-.menu .user .webix_icon{
+
+.menu .user .webix_icon {
 	font-size: 18px;
 }
 
-.menu .webix_tree_leaves .webix_tree_leaves{
+.menu .webix_tree_leaves .webix_tree_leaves {
 	margin-left: 0px;
 }
 
@@ -118,17 +127,17 @@
 .show_all{
 	background-color: #fbfbfb;
 }
-.show_all .webix_template{
+.show_all .webix_template {
 	line-height: 30px;
 	padding: 5px 10px;
 
 }
-.show_all .webix_template .webix_icon{
+.show_all .webix_template .webix_icon {
 	line-height: 30px;
 	float:right;
 }
 
-.photo{
+.photo {
 	width: 38px;
 	height: 38px;
 	float: left;
@@ -141,7 +150,7 @@
 	border-radius: 50%;
 }
 
-.treetable .photointable{
+.treetable .photointable {
 	width: 38px;
 	height: 38px;
 	float: left;
@@ -152,14 +161,16 @@
 	-border-radius: 50%;
 }
 
-.headerProfile{
+.headerProfile {
 	background: transparent !important;
 }
-.headerProfile .webix_template{
+
+.headerProfile .webix_template {
 	padding: 0;
 	line-height: 46px;
 }
-.headerProfile .photo{
+
+.headerProfile .photo {
 	width: 38px;
 	height: 38px;
 	float: left;
@@ -168,32 +179,37 @@
 	-ms-border-radius: 50%;
 	border-radius: 50%;
 }
-.headerProfile span{
+
+.headerProfile span {
 	color: #fff;
 	float: left;
 	padding-left: 7px;
 }
-.headerProfile .webix_icon{
+
+.headerProfile .webix_icon {
 	line-height: inherit;
 }
 
-.list_popup .webix_list_item{
+.list_popup .webix_list_item {
 	position:relative;
 	line-height: 36px;
 }
-.list_popup .photo{
+
+.list_popup .photo {
 	width: 34px;
 	height: 34px;
 	border-radius: 50%;
 }
-.list_popup .text{
+
+.list_popup .text {
 	padding-left:10px;
 	display: inline-block;
 	max-width:180px;
 	overflow: hidden;
 	white-space: nowrap;
 }
-.list_popup .name{
+
+.list_popup .name {
 	color:#3498db;
 	font-size: 12px;
 	display: block;
@@ -291,31 +307,6 @@ a.ChangePicture {
 
 .uploader_message.error { color: #e83b3b; }
 
-div.friend_avatar {
-  width: 120px;
-  float: left;
-}
-
-div.friend_avatar img {
-	border: none;
-}
-
-div.friend_info span {
-	display: block;
-	width: 64px;
-	font-weight: bold;
-	float: left;
-}
-
-.friend_info, .friend_avatar {
-	padding:8px;
-	line-height: 21px;
-}	  
-
-.mainSelector .webix_list_item {
-  line-height:50px;
-}
-
 .bless {
   border: none;
 }
@@ -396,17 +387,17 @@ div.friend_info span {
   padding: 3px 8px 4px;
 }
 
-.itsk_button input:hover{
+.itsk_button input:hover {
   background-color: #E1E7ED;
 }
   
-.itsk_button input:focus{
+.itsk_button input:focus {
   background-color: #597DA3;
   color: white;
   cursor: default;
 }
 
-.webix_el_toggle input{
+.webix_el_toggle input {
   background: inherit;
   -moz-border-radius: 2px;
   border-radius: 2px;
@@ -418,12 +409,105 @@ div.friend_info span {
   padding: 3px 8px 4px;
 }
   
-.webix_el_toggle input:hover{
+.webix_el_toggle input:hover {
   background-color: #E1E7ED;
 }
   
-.webix_el_box.webix_pressed input{
+.webix_el_box.webix_pressed input {
   background-color: #597DA3;
   color: white;
   cursor: default;
+}
+
+.user-box {
+ position: relative;
+ cursor: arrow;
+ -background-color: #167ac6;
+}
+
+.user_avatar {
+ -position: absolute;
+ -border: 1px solid black;
+ width:90px; 
+ height:90px;
+ float: left;
+}
+
+.friend_avatar img {
+	border: none;
+}
+
+.friend_info span {
+	display: block;
+	width: 64px;
+	font-weight: bold;
+	float: left;
+}
+
+.mainSelector .webix_list_item {
+  line-height:50px;
+}
+
+.user_buttons {
+ clear: left;
+ -position: absolute;
+ -padding-top: 0px;
+ -margin-top: 0px;
+ border-top: 1px solid #e2e2e2;
+ -height: 20px;
+ -background-color: #167ac6;
+ display:block;
+}
+
+.user_img_status {
+ position: absolute;
+ top:2px;
+ right:0px;
+ padding: none;
+ height: 24px;
+}
+
+.user_img_isFriend {
+ position: absolute;
+ top:26px;
+ right:0px;
+ padding: none;
+ height: 24px;
+}
+  
+.user_more_button {
+  background-color: #6383a8;
+  color: #FFF;
+  display: inline-block;
+  height: 18px;
+  padding: 0px 10px;
+  margin-bottom: 8px;
+  margin-left: 8px;
+  outline: none;
+  font-weight: bold;
+  font-size: 11px;
+  font-family: tahoma, arial, verdana, sans-serif, Lucida Sans;
+  text-decoration: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  line-height: normal;
+  vertical-align: middle;
+  cursor: pointer;
+  border-radius: 2px;
+  border: 0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+  overflow: visible;
+  zoom: 1;
+  transition: background-color 100ms ease-in-out;  
+}
+
+.user_more_button:hover {
+  background-color: #6d8cb0;
+  text-decoration: none;
+}
+
+.user_more_button:active {
+  background: #5c7ca1;
+  padding-top: 7px;
+  padding-bottom: 6px;
 }

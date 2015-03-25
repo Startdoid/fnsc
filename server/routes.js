@@ -739,7 +739,7 @@ function deletetask(req, res, next) {
  *  первая выдача данных { total_count: - количество элементов, data:[] - массив элементов }
  * если start > 0, то необходимо вернуть данные согласно следующему шаблону
  *  последующие порции данных { pos: start - стартовая позиция, data:[] - массив последующих элементов }
- */
+*/
 function getUsers(req, res, next) {
   var start = req.param('start');
   var count = req.param('count');
@@ -768,6 +768,13 @@ function getUsers(req, res, next) {
       }
       break;
     case 'groupprofile':
+      if(segment_id === 0) {
+        userModel.getUsersList(Number(start), Number(start) + Number(count), {}, function(status, message, userlist) {
+          if(status === errors.restStat_isOk)
+            res.status(status).json(userlist);
+        });
+      } else {
+      }
       break;
     case 'community':
       break;

@@ -124,6 +124,7 @@ App.Frame.toolbarHeader = {
 	//height:32, //maxWidth:App.WinSize.windowWidth / 100 * 80,
 	elements:[toggle_HeaderMenu,
 	          label_HeaderInTask,
+	          {},
 	          //popup_HeaderProfile,
 	          //search_HeaderMaster,
 	          toggle_HeaderOptions
@@ -1302,26 +1303,55 @@ var deleteUserFriend = function(id) {
 var dataview_Users = {
   view:'dataview', id:'dataview_Users',
   borderless:true, scroll:'y', xCount:1,
-  type:{ height:110, width:500 },
+  type:{ height:120, width:500 },
   //template:'html->dataview_Users_template',
   template:function(obj) {
     //bru: построение элемента в списке друзей
-    var htmlCode = '<div>';
-    htmlCode = htmlCode + '<div class="friend_avatar"><img style="width:100px; height:100px;" src="/img/avatars/100/'+obj.img+'"/></div>';
-    htmlCode = htmlCode + '<div class="friend_info"><a class="itmTextBold" href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
-    htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
+    // var htmlCode = '<div>';
+    // htmlCode = htmlCode + '<div class="friend_avatar"><img style="width:100px; height:100px;" src="/img/avatars/100/'+obj.img+'"/></div>';
+    // htmlCode = htmlCode + '<div class="friend_info"><a class="itmTextBold" href="javascript:UserRout('+obj.id+')">'+obj.username+'</a>';
+    // htmlCode = htmlCode + '<div><span>Email:</span>'+obj.email+'</div></div>';
     
-    //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
-    if(App.State.SelectedProfile.id === App.State.user.get('id') && App.State.SelectedProfile.type === 'myprofile') {
-      htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
-    } else {
-      //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
-      //в случае если у текущего пользователя уже есть такой друг, на что указывает флаг isFriend, то кнопка добавить в друзья не показывается
-      if(!obj.isFriend) {
-        htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
+    // //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
+    // if(App.State.SelectedProfile.id === App.State.user.get('id') && App.State.SelectedProfile.type === 'myprofile') {
+    //   htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');">Убрать из друзей</button>';
+    // } else {
+    //   //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
+    //   //в случае если у текущего пользователя уже есть такой друг, на что указывает флаг isFriend, то кнопка добавить в друзья не показывается
+    //   if(!obj.isFriend) {
+    //     htmlCode = htmlCode + '<button class="buttonAddUserFriend" id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');">Добавить в друзья</button>';
+    //   }
+    // }
+    // htmlCode = htmlCode + '</div>'
+    
+    var htmlCode = '<div class="user-box"> \
+	    <img class="user_avatar" src="/img/avatars/100/'+obj.img+'"/> \
+	    <div class="friend_info"><a class="itmTextBold" href="javascript:UserRout('+obj.id+')">'+obj.username+'</a></div> \
+	    <div class="friend_info"> <span>Email:</span>'+obj.email+' </div> ';
+	    //<img class="user_img_status" src="https://vfs-gce-eu-13-4.c9.io/vfs/938189/oAAIvdZO1pgttW62/workspace/client/img/'+obj.groupRole+'.png"/> \
+      
+      //bru: если показываются друзья текущего пользователя, то кнопка "Добавить друга" меняется на "Удалить друга"
+      if(App.State.SelectedProfile.id === App.State.user.get('id') && App.State.SelectedProfile.type === 'myprofile') {
+        htmlCode = htmlCode + '<div class="user_buttons"> \
+  	      <button class="user_more_button" id="buttonAddUserFriend'+obj.id+'" onclick="deleteUserFriend('+obj.id+');"> Убрать из друзей </button> \
+  	      <button class="user_more_button"> Пригласить в группу </button> \
+  	    </div>';
+      } else {
+        //bru: если показываются друзья не текущего пользователся, то кнопка активируется кнопка "Добавить друга"
+        //в случае если у текущего пользователя уже есть такой друг, на что указывает флаг isFriend, то кнопка добавить в друзья не показывается
+        if(!obj.isFriend) {
+          htmlCode = htmlCode + '<div class="user_buttons"> \
+    	      <button class="user_more_button" id="buttonAddUserFriend'+obj.id+'" onclick="addUserFriend('+obj.id+');"> Добавить в друзья </button> \
+    	      <button class="user_more_button"> Пригласить в группу </button> \
+    	    </div>';
+        } else {
+          htmlCode = htmlCode + '<img class="user_img_isFriend" src="/img/friends.png"/>';
+          htmlCode = htmlCode + '<div class="user_buttons"> \
+    	    </div>';
+        }
       }
-    }
-    htmlCode = htmlCode + '</div>'
+	    htmlCode = htmlCode + '</div>';
+
     return htmlCode;
   },
 	//select:1,
@@ -1337,7 +1367,6 @@ var dataview_Users = {
 
 var toggle_Users_Members = {
   view:'toggle', id:'toggle_Users_Members',
-  //css:'itsk_button',
   label:'Друзья',
   height:28,
   gravity:2,
@@ -1357,7 +1386,6 @@ var toggle_Users_Members = {
 
 var toggle_Users_Request = {
   view:'toggle', id:'toggle_Users_Request',
-  //css:'itsk_button',
   label:'Заявки',
   height:28,
   gravity:2,
@@ -1377,8 +1405,7 @@ var toggle_Users_Request = {
 
 var toggle_Users_Invitations = {
   view:'toggle', id:'toggle_Users_Invitations',
-  //css:'itsk_button',
-  label:'Пригласить',
+  label:'Все',
   height:28,
   gravity:2,
 	on:{

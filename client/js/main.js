@@ -420,7 +420,8 @@ var implementFunction = (function() {
         
         break;
       case 'groupprofile':
-        $$('toggle_Users_Members').setValue('Участники');
+        $$('toggle_Users_Members').define('label', 'Участники');
+        $$('toggle_Users_Members').refresh();
         $$('toggle_Users_Members').show();
         $$('toggle_Users_Request').show();
         $$('toggle_Users_Invitations').show();
@@ -438,20 +439,13 @@ var implementFunction = (function() {
     if($$('toggle_Users_Request').getValue() === 1)
       $$('toggle_Users_Request').toggle();            
     
-    switch(App.State.SelectedProfile.type) {
-      case 'myprofile':
-        if(App.State.getState('filter').all === true) {
-          $$('toggle_Users_Invitations').toggle();
-        } else {
-          if(App.State.getState('filter').request === false)
-            $$('toggle_Users_Members').toggle();
-          else
-            $$('toggle_Users_Request').toggle();
-        }
-        
-        break;
-      case 'groupprofile':
-        break;
+    if(App.State.getState('filter').all === true) {
+      $$('toggle_Users_Invitations').toggle();
+    } else {
+      if(App.State.getState('filter').request === false)
+        $$('toggle_Users_Members').toggle();
+      else
+        $$('toggle_Users_Request').toggle();
     }
 
     $$('frame_Users').show();
