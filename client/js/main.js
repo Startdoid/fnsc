@@ -260,7 +260,7 @@ var implementFunction = (function() {
     $$('multiview_Left').hide();
     $$('multiview_Right').hide();
 
-    $$('treetableMytasks_Tasktable').clearAll();
+    $$('treetable_Tasks').clearAll();
     $$('treetable_Groups').clearAll();
     
     $$('toggle_HeaderMenu').setValue(0);
@@ -597,10 +597,17 @@ var implementFunction = (function() {
           
           break;
         case 'tasks':
-          //$$('tree_SegmentsSelector').select('SegmentsSelector_Tasks');
+          $$('tree_SegmentsSelector').blockEvent();
+          if('SegmentsSelector_Tasks' != $$('tree_SegmentsSelector').getSelectedId()) {
+            $$('tree_SegmentsSelector').select('SegmentsSelector_Tasks');
+          }
+          $$('tree_SegmentsSelector').unblockEvent();
           
-          //App.State.tasks.fetch({ success: showTaskDataAfterFetch });
-          //$$('tabviewCentral_Task').show();
+          $$('treetable_Tasks').clearAll();
+          
+          
+          $$('frame_Tasks').show();
+          //$$('scrollviewRight_TasksFilter').show();
           break;
         case 'templates':
           // code
@@ -802,11 +809,11 @@ var implementFunction = (function() {
     }
   });
   
-  $$('treetableMytasks_Tasktable').attachEvent('onAfterEditStart', function(id) {
+  $$('treetable_Tasks').attachEvent('onAfterEditStart', function(id) {
     App.State.tasktable_ItemEdited = id;
   });
 
-  $$('treetableMytasks_Tasktable').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+  $$('treetable_Tasks').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
     var ItemEdited = App.State.tasktable_ItemEdited;
     var ItemSelected = App.State.tasktable_ItemSelected;
     if (editor.column === 'name') {

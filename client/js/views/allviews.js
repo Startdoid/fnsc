@@ -478,7 +478,7 @@ var treetable_Groups = {
   view:'treetable', id:'treetable_Groups',
   css:'treetable',
 	editable:true, editaction:'dblclick',
-	autoheight:true, rowHeight:47,
+	rowHeight:47,
 	select: true,
 	drag:true,
 	updateFromResponse:true,
@@ -577,105 +577,195 @@ var frame_Groups = {
 
 //**************************************************************************************************
 //section: TASKS frames
-App.Frame.toolbarMytasks_Tasktool = {
-  view:'toolbar',
-  id:'toolbarMytasks_Tasktool',
-  cols:[
-    { view:'button', id:'buttonTasktool_AddRoot', value:'Добавить основную', width:140, align:'left', 
-      click: function() { App.State.tasks.newTask(0); } },
-    { view:'button', id:'buttonTasktool_Add', value:'Добавить', width:100, align:'left', 
-      click: function() { App.State.tasks.newTask(App.State.tasktable_ItemSelected); } },
-    { view:'button', id:'buttonTasktool_Delete', value:'Удалить', width:100, align:'left', 
-      click: function() {
-        var selectedId = App.State.tasktable_ItemSelected;
-        if (selectedId !== 0) {
-          var firstModels = App.State.tasks.findWhere( { parent_id: selectedId } );
-          var text = '';
-          if (typeof firstModels === 'undefined') {
-            text = 'Вы пожелали удалить выбранную задачу?';
-          } else {
-            text = 'Задача содержит подзадачи, вы желаете удалить корневую задачу вместе с потомками?';
-          }
 
-          webix.confirm({
-            title:'Запрос на удаление задачи',
-            ok:'Да', 
-            cancel:'Нет',
-            type:'confirm-warning',
-            text:text,
-            callback: function(result) { 
-              if (result) { App.State.tasks.removeTask(App.State.tasktable_ItemSelected); }
-              }
-          });
-        }
-      }
-    },
-    { view:'button', id:'buttonTasktool_Up', value:'Вверх', width:100, align:'left', 
-      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'up'); } },
-    { view:'button', id:'buttonTasktool_Down', value:'Вниз', width:100, align:'left', 
-      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'down'); } },
-    { view:'button', id:'buttonTasktool_UpLevel', value:'На ур. вверх', width:100, align:'left', 
-      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'uplevel'); } },
-    { view:'button', id:'buttonTasktool_DownLevel', value:'На ур. вниз', width:100, align:'left', 
-      click: function() { App.State.tasks.moveTask(App.State.tasktable_ItemSelected, 'downlevel'); } },
-    { }
-  ]
+var treetable_Tasks_loadSuccess = function(data) {
+  $$('treetable_Tasks').parse(data.json());
 };
 
-App.Frame.treetableMytasks_Tasktable = {
-  id:'treetableMytasks_Tasktable',
+var treetable_Tasks = {
+  id:'treetable_Tasks',
 	view:'treetable', 
-	editable:true, 
-	autoheight:true, 
+	editable:true, editaction:'dblclick',
+  //rowHeight:47,
 	select: true,
 	drag:true,
+	updateFromResponse:true,
+  save:{
+    'insert':'api/v1/tasks',
+    'update':'api/v1/tasks',
+    updateFromResponse:true
+  },	
 	columns:[
-		{ id:'id', header:'', css:{'text-align':'center'}, width:40 },
-		{ id:'description', editor:'text', header:'Описание задачи', width:250, template:'{common.treetable()} #description#' }
+		{ id:'id', header:'&nbsp;', css:{'text-align':'center'}, width:40 },
+		//{ id:'grIcoChange', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-ellipsis-h'></span>" },
+		//{ id:'grIcoView', header:'&nbsp;', width:56, template:"<img class='photointable' src='img/gravatars/40/avtr1.png' />"},//"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
+		//{ id:'grIcoUsers', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-users'></span>" },
+		{ id:'name', editor:'text', header:'Описание задачи', width:250, template:'{common.treetable()} #name#' },
+		{ id:'order', header:'порядок', width:50 }
 	],
-	on: {
-	  onItemClick:function() { App.State.tasktable_ItemSelected = this.getSelectedId().id; },
-    onBeforeDrop:function(context, event) {
-      var id_conf = context.to.config.id;
-      if(id_conf === 'treetableMytasks_Tasktable') {
-        App.State.tasks.moveTask(context.start, 'jump', context.index, context.parent);
-      }
-  	 }
+	onClick:{
+		'fa-angle-down': function(e, id) {
+			this.close(id);
+		},
+		'fa-angle-right': function(e, id) {
+			this.open(id);
+		}
 	},
-	url: 'TaskData->load'
+	on: {
+	  onItemClick: function() { },
+    onBeforeDrop: function(context, event) {},
+		onBeforeLoad: function() { this.showOverlay('Загрузка данных...'); },
+		onAfterLoad: function() {	this.hideOverlay();	},
+    onDataRequest: function (id) {
+      webix.ajax().get('api/v1/tasks?continue=true&parent='+id, { userId: App.State.SelectedProfile.id }).then(treetable_Tasks_loadSuccess);
+      //cancelling default behaviour
+      return false;
+    }    
+	},
+	type: {
+		icon:function(obj,common){
+			if (obj.$count){
+				if (obj.open)
+					return "<span class='webix_icon fa-angle-down'></span>";
+				else
+					return "<div class='webix_icon fa-angle-right'></div>";
+			} else
+				return "<div class='webix_tree_none'></div>";
+		},
+		folder:function(obj, common){
+		// 	if (obj.$count){
+		// 		if (obj.open)
+		// 			return "<span class='webix_icon fa-tree'></span>";
+		// 		else
+		// 			return "<span class='webix_icon fa-tree'></span>";
+		// 	}
+		// 	return "<div class='webix_icon fa-leaf'></div>";
+		//return "<img class='photo' src='img/gravatars/40/avtr1.png' />";
+		  return '';
+		}
+	}
 };
 
-App.Frame.tabviewCentral_Task = {
-	view:'tabview', id:'tabviewCentral_Task',
-	autowidth:true,
-	animate:'true',
-	tabbar : { optionWidth : 200 },
-  cells:[
+var button_Tasks_New = {
+  view:'button', id:'button_Tasks_New',
+  css:'itsk_button',
+  label:'Задача',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_Add = {
+  view:'button', id:'button_Tasks_Add',
+  css:'itsk_button',
+  label:'Подзадача',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_Delete = {
+  view:'button', id:'button_Tasks_Delete',
+  css:'itsk_button',
+  label:'Удалить',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_Up = {
+  view:'button', id:'button_Tasks_Up',
+  css:'itsk_button',
+  label:'Вверх',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_Down = {
+  view:'button', id:'button_Tasks_Down',
+  css:'itsk_button',
+  label:'Вниз',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_UpLevel = {
+  view:'button', id:'button_Tasks_UpLevel',
+  css:'itsk_button',
+  label:'Ур. вверх',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_DownLevel = {
+  view:'button', id:'button_Tasks_DownLevel',
+  css:'itsk_button',
+  label:'Ур. вниз',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Tasks_Back = {
+  view:'button', id:'button_Tasks_Back',
+  css:'itsk_button',
+  label:'Назад',
+  height:28,
+  gravity:1,
+	on:{
+		'onItemClick': function() { 
+		  App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); 
+		}
+	}  
+};
+
+var toggle_Tasks_Filter = {
+  view:'toggle', id:'toggle_Tasks_Filter',
+  css:'itsk_button',
+  label:'Фильтр задач',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }
+};
+
+var toggleTasks_Property = {
+  view:'toggle', id:'toggleTasks_Property',
+  css:'itsk_button',
+  label:'Свойства задачи',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }
+};
+
+var search_Tasks = {
+  view:'search', id:'search_Tasks',
+  css:'search_Users',
+  align:'center', 
+  height:28,
+  placeholder:'Введите любое имя, название или слово'
+};
+
+var frame_Tasks = {
+  id: 'frame_Tasks',
+  css:'frame_Users',
+  //autoheight:true, autowidth:true,
+  rows:[
+    { cols:[ button_Tasks_New, button_Tasks_Add, button_Tasks_Delete, 
+             button_Tasks_Up, button_Tasks_Down, button_Tasks_UpLevel, button_Tasks_DownLevel,
+             { gravity:10 }, button_Tasks_Back], css:{ 'border-bottom':'2px solid white;' } }, //toolbar
+    { cols:[ { gravity:10 }, toggle_Tasks_Filter, toggleTasks_Property] }, //view toggle
     {
-     header:'Мои',
-     body:{
-        id:'frameTask_Mytasks',
-        rows:[
-          App.Frame.toolbarMytasks_Tasktool,
-          App.Frame.treetableMytasks_Tasktable]
-        }
-    },
-    {
-     header:'Входящие',
-     body:{
-        id:'frameTask_Incomingtasks',
-        rows:[
-          {}]        
-        }
-    },
-    {
-     header:'Порученные',
-     body:{
-        id:'frameTask_Outcomingtasks',
-        rows:[
-          {}]        
-        }
-    }    
+      cols:[
+        {
+          rows:[ search_Tasks, treetable_Tasks ]
+        }, //view - tasks tree
+        { css:{ 'border-left':'2px solid white;' }, hidden:true }, //view - filters
+        { css:{ 'border-left':'2px solid white;' }, hidden:true }  //view - task property
+      ]
+    } //views
   ]
 };
 //end section: TASKS frames
@@ -1624,12 +1714,12 @@ App.Frame.multiviewCentral = {
   cells:[App.Frame.frameBlank,
     App.Frame.frameCentral_Greeting,
     frame_Groups,
-    App.Frame.tabviewCentral_Task,
+    frame_Tasks,
+    frame_Users,
     App.Frame.frameCentral_Register,
     App.Frame.frameCentral_Login,
     App.Frame.tabview_CentralUser,
-    App.Frame.tabview_CentralGroup,
-    frame_Users],
+    App.Frame.tabview_CentralGroup],
   fitBiggest:true,
   animate:false
 };

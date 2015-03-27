@@ -774,6 +774,7 @@ function getUsers(req, res, next) {
             res.status(status).json(userlist);
         });
       } else {
+        res.status(errors.restStat_isOk).json('0 groups for this user in database');
       }
       break;
     case 'community':

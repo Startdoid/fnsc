@@ -393,11 +393,11 @@ a.ChangePicture {
   background-color: #E1E7ED;
 }
   
-.itsk_button input:focus {
-  background-color: #597DA3;
-  color: white;
-  cursor: default;
-}
+/*.itsk_button input:focus {*/
+/*  background-color: #597DA3;*/
+/*  color: white;*/
+/*  cursor: default;*/
+/*}*/
 
 .webix_el_toggle.itsk_button input, .webix_el_toggle.itsk_button button, .webix_control.itsk_button button {
   background: inherit;
@@ -415,7 +415,7 @@ a.ChangePicture {
   background-color: #E1E7ED;
 }
 
-.webix_el_toggle.itsk_button input:focus, .webix_el_toggle.itsk_button button:focus, .webix_control.itsk_button button:focus {
+.webix_el_toggle.itsk_button input:focus, .webix_el_toggle.itsk_button button:focus {
   background-color: #597DA3;
   color: white;
   cursor: default;
