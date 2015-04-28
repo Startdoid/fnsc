@@ -10,6 +10,7 @@ var global     = require('./global');
 var Upload     = require('upload-file');
 var lwip       = require('lwip');
 var fs         = require('fs');
+var moment     = require('moment');
 
 var routeExclude = ['/img/avatars/',
   '/img/gravatars/',
@@ -661,6 +662,25 @@ function deleteGroup(req, res, next) {
   res.status(400).end();
 }
 
+//**************************************************************************************************
+
+var tasks = [{ id: 1, //уникальный идентификатор задачи
+  parent_id: 0, //уникальный идентификатор родителя задачи, 0 - для корневых задач
+  webix_kids:true, //специфичный идентификатор для клиентской части, указывающий на наличие потомков у ветки
+  title: 'Это первая моя задача', //описание задачи
+  status: 0,//Отметка об исполнении задачи. Имеет 4 состояния: К исполнению (0); Исполнено(3); На утверждении(2); Отклонена(1). 
+          //Состояние "К исполнению" имеют все вновь созданные задачи. Состояние "Исполнено" имеют завершенные задачи. 
+          //Задачи в настройках, которых отмечена опция "Обязательный аудит", либо в настройках группы 
+          //включена подобная опция, имеют состояние "На утверждении" и "Отклонена". Первое состояние показывает что, 
+          //задача находится на проверке у владельца задачи, либо у куратора группы. Второе состояние означает, 
+          //что задача не прошла проверку. Задачи помеченные, как исполненные и идущие в составе другой задачи, 
+          //не исчезают в область "Завершено", а остаются затененными. Но помеченными, как исполненные.
+  priority: 'A', //приоритет задачи, A,B,C
+  createMoment: moment() //дата создания задачи
+}, {id:2, parent_id:1, webix_kids:true, title:'Первая подзадача', status:3, priority:'B', createMoment: moment()},
+   {id:3, parent_id:2, webix_kids:false, title:'ПодПодЗадача', status:2, priority:'C', createMoment: moment()},
+   {id:4, parent_id:1, webix_kids:false, title:'Просто вторая задача', status:1, priority:'B', createMoment: moment()}];
+
 function gettasks(req, res, next) {
   if(!req.isAuthenticated()) return res.status(errors.restStat_isOk).send({ id: 0, mainUserLogged: false });
 
@@ -668,25 +688,76 @@ function gettasks(req, res, next) {
   if(loggedUser === null) return res.status(errors.restStat_isOk).send({ id: 0, mainUserLogged: false });
 
   //!!!!!Вставить проверку на права просмотра группы для текущего пользователя!!!!!
+  
+  var userId = req.param('userId'),
+  cont = req.param('continue'),
+  parent = req.param('parent');
+  
+  //Если cont = true, то значит запрошена вторая порция данных (т.е. раскрываются дополнительные ветки)
+  //если cont = false, то значит запрошена первая порция данных корни групп
+  
+  if(typeof userId === 'undefined')
+    userId = 0;
+  else
+    userId = Number(userId);
+    
+  if(typeof parent === 'undefined')
+    parent = 0;
+  else
+    parent = Number(parent);    
+    
+  if(typeof cont === 'undefined')
+    cont = false;
+  else if (cont === 'true')
+    cont = true;
+  else
+    cont = false;
+    
+  console.log(userId);
+  console.log(parent);
+  console.log(cont);
+  
+  if(!cont) {
+    var arr = [tasks[0], tasks[3]];
+    res.status(errors.restStat_isOk).json(arr);
+  } else {
+    if(parent === 1)
+      res.status(errors.restStat_isOk).json({ 'parent': parent, 'data': tasks[1] });
+    else if(parent === 2)
+      res.status(errors.restStat_isOk).json({ 'parent': parent, 'data': tasks[2] });
+  }
 
   //Проверим переданный атрибут - идентификатор группы по которой происходит отбор задач
   //если идентификатор пустой, тогда делается выборка по всем личным группам
 
-  groupModel.getGroupById(req.params.group_id, function(err, grp) {
-    if(err === 'GroupDbError') return res.status(433).send("DB group error");
-    else if(err === 'NoGroup') return res.status(434).send('Group not found');
-    else if(err) return res.status(400).end();
+  // groupModel.getGroupById(req.params.group_id, function(err, grp) {
+  //   if(err === 'GroupDbError') return res.status(433).send("DB group error");
+  //   else if(err === 'NoGroup') return res.status(434).send('Group not found');
+  //   else if(err) return res.status(400).end();
 
-    var arrTaskId = grp.tasklist.map(function(object) { return object.taskId });
-    taskModel.model.find({ id: { $in: arrTaskId } }, function(err, tasks) {
-      if (err) { res.status(400).send(err); return; }
-      res.status(errors.restStat_isOk).json(tasks);
-    });
-  });
+  //   var arrTaskId = grp.tasklist.map(function(object) { return object.taskId });
+  //   taskModel.model.find({ id: { $in: arrTaskId } }, function(err, tasks) {
+  //     if (err) { res.status(400).send(err); return; }
+  //     res.status(errors.restStat_isOk).json(tasks);
+  //   });
+  // });
 }
 
 function gettask(req, res, next) {
-  res.status(400).end();
+  var task_id = Number(req.params.task_id);
+  var task_json = { id:1, title:'Первая задача', status:0, priority:'A', createMoment: moment(), description:'Описание задачи производится тут' };
+  
+  switch (task_id) {
+    case 1:
+      break;
+    case 2:
+      task_json = { id:2, title:'Первая подзадача', status:3, priority:'B', createMoment: moment(), description:'Вторая подзадача' };
+      break;
+    default:
+      // code
+  }
+  
+  res.status(errors.restStat_isOk).json(task_json);
 }
 
 function savetask(req, res, next) {

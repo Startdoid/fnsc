@@ -1,6 +1,13 @@
 var App = window.App;
 var webix = window.webix;
 
+/**
+* ui: profilePopup
+*   конфигурация интерфейса для меню последних просмотренных профилей, первая часть (list_InnerProfile) 
+* содержит профиль осн. пользователя и публичный профиль в котором отображается вся публичная информация. 
+* Вторая часть (list_lastProfile) заполняется функцией main.addLastProfileList, и представляет несколько
+* последних просмотренных профилей
+*****************************************************************************/
 webix.ui({
 	view: 'popup', id: 'profilePopup',
 	width: 300,	padding: 0,
@@ -391,85 +398,6 @@ App.Frame.multiview_Right = {
 
 //**************************************************************************************************
 //section: GROUPS frames
-
-//Конфигурация панели управления в списке групп
-var toolbar_Groups = {
-  view:'toolbar', id:'toolbar_Groups',
-  cols:[
-    { view:'button', id:'button_toolbar_Groups_AddRoot', value:'Создать группу', width:140, align:'left', 
-      click: function() { 
-        var countElems = $$('treetable_Groups').count();
-        $$("treetable_Groups").add({ name: 'Новый элемент', numUsers: 1 }, countElems);
-      } },
-    { },
-    { view:'button', label:'Назад', width: 100,
-      click: function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } },
-  ]
-};
-
-//Меню управления в списке групп, для каждой группы
-webix.ui({
-	view: 'submenu', id: 'submenu_Groups',
- 	width: 200,	padding: 0,
- 	data: [
- 		{ id: 'grMoveUp', value: 'Переместить выше', icon: 'arrow-up', $css: 'grMoveUp' },
- 		{ id: 'grMoveDown', value: 'Переместить ниже', icon: 'arrow-down', $css: 'grMoveDown' },
- 		{ id: 'grLevelUp', value: 'На уровень выше', icon: 'level-up', $css: 'grLevelUp' },
- 		{ id: 'grLevelDown', value: 'На уровень ниже', icon: 'level-down', $css: 'grLevelDown' },
- 		{ id: 'grAddGroup', value: 'Создать подгруппу', icon: 'plus', $css: 'grAddGroup' },
- 		{ id: 'grDeleteGroup', value: 'Удалить группу', icon: 'trash-o', $css: 'grDeleteGroup' }
- 	],
- 	type:{
- 	  height: 40,
- 		template: function(obj) {
- 			return "<span style='cursor:pointer;' class='webix_icon fa-"+obj.icon+"'></span><span>"+obj.value+"</span>";
- 		}
- 	},
-	on:{
-	  onItemClick: function(id) {
-	    //var itm = this.getItem(id);
-      switch (id) {
-        case 'grAddGroup':
-          var selectedId = $$('treetable_Groups').getSelectedId();
-          var row_id = $$('treetable_Groups').add({ }, 0, selectedId);
-          if(!$$('treetable_Groups').isBranchOpen(selectedId))
-            $$('treetable_Groups').open(selectedId);
-          break;
-        case 'grDeleteGroup':
-          webix.ajax().del('api/v1/groups', { webix_operation: 'delete', id: $$('treetable_Groups').getSelectedId().id }).then(function() {
-            $$("treetable_Groups").remove($$('treetable_Groups').getSelectedId());
-          });
-          
-          // var selectedId = App.State.groupstable_ItemSelected;
-          // if (selectedId !== 0) {
-          //   var firstModels = App.State.groups.findWhere( { parent_id: selectedId } );
-          //   var text = '';
-          //   if (typeof firstModels === 'undefined') {
-          //     text = 'Вы пожелали удалить выбранную группу?';
-          //   } else {
-          //     text = 'Группа содержит другие группы, вы желаете удалить корневую группу вместе с потомками?';
-          //   }
-  
-          //   webix.confirm({
-          //     title:'Запрос на удаление группы',
-          //     ok:'Да', 
-          //     cancel:'Нет',
-          //     type:'confirm-warning',
-          //     text:text,
-          //     callback: function(result) { 
-          //       if (result) { App.State.groups.removeGroup(App.State.groupstable_ItemSelected); }
-          //       }
-          //   });
-          // }
-          break;
-        
-        default:
-          // code
-      }
-	    $$('submenu_Groups').hide();
-	  }}
-});
-
 var treetable_Groups_loadSuccess = function(data) {
   $$('treetable_Groups').parse(data.json());
 };
@@ -490,7 +418,6 @@ var treetable_Groups = {
   },	
 	columns:[
 		{ id:'id', header:'&nbsp;', css:{'text-align':'center'}, width:40 },
-		{ id:'grIcoChange', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-ellipsis-h'></span>" },
 		{ id:'grIcoView', header:'&nbsp;', width:56, template:"<img class='photointable' src='img/gravatars/40/avtr1.png' />"},//"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
 		{ id:'grIcoUsers', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-users'></span>" },
 		{ id:'name', editor:'text', header:'Имя групы', width:250, template:'{common.treetable()} #name#' },
@@ -498,9 +425,6 @@ var treetable_Groups = {
 		{ id:'order', header:'отладочая', width:50 }
 	],
 	onClick:{
-		'fa-ellipsis-h': function(e, id, node) {
-		  $$('submenu_Groups').show(node.childNodes[0], { pos: 'right'});
-		},
 		'photointable': function(e, id, node) {
 		  App.Router.navigate('gr' + id, { trigger:true } );
 		},
@@ -565,11 +489,134 @@ var treetable_Groups = {
 	},
 };
 
+var button_Groups_New = {
+  view:'button', id:'button_Groups_New',
+  css:'itsk_button',
+  label:'Группа',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { 
+	  var selectedId = $$('treetable_Groups').getSelectedId();
+    var row_id = $$('treetable_Groups').add({ }, 0, selectedId);
+    if(!$$('treetable_Groups').isBranchOpen(selectedId))
+      $$('treetable_Groups').open(selectedId);
+	} }  
+};
+
+var button_Groups_Add = {
+  view:'button', id:'button_Groups_Add',
+  css:'itsk_button',
+  label:'Подгруппа',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Groups_Delete = {
+  view:'button', id:'button_Groups_Delete',
+  css:'itsk_button',
+  label:'Удалить',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() {
+	  webix.ajax().del('api/v1/groups', { webix_operation: 'delete', id: $$('treetable_Groups').getSelectedId().id }).then(function() {
+      $$("treetable_Groups").remove($$('treetable_Groups').getSelectedId());
+    });
+	} }  
+};
+
+var button_Groups_Up = {
+  view:'button', id:'button_Groups_Up',
+  css:'itsk_button',
+  label:'Вверх',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Groups_Down = {
+  view:'button', id:'button_Groups_Down',
+  css:'itsk_button',
+  label:'Вниз',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Groups_UpLevel = {
+  view:'button', id:'button_Groups_UpLevel',
+  css:'itsk_button',
+  label:'Ур. вверх',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Groups_DownLevel = {
+  view:'button', id:'button_Groups_DownLevel',
+  css:'itsk_button',
+  label:'Ур. вниз',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }  
+};
+
+var button_Groups_Back = {
+  view:'button', id:'button_Groups_Back',
+  css:'itsk_button',
+  label:'Назад',
+  height:28,
+  gravity:1,
+	on:{
+		'onItemClick': function() { 
+		  App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); 
+		}
+	}  
+};
+
+var toggle_Groups_Filter = {
+  view:'toggle', id:'toggle_Groups_Filter',
+  css:'itsk_button',
+  label:'Фильтр Групп',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }
+};
+
+var toggleGroups_Property = {
+  view:'toggle', id:'toggleGroups_Property',
+  css:'itsk_button',
+  label:'Свойства Группы',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { } }
+};
+
+var search_Groups = {
+  view:'search', id:'search_Groups',
+  css:'search_Users',
+  align:'center', 
+  height:28,
+  placeholder:'Для поиска по группам введите любое имя, название или слово'
+};
+
 var frame_Groups = {
   id: 'frame_Groups',
+  css:'frame_Users',
   rows:[
-    toolbar_Groups,
-    treetable_Groups
+    { cols:[ button_Groups_New, button_Groups_Add, button_Groups_Delete, 
+             button_Groups_Up, button_Groups_Down, button_Groups_UpLevel, button_Groups_DownLevel,
+             { gravity:10 }, button_Groups_Back], css:{ 'border-bottom':'2px solid white;' } }, //toolbar
+    { cols:[ { gravity:10 }, toggle_Groups_Filter, toggleGroups_Property] }, //view toggle
+    {
+      cols:[
+        {
+          rows:[ search_Groups, treetable_Groups ]
+        }, //view - tasks tree
+        { css:{ 'border-left':'2px solid white;' }, hidden:true }, //view - filters
+        { css:{ 'border-left':'2px solid white;' }, hidden:true }  //view - task property
+      ]
+    } //views
   ]
 };
 //end section: GROUPS frames
@@ -582,26 +629,51 @@ var treetable_Tasks_loadSuccess = function(data) {
   $$('treetable_Tasks').parse(data.json());
 };
 
+var load_Task = function(model, response, options) {
+  var obj = data.json();
+  
+};
+
+var er_load_Task = function(err) {
+  webix.message(err);
+  //заглушечка
+};
+
+App.Func.bind_Task = function() {
+  var selItem = $$('treetable_Tasks').getSelectedItem();
+  var onToggle = $$('toggleTasks_Property').getValue();
+  
+  if(selItem !== undefined && onToggle) {
+    App.State.viewedTask.url = '/api/v1/tasks/' + selItem.id;
+    App.State.viewedTask.fetch({ success: load_Task, error: er_load_Task, silent:true });
+  }
+};
+
 var treetable_Tasks = {
   id:'treetable_Tasks',
 	view:'treetable', 
 	editable:true, editaction:'dblclick',
-  //rowHeight:47,
+  rowHeight:37,
 	select: true,
 	drag:true,
 	updateFromResponse:true,
+	gravity: 2,
   save:{
     'insert':'api/v1/tasks',
     'update':'api/v1/tasks',
     updateFromResponse:true
   },	
 	columns:[
-		{ id:'id', header:'&nbsp;', css:{'text-align':'center'}, width:40 },
-		//{ id:'grIcoChange', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-ellipsis-h'></span>" },
-		//{ id:'grIcoView', header:'&nbsp;', width:56, template:"<img class='photointable' src='img/gravatars/40/avtr1.png' />"},//"<span style='cursor:pointer;' class='webix_icon fa-eye'></span>" },
-		//{ id:'grIcoUsers', header:'&nbsp;', width:35, template:"<span style='cursor:pointer;' class='webix_icon fa-users'></span>" },
-		{ id:'name', editor:'text', header:'Описание задачи', width:250, template:'{common.treetable()} #name#' },
-		{ id:'order', header:'порядок', width:50 }
+		{ id:'id',       header:'&nbsp;', css:{'text-align':'center'}, template:'{common.treetable()} #id#' },
+		{ id:'status',   header:'&nbsp;', width:36, css:{'text-align':'center'}, template:'{common.status()}' },
+		{ id:'priority', header:'&nbsp;', width:36, css:{'text-align':'center'}, template:'{common.priority()}' },
+		{ id:'title',    header:'Заголовок задачи', editor:'text', width:250, template:'#title#' },
+		{ id:'createMoment', header:'Создано', width:150, template: function (obj) { 
+		  var m = moment(obj.createMoment);
+      return '<div class="createMoment_1">'+m.format('YYYY-MM-DD')+'</div> \
+			  <div class="createMoment_2">'+m.format('HH:mm:ss')+'</div> \
+			  <div class="createMoment_3">'+moment(m).fromNow(true)+' назад</div>'; 
+		} }
 	],
 	onClick:{
 		'fa-angle-down': function(e, id) {
@@ -609,10 +681,16 @@ var treetable_Tasks = {
 		},
 		'fa-angle-right': function(e, id) {
 			this.open(id);
+		},
+		'fa-square-o': function(e, id, node) {
+		  webix.message(id.toString());
+		},
+		'fa-check-square-o': function(e, id, node) {
+		  webix.message(id.toString());
 		}
 	},
 	on: {
-	  onItemClick: function() { },
+	  onItemClick: function() { App.Func.bind_Task(); },
     onBeforeDrop: function(context, event) {},
 		onBeforeLoad: function() { this.showOverlay('Загрузка данных...'); },
 		onAfterLoad: function() {	this.hideOverlay();	},
@@ -623,8 +701,8 @@ var treetable_Tasks = {
     }    
 	},
 	type: {
-		icon:function(obj,common){
-			if (obj.$count){
+		icon:function(obj, common) {
+			if (obj.$count) {
 				if (obj.open)
 					return "<span class='webix_icon fa-angle-down'></span>";
 				else
@@ -632,18 +710,81 @@ var treetable_Tasks = {
 			} else
 				return "<div class='webix_tree_none'></div>";
 		},
-		folder:function(obj, common){
-		// 	if (obj.$count){
-		// 		if (obj.open)
-		// 			return "<span class='webix_icon fa-tree'></span>";
-		// 		else
-		// 			return "<span class='webix_icon fa-tree'></span>";
-		// 	}
-		// 	return "<div class='webix_icon fa-leaf'></div>";
-		//return "<img class='photo' src='img/gravatars/40/avtr1.png' />";
-		  return '';
-		}
+    status:function(obj, common) {
+      switch (obj.status) {
+        case 0:
+          return "<div class='webix_icon fa-square-o'></div>";
+        case 1:
+          return "<div class='webix_icon fa-exclamation'></div>";
+        case 2:
+          return "<div class='webix_icon fa-square'></div>";
+        case 3:
+          return "<div class='webix_icon fa-check-square-o'></div>";
+      }
+    },
+    priority:function(obj, common) {
+      switch (obj.priority) {
+        case 'A':
+          return "<img class='img_priority' src='img/a_grey_24.png' />";
+        case 'B':
+          return "<img class='img_priority' src='img/b_grey_24.png' />";
+        case 'C':
+          return "<img class='img_priority' src='img/c_grey_24.png' />";
+      }
+    }
 	}
+};
+
+
+var frame_Task_Description = {
+  id:'frame_Task_Description',
+  rows:[{
+    cols:[
+      { view:'text', name:'title', label:'Заголовок', gravity:3, css:{ 'padding-left':'5px' } },
+      { view:'segmented', label:'Приоритет', labelWidth:90, value:1, gravity:1, options:[
+        { id:'1', value:'A' },
+        { id:'2', value:'B' }, 
+        { id:'3', value:'C' }]
+      }
+    ]
+  }, {
+    view:'template', autoheight:true,
+    template: function (obj) { 
+		  var m = moment(obj.createMoment);
+      return '<div style="display: inline-block"><span>Задача создана: </span>'+m.format('YYYY-MM-DD')+' '+m.format('HH:mm:ss')+' \
+			  '+moment(m).fromNow(true)+' назад</div> \
+			  <div style="display: inline-block"><b>Задача ожидает завершения</b></div>'; 
+		},
+    data: { createMoment: moment() }
+  }]
+};
+
+var frame_DatesPropTask = {
+  id:'frame_DatesPropTask',
+  cols:[{},{
+    view:'calendar',
+    date:new Date(2012,3,16),
+    weekHeader:true,
+    events:webix.Date.isHoliday, 
+    calendarDateFormat: '%Y-%m-%d',
+    width:300,
+    height:250
+  }]
+};
+
+var frame_Task_Property = {
+  view:'accordion', 
+  id: 'frame_Task_Property',
+  css:{ 'border-left':'2px solid white;' }, 
+  hidden:true,
+  gravity:1,
+  multi:false,
+  rows:[
+    { header:'Описание задачи', headerHeight:20, headerAltHeight:20, body:frame_Task_Description, collapsed:false },
+    { header:'Расписание и хронометраж', headerHeight:20, headerAltHeight:20, body:frame_DatesPropTask, collapsed:true },
+    { header:'Управление правами и доступом', headerHeight:20, headerAltHeight:20, body:'Права', collapsed:true },
+    {}
+  ]
 };
 
 var button_Tasks_New = {
@@ -728,13 +869,35 @@ var toggle_Tasks_Filter = {
   label:'Фильтр задач',
   height:28,
   gravity:1,
-	on:{ 'onItemClick': function() { } }
+	on:{ 'onItemClick': function() { 
+	  if($$('activity_Tasks').isVisible()) {
+	    $$('activity_Tasks').hide(); 
+	  } else {
+	    $$('activity_Tasks').show(); 
+	  } }
+	}
 };
 
 var toggleTasks_Property = {
   view:'toggle', id:'toggleTasks_Property',
   css:'itsk_button',
   label:'Свойства задачи',
+  height:28,
+  gravity:1,
+	on:{ 'onItemClick': function() { 
+	  if($$('frame_Task_Property').isVisible()) {
+	    $$('frame_Task_Property').hide(); 
+	  } else {
+	    $$('frame_Task_Property').show(); 
+	    App.Func.bind_Task();
+	  } }
+	}
+};
+
+var toggleTasks_Calendar = {
+  view:'toggle', id:'toggleTasks_Calendar',
+  css:'itsk_button',
+  label:'Календарь',
   height:28,
   gravity:1,
 	on:{ 'onItemClick': function() { } }
@@ -745,9 +908,51 @@ var search_Tasks = {
   css:'search_Users',
   align:'center', 
   height:28,
-  placeholder:'Введите любое имя, название или слово'
+  placeholder:'Для поиска по задачам введите любое имя, название или слово'
 };
 
+    var color_options = [
+        {id:1, value:"red"},
+        {id:2, value:"blue"},
+        {id:3, value:"green"},
+        {id:4, value:"orange"},
+        {id:5, value:"grey"},
+        {id:6, value:"yellow"}
+    ];
+
+    var position_options = [
+        {id:1, value:"left"},
+        {id:2, value:"right"},
+        {id:3, value:"top"},
+        {id:4, value:"bottom"}
+    ];
+	var propertysheet_1 = {
+		view:"property",  id:"sets", width:300,
+		elements:[
+			{ label:"Layout", type:"label" },
+			{ label:"Width", type:"text", id:"width", value: 250},
+			{ label:"Height", type:"text", id:"height"},
+            { label:"Password", type:"password", id:"pass"},
+			{ label:"Data loading", type:"label" },
+			{ label:"Data url", type:"text", id:"url", value:"http://webix.com/data"},
+            { label:"Type", type:"select", options:["json","xml","csv"], id:"type"},
+            { label:"Position", type:"select", options:position_options, id:"position"},
+            { label:"Date", type:"date", id:"date", format:webix.i18n.dateFormatStr},
+            { label:"Color", type:"combo", options:color_options, id:"color"},
+			{ label:"Use JSONP", type:"checkbox", id:"jsonp"}
+		],
+		data:{
+        width:250,
+        height:480,
+        url:"http://webix.com/data",
+        type:"json",
+        position:2,
+        date:new Date(),
+        color:1
+
+    }
+	};
+	
 var frame_Tasks = {
   id: 'frame_Tasks',
   css:'frame_Users',
@@ -756,14 +961,13 @@ var frame_Tasks = {
     { cols:[ button_Tasks_New, button_Tasks_Add, button_Tasks_Delete, 
              button_Tasks_Up, button_Tasks_Down, button_Tasks_UpLevel, button_Tasks_DownLevel,
              { gravity:10 }, button_Tasks_Back], css:{ 'border-bottom':'2px solid white;' } }, //toolbar
-    { cols:[ { gravity:10 }, toggle_Tasks_Filter, toggleTasks_Property] }, //view toggle
+    { cols:[ { gravity:10 }, toggle_Tasks_Filter, toggleTasks_Property, toggleTasks_Calendar] }, //view toggle
     {
       cols:[
         {
           rows:[ search_Tasks, treetable_Tasks ]
         }, //view - tasks tree
-        { css:{ 'border-left':'2px solid white;' }, hidden:true }, //view - filters
-        { css:{ 'border-left':'2px solid white;' }, hidden:true }  //view - task property
+        frame_Task_Property  //view - task property
       ]
     } //views
   ]
@@ -803,7 +1007,7 @@ webix.type(webix.ui.list, {
 			server: 'Done',
 			error: 'Error',
 			client: 'Ready',
-			transfer:  f.percent+'%'
+			transfer: f.percent+'%'
 		};
 		return messages[f.status];
 	},
@@ -962,7 +1166,7 @@ var saveUserAttributes = function(newv, oldv) {
 
 var scrollviewProfile_UserAttributes = {
   view:'scrollview', id:'scrollviewProfile_UserAttributes',
-  borderless: true, scroll:'y',autoheight:true,
+  borderless: true, scroll:'y', autoheight:true,
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },

@@ -25476,7 +25476,6 @@ webix.protoUI({
 
 
 
-
 webix.protoUI({
 	name:"colorboard",
 	defaults:{

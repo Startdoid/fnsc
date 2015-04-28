@@ -15,7 +15,7 @@
     "method-override": "*",
     "connect-fonts" : "*",
     "connect-fonts-opensans" : "*",
-    "mongoose"   : "~3.8.21",
+    "mongoose"   : "*",
     "underscore" : "~1.5.2",
     "validator"  : "~1.1.1",
     "passport"   : "*",
@@ -24,10 +24,11 @@
     "passport-google": "*",
     "mongoose-auto-increment": "*",
     "upload-file": "*",
+    "moment":"*",
     "lwip": "*",
     "morgan": "*",
     "MD5": "*",
     "pg":"*",
     "jsdoc":"*"
-    }
+  }
 }

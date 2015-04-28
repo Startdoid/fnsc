@@ -17,11 +17,12 @@ var implementFunction = (function() {
       name : null
     },              //Данный атрибут указывает на профиль относительно которого показываются все сегменты
     _ConstLen_lastProfileSegment: 5, //Размер стека последних просмотренных профилей
-    user             : null,     //Пользователь системы
-    viewedUser       : null,     //текущий пользователь, выбранный в списке пользователей или друзей
-    viewedGroup      : null,
-    serverRoute      : '',
-    usrCRC           : null,
+    user        : null,  //осн. пользователь
+    viewedUser  : null,  //текущий пользователь, который просм./редактир. в данный момент
+    viewedGroup : null,  //текущая группа, которая просм./редактир. в данный момент
+    viewedTask  : null,  //текущая задача, которая просм./редактир. в данный момент
+    serverRoute : '',    //роут полученный с сервера
+    usrCRC      : null,  //контролная сумма данных пользователя, планирую по ней определять момент обновления данных на клиенте
     init: function() {
       if(this.user != null) { this.user = null; }
       this.user = this.userModelInit();
@@ -31,6 +32,9 @@ var implementFunction = (function() {
 
       if(this.viewedGroup != null) { this.viewedGroup = null; }
       this.viewedGroup = this.groupModelInit();
+      
+      if(this.viewedTask != null) {this.viewedTask = null; }
+      this.viewedTask = this.taskModelInit();
 
       this._st              = [ { clientRoute: '', segment: '' } ];
       this.SelectedProfile  = { id: null, type:null, name:null };
@@ -205,6 +209,15 @@ var implementFunction = (function() {
       group.on('error', function(model, xhr, options) {});
       
       return group;
+    },
+    taskModelInit: function() {
+      var task = new App.Models.Task();
+      task.on('change', function(model, options) {
+        model.save(model.changedAttributes());
+      });
+      task.on('error', function(model, xhr, options) {});
+      
+      return task;
     }
   };
   
@@ -368,7 +381,8 @@ var implementFunction = (function() {
     //т.к. изменился профиль, то необходимо обновить дерево меню для отображения новых элементов
 	  var SegmentsSelector_Users = $$('tree_SegmentsSelector').getItem('SegmentsSelector_Users');
     SegmentsSelector_Users.value = 'Участники';
-    $$('tree_SegmentsSelector').remove('SegmentsSelector_Groups');
+    if($$('tree_SegmentsSelector').exists('SegmentsSelector_Groups'))
+      $$('tree_SegmentsSelector').remove('SegmentsSelector_Groups');
     $$('tree_SegmentsSelector').refresh();    
 
     $$('frame_GroupProfile').show();
@@ -377,10 +391,19 @@ var implementFunction = (function() {
   };
 	
   var showGroupsDataAfterSuccess = function(text, data) {
-    $$("treetable_Groups").parse(text);
+    $$('treetable_Groups').parse(text);
   };
 
   var showGroupsDataAfterError = function(model, xhr, options) {
+	  //заглушка
+	};
+
+  var showTasksDataAfterSuccess = function(text, data) {
+    $$('treetable_Tasks').parse(text);
+    App.Func.bind_Task();
+  };
+
+  var showTasksDataAfterError = function(model, xhr, options) {
 	  //заглушка
 	};
 
@@ -604,8 +627,9 @@ var implementFunction = (function() {
           $$('tree_SegmentsSelector').unblockEvent();
           
           $$('treetable_Tasks').clearAll();
-          
-          
+          var promise = webix.ajax().get('api/v1/tasks', { userId: App.State.SelectedProfile.id }, showTasksDataAfterSuccess);
+          promise.then(function(realdata) {}).fail(showTasksDataAfterError);
+
           $$('frame_Tasks').show();
           //$$('scrollviewRight_TasksFilter').show();
           break;
@@ -809,24 +833,24 @@ var implementFunction = (function() {
     }
   });
   
-  $$('treetable_Tasks').attachEvent('onAfterEditStart', function(id) {
-    App.State.tasktable_ItemEdited = id;
-  });
+  // $$('treetable_Tasks').attachEvent('onAfterEditStart', function(id) {
+  //   App.State.tasktable_ItemEdited = id;
+  // });
 
-  $$('treetable_Tasks').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
-    var ItemEdited = App.State.tasktable_ItemEdited;
-    var ItemSelected = App.State.tasktable_ItemSelected;
-    if (editor.column === 'name') {
-      if(ItemEdited != ItemSelected) {
-        this.getItem(ItemEdited).name = state.old;
-        this.updateItem(ItemEdited);
-        App.State.tasktable_ItemEdited = null;
-      } else {
-        var selectTask = App.State.tasks.get(App.State.tasktable_ItemEdited);
-        selectTask.set({ 'name': state.value });
-      }
-    }
-  });
+  // $$('treetable_Tasks').attachEvent('onAfterEditStop', function(state, editor, ignoreUpdate) {
+  //   var ItemEdited = App.State.tasktable_ItemEdited;
+  //   var ItemSelected = App.State.tasktable_ItemSelected;
+  //   if (editor.column === 'name') {
+  //     if(ItemEdited != ItemSelected) {
+  //       this.getItem(ItemEdited).name = state.old;
+  //       this.updateItem(ItemEdited);
+  //       App.State.tasktable_ItemEdited = null;
+  //     } else {
+  //       var selectTask = App.State.tasks.get(App.State.tasktable_ItemEdited);
+  //       selectTask.set({ 'name': state.value });
+  //     }
+  //   }
+  // }); 
   
   var users_DataRefresh = function(data) {
     $$('dataview_Users').parse(data);
@@ -851,9 +875,9 @@ var implementFunction = (function() {
     $$('avatarLoaderFrame').hide();
   });
   
-  var dp = webix.dp('treetable_Groups');
-  dp.config.updateFromResponse = true;  
-  dp.attachEvent('onAfterSaveError', function(id, status, response, detail) {
+  var groups_dp = webix.dp('treetable_Groups');
+  groups_dp.config.updateFromResponse = true;  
+  groups_dp.attachEvent('onAfterSaveError', function(id, status, response, detail) {
     // structure of status: {
     //   id:"id of item",
     //   status:"update status",
@@ -867,26 +891,61 @@ var implementFunction = (function() {
     
     return true;
   });
-  dp.attachEvent('onBeforeSaveError', function(id, status, response, detail) {
+  
+  groups_dp.attachEvent('onBeforeSaveError', function(id, status, response, detail) {
     return true;//return true to ignore the error and mark item as saved
-  });  
-  dp.attachEvent('onLoadError', function(text, data, loader) {
+  });
+  
+  groups_dp.attachEvent('onLoadError', function(text, data, loader) {
     return true;
   });
-  dp.attachEvent('onBeforeInsert', function(id, object) {
+  
+  groups_dp.attachEvent('onBeforeInsert', function(id, object) {
     $$('treetable_Groups').showOverlay('Добавление группы...');
     return true;
   });
-  dp.attachEvent('onBeforeUpdate', function(id, object) {
+  
+  groups_dp.attachEvent('onBeforeUpdate', function(id, object) {
     $$('treetable_Groups').showOverlay('Изменение в группе...');
     return true;
-  });  
-  dp.attachEvent('onAfterSave', function(response, id, update) {
+  });
+  
+  groups_dp.attachEvent('onAfterSave', function(response, id, update) {
     $$('treetable_Groups').hideOverlay();
     return true;
   });
 
-  webix.i18n.parseFormatDate = webix.Date.strToDate('%Y/%m/%d');
+  var task_dp = webix.dp('treetable_Tasks');
+  task_dp.config.updateFromResponse = true;  
+  task_dp.attachEvent('onAfterSaveError', function(id, status, response, detail) {
+    return true;
+  });
+  
+  task_dp.attachEvent('onBeforeSaveError', function(id, status, response, detail) {
+    return true;//return true to ignore the error and mark item as saved
+  });
+  
+  task_dp.attachEvent('onLoadError', function(text, data, loader) {
+    return true;
+  });
+  
+  task_dp.attachEvent('onBeforeInsert', function(id, object) {
+    $$('treetable_Tasks').showOverlay('Добавление задачи...');
+    return true;
+  });
+  
+  task_dp.attachEvent('onBeforeUpdate', function(id, object) {
+    $$('treetable_Tasks').showOverlay('Изменение задачи...');
+    return true;
+  });
+  
+  task_dp.attachEvent('onAfterSave', function(response, id, update) {
+    $$('treetable_Tasks').hideOverlay();
+    return true;
+  });
+  
+  webix.i18n.setLocale('ru-RU');
+  moment.locale('ru');
   webix.event(window, 'resize', function() { frameBase.adjust(); });
   //Backbone.history.start({pushState: true, root: "/"});
   Backbone.history.start( { pushState: true } );
