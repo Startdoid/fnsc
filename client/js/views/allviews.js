@@ -489,6 +489,15 @@ var treetable_Groups = {
 	},
 };
 
+/**
+* ui: button_Groups_New
+* ui.tree: multiview_Central.frame_Groups.button_Groups_New
+*   конфигурация интерфейса для кнопки создания корневой группы
+* Содержит: обработчик события нажатия на кнопку, где передается временное название группы, которое 
+* будет отображаться в дереве, пока клиент дожидается ответа от сервера. Далее управление передается
+* обработчикам событий для dataprocessor (groups_dp), где до передачи на сервер создается оверлей
+* окна загрузки, а после получения данных оверлей уничтожается
+*****************************************************************************/
 var button_Groups_New = {
   view:'button', id:'button_Groups_New',
   css:'itsk_button',
@@ -496,10 +505,7 @@ var button_Groups_New = {
   height:28,
   gravity:1,
 	on:{ 'onItemClick': function() { 
-	  var selectedId = $$('treetable_Groups').getSelectedId();
-    var row_id = $$('treetable_Groups').add({ }, 0, selectedId);
-    if(!$$('treetable_Groups').isBranchOpen(selectedId))
-      $$('treetable_Groups').open(selectedId);
+    $$('treetable_Groups').add({ name: 'Новая группа' }, 0, 0);
 	} }  
 };
 
@@ -509,7 +515,12 @@ var button_Groups_Add = {
   label:'Подгруппа',
   height:28,
   gravity:1,
-	on:{ 'onItemClick': function() { } }  
+	on:{ 'onItemClick': function() {
+	  var selectedId = $$('treetable_Groups').getSelectedId();
+    var row_id = $$('treetable_Groups').add({ }, 0, selectedId);
+    if(!$$('treetable_Groups').isBranchOpen(selectedId))
+      $$('treetable_Groups').open(selectedId);
+  } }  
 };
 
 var button_Groups_Delete = {
@@ -1733,6 +1744,15 @@ var search_Users = {
   placeholder:'Введите любое имя, название или слово'
 };
 
+/**
+* ui: frame_Users
+* ui.tree: multiview_Central.frame_Users
+*   конфигурация интерфейса для фрейма со списком пользователей у различных сегментов. 
+* Содержит: поле поиска (search_Users), переключатели состава самого списка (toggle_Users_Members,
+* toggle_Users_Request, toggle_Users_Invitations), кнопка перехода назад по истории 
+* переходов (button_Users_Back), описание выбранного состава (label_UsersHeader), 
+* динамический список пользователей запрашиваемый у сервера (dataview_Users)
+*****************************************************************************/
 var frame_Users = {
   id:'frame_Users',
   css:'frame_Users',
@@ -1913,8 +1933,8 @@ App.Frame.multiviewToolbar = {
 //   visible:false
 // };
 
-App.Frame.multiviewCentral = {
-  view:'multiview', id:'multiviewCentral', container:'multiviewCentral',
+App.Frame.multiview_Central = {
+  view:'multiview', id:'multiview_Central', container:'multiview_Central',
   cells:[App.Frame.frameBlank,
     App.Frame.frameCentral_Greeting,
     frame_Groups,

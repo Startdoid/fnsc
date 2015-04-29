@@ -44,7 +44,7 @@ var implementFunction = (function() {
     /**
     * setState
     *   Функция ДОБАВЛЯЕТ новые значения в стек состояний State._st. 
-    *   Стек ограничен длиной в 4 элемента, при привышении этой длины первый элемент стека State._st удаляется.
+    *   Стек ограничен длиной в _ConstLen_st элемента, при привышении этой длины первый элемент стека State._st удаляется.
     *   Если атрибут функции содержит не все атрибуты стека State._st, то новое значение дополняется 
     *   значениям из предыдущего состояния стека
     * Attributes:
@@ -184,8 +184,6 @@ var implementFunction = (function() {
     *****************************************************************************/
     segmentChange: function(clientRoute, segment, filter) {
       this.setState( { clientRoute:clientRoute, segment:segment, filter:filter } );
-      //if(segmentId !== undefined)
-      //  App.State.SelectedProfile.id = segmentId;
 
       var promise = webix.ajax().get('api/v1/state', {}, this.$loadState);
       promise.then(function(realdata) {
@@ -436,9 +434,12 @@ var implementFunction = (function() {
 
         break;
       case 'myprofile':
+        $$('toggle_Users_Members').define('label', 'Друзья');
         $$('toggle_Users_Members').show();
         $$('toggle_Users_Request').show();
         $$('toggle_Users_Invitations').show();
+        
+        //$$('button1').refresh();        
         $$('label_UsersHeader').setValues({ title:'Список ваших друзей' }, true);
         
         break;
@@ -525,11 +526,11 @@ var implementFunction = (function() {
 	  //заглушка
 	};
 	
-  //***************************************************************************
-  //INTERFACE MANIPULATION
-  //segmentSelector переключает состояние интерфейса в соответствии с теми сегментами, которые были
-  //установлены при обратке роутов в backbone App.Router, смена сегментов всегда сопровождается вызовом
-  //следующих функций segmengChange()->опрос состояния сервера->segmentSelector()->перерисовка интерфейса
+  /**
+  * segmentSelector
+  *   переключение/обновление сегмента, запрос данных по уже текущему сегменту и вызов функции 
+  * отрисовки интерфейса какого либо сегмента после загрузки данных
+  *****************************************************************************/	
   var segmentSelector = function() {
     var user = App.State.user;
     var viewedUser = App.State.viewedUser;
@@ -687,7 +688,24 @@ var implementFunction = (function() {
     return params;
   }
 
-  //создадим экземпляр бакбоновского роутера, который будет управлять навигацией на сайте
+  /**
+  * App.Router
+  *   экземпляр backbone роутера, который парсит url переданный в клиента и вызывает обновление
+  * сегментов соответствующих url, а если есть переданные в url параметры, то их заносит в State 
+  * клиентского приложения
+  * App.Router вызывается сразу же после создания
+  * основные этап от url до отрисовки:
+  * url->App.Router (парсинг url)
+  * App.Router->state.segmentChange (оповещение состояния приложения о смене сегментов, добавление
+  *  предыдущего состояния в стек состояний на случай, если нужно будет вернуться назад на пред. url)
+  * state.segmentChange->$loadState (загрузка состояния приложения с сервера, в случае изменения состояния
+  *  происходит загрузка данных осн.пользователя)
+  * $loadState->segmentSelector 
+  * или
+  * $loadState->$userSuccess->segmentSelector (собственно переключение/обновление сегмента, 
+  *   запрос данных по уже текущему сегменту и вызов функции отрисовки интерфейса какого либо 
+  *   сегмента после загрузки данных)
+  *****************************************************************************/
 	App.Router = new (Backbone.Router.extend({
 	  //слева роут, косая в скобках означает, что роут может быть как с косой чертой на конце, так и без нее
 	  //справа функция, которая вызовется для соответствующего роута
@@ -789,21 +807,27 @@ var implementFunction = (function() {
 		}
 	}))();
 
+  //Инициирование начального состояния приложения
   App.State.init();
   
-  //вебикс конфигурация основного окна загруженная в экземпляр объекта вебиксового менеджера окон
+  //Создание dom приложения посредством загрузки конфигурации элементов интерфейса в менеджер окон webix
   var frameBase = new webix.ui({
     id:'frameBase',
     rows:[App.Frame.multiviewToolbar, 
-      { cols: [App.Frame.multiview_Left, App.Frame.multiviewCentral, App.Frame.multiview_Right] }
+      { cols: [App.Frame.multiview_Left, App.Frame.multiview_Central, App.Frame.multiview_Right] }
     ]
   });
 
+  //после построения dom просиходит манипуляция с элементами интерфейса, в данном случае функция 
+  //сбрасывает основные элементы в состояние: осн.пользователь не зарегистрирован
   offState();
 
+  //сделаем mixin для построенного webix элементов интерфейса, т.е. добавим возможность отрисовывать 
+  //ProgressBar у вьюшек ниже (расширим их функционал)
   webix.extend($$('tabview_CentralUser'), webix.ProgressBar);
   webix.extend($$('tabview_CentralGroup'), webix.ProgressBar);
 
+  //скажем менеджеру интерфейсов какие нажатия необходимо обработать по своему
   webix.UIManager.addHotKey('enter', function() { 
     if($$('frameCentral_Register').isVisible()) {
       App.Func.Register();
@@ -814,6 +838,29 @@ var implementFunction = (function() {
 
   //************************************************************************************************
   //Обработчики событий
+  var users_DataRefresh = function(data) {
+    $$('dataview_Users').parse(data);
+  };
+  
+  $$('dataview_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
+    var filter = App.State.getState('filter');
+    var params = { start:start, count:count, 
+        segment_id: App.State.SelectedProfile.id, 
+        segment_type: App.State.SelectedProfile.type };
+    
+    if(typeof filter !== 'undefined') {
+      if(filter.id === null) params.segment_id = 0;
+    }
+    
+    webix.ajax().get('api/v1/users', params, users_DataRefresh);
+    return false;
+  });
+
+  $$('upl1').attachEvent('onUploadComplete', function(){
+    $$('avatarProfile_user').refresh();
+    $$('avatarLoaderFrame').hide();
+  });
+
   $$('treetable_Groups').attachEvent('onAfterEditStart', function(id) {
     App.State.groupstable_ItemEdited = id;
   });
@@ -851,29 +898,6 @@ var implementFunction = (function() {
   //     }
   //   }
   // }); 
-  
-  var users_DataRefresh = function(data) {
-    $$('dataview_Users').parse(data);
-  };
-  
-  $$('dataview_Users').attachEvent('onDataRequest', function(start, count, callback, url) {
-    var filter = App.State.getState('filter');
-    var params = { start:start, count:count, 
-        segment_id: App.State.SelectedProfile.id, 
-        segment_type: App.State.SelectedProfile.type };
-    
-    if(typeof filter !== 'undefined') {
-      if(filter.id === null) params.segment_id = 0;
-    }
-    
-    webix.ajax().get('api/v1/users', params, users_DataRefresh);
-    return false;
-  });
-
-  $$('upl1').attachEvent('onUploadComplete', function(){
-    $$('avatarProfile_user').refresh();
-    $$('avatarLoaderFrame').hide();
-  });
   
   var groups_dp = webix.dp('treetable_Groups');
   groups_dp.config.updateFromResponse = true;  
