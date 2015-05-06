@@ -586,3 +586,43 @@ a.ChangePicture {
   height: 20px;
   margin: 5px 5px;
 }
+
+.webix_view.webix_control.webix_el_tabbar{
+  background: #F7F7F7;
+  -border-bottom: 1px solid #E7EAED;
+}
+
+.webix_tab_filler{
+}
+
+div.webix_item_tab.webix_selected{
+  background-color: #597DA3;
+  border-color: #597DA3;
+  color: white;
+  cursor: default;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  -padding: 3px 8px 4px;
+}
+
+div.webix_item_tab{
+  background: inherit;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  border-color: #F7F7F7;
+  cursor: pointer;
+  color: #45688E;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px 4px;
+}
+
+div.webix_item_tab:hover{
+  background-color: #E1E7ED;
+}
+
+div.webix_item_tab.webix_selected:hover{
+  background-color: #597DA3;
+}

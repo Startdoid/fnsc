@@ -1088,42 +1088,40 @@ var _ignoreSaveUserAttributes;
 App.Func.loadUserAttributes = function() {
   var mydate = new Date();
   
-  if($$('frameProfile_user').isVisible()) {
+  if($$('frame_User').isVisible()) {
     mydate = strIsoToDate(App.State.user.get('dateofbirth'));
-    $$('barProfile_user').data.value = App.State.viewedUser.get('username');
-    $$('barProfile_user').refresh();
-    
+    $$('label_User_Name').setValue(App.State.viewedUser.get('username'));
+
     $$('avatarProfile_user').setValues({src:'avtr'+App.State.user.get('id')+'.png'}, true);
     
     _ignoreSaveUserAttributes = true;
-    $$('textUserAttributes_Name').setValue(App.State.user.get('username'));
-    $$('textUserAttributes_Email').setValue(App.State.user.get('email'));
-    $$('richselectUserAttributes_Country').setValue(App.State.user.get('country'));
-    $$('richselectUserAttributes_City').setValue(App.State.user.get('city'));
-    $$('datepickerUserAttributes_Dateofbirth').setValue(mydate);
-    $$('radioUserAttributes_Gender').setValue(App.State.user.get('gender'));
-    $$('richselectUserAttributes_Familystatus').setValue(App.State.user.get('familystatus'));
+    $$('text_User_Attributes_Name').setValue(App.State.user.get('username'));
+    $$('text_User_Attributes_Email').setValue(App.State.user.get('email'));
+    $$('richselect_User_Attributes_Country').setValue(App.State.user.get('country'));
+    $$('richselect_User_Attributes_City').setValue(App.State.user.get('city'));
+    $$('datepicker_User_Attributes_Dateofbirth').setValue(mydate);
+    $$('radio_User_Attributes_Gender').setValue(App.State.user.get('gender'));
+    $$('richselect_User_Attributes_Familystatus').setValue(App.State.user.get('familystatus'));
     _ignoreSaveUserAttributes = false;
   } else {
     mydate = strIsoToDate(App.State.user.get('dateofbirth'));
-    $$('barProfile_vieweduser').data.value = App.State.viewedUser.get('username');
-    $$('barProfile_vieweduser').refresh();
-    
+    $$('label_ViewedUser_Name').setValue(App.State.viewedUser.get('username'));
+
     $$('avatarProfile_vieweduser').setValues({src:'avtr'+App.State.viewedUser.get('id')+'.png'}, true);
     
-    $$('labelviewedUserAttributes_Name').setValue(App.State.viewedUser.get('username'));
-    $$('labelviewedUserAttributes_Email').setValue(App.State.viewedUser.get('email'));
-    $$('labelviewedUserAttributes_Country').setValue($$('suggestCountry').getItemText(App.State.viewedUser.get('country')));
-    $$('labelviewedUserAttributes_City').setValue($$('suggestCity').getItemText(App.State.viewedUser.get('city')));
-    $$('labelviewedUserAttributes_Dateofbirth').setValue(mydate);
+    $$('label_ViewedUser_Attributes_Name').setValue(App.State.viewedUser.get('username'));
+    $$('label_ViewedUser_Attributes_Email').setValue(App.State.viewedUser.get('email'));
+    $$('label_ViewedUser_Attributes_Country').setValue($$('suggestCountry').getItemText(App.State.viewedUser.get('country')));
+    $$('label_ViewedUser_Attributes_City').setValue($$('suggestCity').getItemText(App.State.viewedUser.get('city')));
+    $$('label_ViewedUser_Attributes_Dateofbirth').setValue(mydate);
     if(App.State.viewedUser.get('gender') === 0) {
-      $$('labelviewedUserAttributes_Gender').setValue('Пол не выбран');
+      $$('label_ViewedUser_Attributes_Gender').setValue('Пол не выбран');
     } else if(App.State.viewedUser.get('gender') === 1) {
-      $$('labelviewedUserAttributes_Gender').setValue('Мужской');
+      $$('label_ViewedUser_Attributes_Gender').setValue('Мужской');
     } else if(App.State.viewedUser.get('gender') === 2) {
-      $$('labelviewedUserAttributes_Gender').setValue('Женский');
+      $$('label_ViewedUser_Attributes_Gender').setValue('Женский');
     }
-    $$('labelviewedUserAttributes_Familystatus').setValue($$('suggestFamilyStatus').getItemText(App.State.viewedUser.get('familystatus')));
+    $$('label_ViewedUser_Attributes_Familystatus').setValue($$('suggestFamilyStatus').getItemText(App.State.viewedUser.get('familystatus')));
   }
 };
 
@@ -1135,32 +1133,31 @@ var saveUserAttributes = function(newv, oldv) {
   //произведем валидацию атрибута
   try {
     switch (atrID) {
-      case 'textUserAttributes_Name':
+      case 'text_User_Attributes_Name':
         check(newv, 'Имя пользователя должно содержать от 1 до 20 символов').len(1, 20);
         check(newv, 'Такое имя пользователя не подходит').not(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
         
         App.State.user.set('username', newv);
-        $$('barProfile_user').data.value = newv;
-        $$('barProfile_user').refresh();
+        $$('label_User_Name').setValue(App.State.viewedUser.get('username'));
 
         break;
-      case 'richselectUserAttributes_Country':
+      case 'richselect_User_Attributes_Country':
         App.State.user.set('country', newv);
 
         break;
-      case 'richselectUserAttributes_City':
+      case 'richselect_User_Attributes_City':
         App.State.user.set('city', newv);
 
         break;
-      case 'richselectUserAttributes_Familystatus':
+      case 'richselect_User_Attributes_Familystatus':
         App.State.user.set('familystatus', newv);
 
         break;
-      case 'datepickerUserAttributes_Dateofbirth':
+      case 'datepicker_User_Attributes_Dateofbirth':
         App.State.user.set('dateofbirth', newv);
 
         break;
-      case 'radioUserAttributes_Gender':
+      case 'radio_User_Attributes_Gender':
         App.State.user.set('gender', newv);
 
         break;
@@ -1175,42 +1172,51 @@ var saveUserAttributes = function(newv, oldv) {
   }
 };
 
-var scrollviewProfile_UserAttributes = {
-  view:'scrollview', id:'scrollviewProfile_UserAttributes',
+var scrollview_User_Attributes = {
+  view:'scrollview', id:'scrollview_User_Attributes',
   borderless: true, scroll:'y', autoheight:true,
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'textUserAttributes_Name', label:'Имя пользователя', labelWidth:150, on:{'onChange': saveUserAttributes } },
-      { view:'text', id:'textUserAttributes_Email', label:'Email', labelWidth:150, disabled:true },
-      { view:'richselect', id:'richselectUserAttributes_Country', label:'Страна', suggest: 'suggestCountry', labelWidth:150, on:{'onChange': saveUserAttributes } },
-      { view:'richselect', id:'richselectUserAttributes_City', label:'Город', suggest: 'suggestCity', labelWidth:150, on:{'onChange': saveUserAttributes } },
-      { view:'datepicker', id:'datepickerUserAttributes_Dateofbirth', stringResult:true, label:'Дата рождения', labelWidth:150, format:'%d %M %Y', on:{'onChange': saveUserAttributes } },
-      { view:'radio', id:'radioUserAttributes_Gender', label:'Пол', vertical:true, options:[{ value:'Любой', id:0 }, { value:'Мужской', id:1 }, { value:'Женский', id:2 }], labelWidth:150, on:{'onChange': saveUserAttributes } },
-      { view:'richselect', id:'richselectUserAttributes_Familystatus', label:'Семейное положение', suggest:'suggestFamilyStatus', labelWidth:150, on:{'onChange': saveUserAttributes } }
+      { view:'text', id:'text_User_Attributes_Name', label:'Имя пользователя', labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'text', id:'text_User_Attributes_Email', label:'Email', labelWidth:150, disabled:true },
+      { view:'richselect', id:'richselect_User_Attributes_Country', label:'Страна', suggest: 'suggestCountry', labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'richselect', id:'richselect_User_Attributes_City', label:'Город', suggest: 'suggestCity', labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'datepicker', id:'datepicker_User_Attributes_Dateofbirth', stringResult:true, label:'Дата рождения', labelWidth:150, format:'%d %M %Y', on:{'onChange': saveUserAttributes } },
+      { view:'radio', id:'radio_User_Attributes_Gender', label:'Пол', vertical:true, options:[{ value:'Любой', id:0 }, { value:'Мужской', id:1 }, { value:'Женский', id:2 }], labelWidth:150, on:{'onChange': saveUserAttributes } },
+      { view:'richselect', id:'richselect_User_Attributes_Familystatus', label:'Семейное положение', suggest:'suggestFamilyStatus', labelWidth:150, on:{'onChange': saveUserAttributes } }
   ]}
 };
 
-var scrollviewProfile_viewedUserAttributes = {
-  view:'scrollview', id:'scrollviewProfile_viewedUserAttributes',
+var scrollview_ViewedUser_Attributes = {
+  view:'scrollview', id:'scrollview_ViewedUser_Attributes',
   borderless: true, scroll:'y',
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { cols:[ { view:'label', label:'Имя пользователя', width:120}, {view:'label', id:'labelviewedUserAttributes_Name'}] },
-      { cols:[ { view:'label', label:'Email', width:120}, {view:'label', id:'labelviewedUserAttributes_Email'}] },
-      { cols:[ { view:'label', label:'Страна', width:120}, {view:'label', id:'labelviewedUserAttributes_Country'}] },
-      { cols:[ { view:'label', label:'Город', width:120}, {view:'label', id:'labelviewedUserAttributes_City'}] },
-      { cols:[ { view:'label', label:'Дата рождения', width:120}, {view:'label', id:'labelviewedUserAttributes_Dateofbirth'}] },
-      { cols:[ { view:'label', label:'Пол', width:120}, {view:'label', id:'labelviewedUserAttributes_Gender'}] },
-      { cols:[ { view:'label', label:'Семейное положение', width:120}, {view:'label', id:'labelviewedUserAttributes_Familystatus'}] }
+      { cols:[ { view:'label', label:'Имя пользователя', width:120}, {view:'label', id:'label_ViewedUser_Attributes_Name'}] },
+      { cols:[ { view:'label', label:'Email', width:120}, {view:'label', id:'label_ViewedUser_Attributes_Email'}] },
+      { cols:[ { view:'label', label:'Страна', width:120}, {view:'label', id:'label_ViewedUser_Attributes_Country'}] },
+      { cols:[ { view:'label', label:'Город', width:120}, {view:'label', id:'label_ViewedUser_Attributes_City'}] },
+      { cols:[ { view:'label', label:'Дата рождения', width:120}, {view:'label', id:'label_ViewedUser_Attributes_Dateofbirth'}] },
+      { cols:[ { view:'label', label:'Пол', width:120}, {view:'label', id:'label_ViewedUser_Attributes_Gender'}] },
+      { cols:[ { view:'label', label:'Семейное положение', width:120}, {view:'label', id:'label_ViewedUser_Attributes_Familystatus'}] }
   ]}
 };
 
-var frameProfile_user = {
-  id: 'frameProfile_user',
+var label_User_Name = {
+  view:'label', id:'label_User_Name'
+};
+
+var button_User_Back = {
+  view:'button',id:'button_User_Back',css:'itsk_button',label:'Назад',height:28,gravity:1,on:{
+		'onItemClick': function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } }  
+};
+
+var frame_User = {
+  id: 'frame_User',
   rows:[
-    { view:'template', id:'barProfile_user', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { cols:[ label_User_Name, { gravity:10 }, button_User_Back], css:{ 'border-bottom':'2px solid white;', 'background': '#F7F7F7;' } },
     { height:3 },
     { cols:[
       { rows: [
@@ -1223,15 +1229,24 @@ var frameProfile_user = {
         {  }
       ]},
       { width:10 },
-      scrollviewProfile_UserAttributes
+      scrollview_User_Attributes
     ]}
   ]
 };
 
-var frameProfile_viewedUser = {
-  id: 'frameProfile_viewedUser',
+var label_ViewedUser_Name = {
+  view:'label', id:'label_ViewedUser_Name'
+};
+
+var button_ViewedUser_Back = {
+  view:'button',id:'button_ViewedUser_Back',css:'itsk_button',label:'Назад',height:28,gravity:1,on:{
+		'onItemClick': function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } }  
+};
+
+var frame_ViewedUser = {
+  id: 'frame_ViewedUser',
   rows:[
-    { view:'template', id:'barProfile_vieweduser', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { cols:[ label_ViewedUser_Name, { gravity:10 }, button_ViewedUser_Back], css:{ 'border-bottom':'2px solid white;', 'background': '#F7F7F7;' } },
     { height:3 },
     { cols:[
       { rows: [
@@ -1241,19 +1256,19 @@ var frameProfile_viewedUser = {
         {  }
       ]},
       { width:10 },
-      scrollviewProfile_viewedUserAttributes
+      scrollview_ViewedUser_Attributes
     ]}
   ]
 };
 
-var multiview_UserProfile = {
-  view:'multiview', id:'multiview_UserProfile', container:'multiview_UserProfile',
+var multiview_User = {
+  view:'multiview', id:'multiview_User', container:'multiview_User',
   borderless:false, animate:false,
-  cells:[ frameProfile_user, frameProfile_viewedUser]
+  cells:[ frame_User, frame_ViewedUser]
 };
 
-var frameUser_Albums = {
-  id:'frameUser_Albums',
+var frame_User_Albums = {
+  id:'frame_User_Albums',
   rows:[
     {},
     {
@@ -1267,8 +1282,8 @@ var frameUser_Albums = {
   ]
 };
 
-var frameUser_Achievements = {
-  id:'frameUser_Achievements',
+var frame_User_Achievements = {
+  id:'frame_User_Achievements',
   rows:[
     {},
     {
@@ -1282,62 +1297,24 @@ var frameUser_Achievements = {
   ]
 };
 
-var frameUser_Events = {
-  id:'frameUser_Events',
-  rows:[
-    {},
-    {
-      cols:[
-      {},
-      { view:'template', template:'events', type:'header', align:'center' },
-      {}
-      ]
-    },
-    {}
-  ]
-};
-
-var frameUser_Message = {
-  id:'frameUser_Message',
-  rows:[
-    {},
-    {
-      cols:[
-      {},
-      { view:'template', template:'message', type:'header', align:'center' },
-      {}
-      ]
-    },
-    {}
-  ]
-};
-
-App.Frame.tabview_CentralUser = {
-  view:'tabview', id:'tabview_CentralUser',
+var tabview_User = {
+  view:'tabview', id:'tabview_User',
   autoheight:true, autowidth:true,
   animate:true,
-  tabbar : { optionWidth : 200 },
+  tabbar : { optionWidth:200, height:28 },
   cells:[
     {
       header: 'Профиль',
-      body: multiview_UserProfile
+      body: multiview_User
     },
     {
       header: 'Альбомы',
-      body: frameUser_Albums
+      body: frame_User_Albums
     },
     {
       header: 'Достижения',
-      body: frameUser_Achievements
-    },
-    {
-      header: 'События',
-      body: frameUser_Events
-    },
-    {
-      header: 'Сообщения',
-      body: frameUser_Message
-    },    
+      body: frame_User_Achievements
+    }
   ]
 };
 
@@ -1345,16 +1322,14 @@ App.Frame.tabview_CentralUser = {
 //section: GROUP frames
 var _ignoreSaveGroupAttributes;
 App.Func.loadGroupAttributes = function() {
-  //if($$('frame_GroupProfile').isVisible()) {
-    $$('bar_GroupProfile').data.label = App.State.viewedGroup.get('name');
-    $$('bar_GroupProfile').refresh();
-    
+  //if($$('frame_Group').isVisible()) {
+    $$('label_Group_Name').setValue(App.State.viewedGroup.get('name'));
     $$('avatar_GroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
     
     _ignoreSaveGroupAttributes = true;
-    $$('text_GroupProfile_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
-    $$('text_GroupProfile_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
-    $$('text_GroupProfile_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
+    $$('text_Group_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
+    $$('text_Group_Attributes_Email').setValue(App.State.viewedGroup.get('email'));
+    $$('text_Group_Attributes_Description').setValue(App.State.viewedGroup.get('description'));
     _ignoreSaveGroupAttributes = false;
   // } else {
   //   $$('bar_ViewedGroupProfile').data.value = App.State.viewedGroup.get('name');
@@ -1376,20 +1351,17 @@ var saveGroupAttributes = function(newv, oldv) {
   //произведем валидацию атрибута
   try {
     switch (atrID) {
-      case 'text_GroupProfile_Attributes_Name':
+      case 'text_Group_Attributes_Name':
         check(newv, 'Имя группы должно содержать от 1 до 20 символов').len(1, 20);
         check(newv, 'Такое имя группы не подходит').not(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/);
         
-        App.State.viewedGroup.set('name', newv);
-        $$('bar_GroupProfile').data.label = newv;
-        $$('bar_GroupProfile').refresh();
-
+        $$('label_Group_Name').setValue(App.State.viewedGroup.get('name'));
         break;
-      case 'text_GroupProfile_Attributes_Email':
+      case 'text_Group_Attributes_Email':
         App.State.viewedGroup.set('email', newv);
 
         break;
-      case 'text_GroupProfile_Attributes_Description':
+      case 'text_Group_Attributes_Description':
         App.State.viewedGroup.set('description', newv);
 
         break;
@@ -1404,40 +1376,43 @@ var saveGroupAttributes = function(newv, oldv) {
   }
 };
 
-var scrollview_GroupProfile_Attributes = {
-  view:'scrollview', id:'scrollview_GroupProfile_Attributes',
+var scrollview_Group_Attributes = {
+  view:'scrollview', id:'scrollview_Group_Attributes',
   borderless: true, scroll:'y',
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { view:'text', id:'text_GroupProfile_Attributes_Name', label:'Название группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
-      { view:'text', id:'text_GroupProfile_Attributes_Email', label:'Email', labelWidth:150, disabled:true },
-      { view:'text', id:'text_GroupProfile_Attributes_Description', label:'Описание группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
+      { view:'text', id:'text_Group_Attributes_Name', label:'Название группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
+      { view:'text', id:'text_Group_Attributes_Email', label:'Email', labelWidth:150, disabled:true },
+      { view:'text', id:'text_Group_Attributes_Description', label:'Описание группы', labelWidth:150, on:{'onChange': saveGroupAttributes } },
   ]}
 };
 
-var scrollview_ViewedGroupProfile_Attributes = {
-  view:'scrollview', id:'scrollview_ViewedGroupProfile_Attributes',
+var scrollview_ViewedGroup__Attributes = {
+  view:'scrollview', id:'scrollview_ViewedGroup__Attributes',
   borderless: true, scroll:'y',
   body:{
     rows:[
       { view:'template', template:'Персональные', type:'section', align:'center' },
-      { cols:[ { view:'label', label:'Название группы', width:120}, { view:'label', id:'label_ViewedGroupProfile_Attributes_Name' }] },
-      { cols:[ { view:'label', label:'Email', width:120 }, { view:'label', id:'label_ViewedGroupProfile_Attributes_Email' }] },
-      { cols:[ { view:'label', label:'Описание группы', width:120 }, { view:'label', id:'label_ViewedGroupProfile_Attributes_Description' }] }
+      { cols:[ { view:'label', label:'Название группы', width:120}, { view:'label', id:'label_ViewedGroup_Attributes_Name' }] },
+      { cols:[ { view:'label', label:'Email', width:120 }, { view:'label', id:'label_ViewedGroup_Attributes_Email' }] },
+      { cols:[ { view:'label', label:'Описание группы', width:120 }, { view:'label', id:'label_ViewedGroup_Attributes_Description' }] }
   ]}
 };
 
-var frame_GroupProfile = {
-  id: 'frame_GroupProfile',
+var label_Group_Name = {
+  view:'label', id:'label_Group_Name'
+};
+
+var button_Group_Back = {
+  view:'button',id:'button_Group_Back',css:'itsk_button',label:'Назад',height:28,gravity:1,on:{
+		'onItemClick': function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } }  
+};
+
+var frame_Group = {
+  id: 'frame_Group',
   rows:[
-    {
-    	view:'toolbar',
-    	elements:[{ view: 'label', id:'bar_GroupProfile', label:'i' },
-    	          {},
-    	          { view: 'label', label:'Назад', width:100, on:{ 'onItemClick': function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } } }
-    	         ]
-    },
+    { cols:[ label_Group_Name, { gravity:10 }, button_Group_Back], css:{ 'border-bottom':'2px solid white;', 'background': '#F7F7F7;' } },
     { height:3 },
     { cols:[
       { rows: [
@@ -1449,15 +1424,24 @@ var frame_GroupProfile = {
         {  }
       ]},
       { width:10 },
-      scrollview_GroupProfile_Attributes
+      scrollview_Group_Attributes
     ]}
   ]
 };
 
-var frame_ViewedGroupProfile = {
-  id: 'frame_ViewedGroupProfile',
+var label_ViewedGroup_Name = {
+  view:'label', id:'label_ViewedGroup_Name'
+};
+
+var button_ViewedGroup_Back = {
+  view:'button',id:'button_ViewedGroup_Back',css:'itsk_button',label:'Назад',height:28,gravity:1,on:{
+		'onItemClick': function() { App.Router.navigate(App.State.getState('clientRoute', -1), {trigger:true} ); } }  
+};
+
+var frame_ViewedGroup = {
+  id: 'frame_ViewedGroup',
   rows:[
-    { view:'template', id:'bar_ViewedGroupProfile', template:'#value#', type:'header', align:'center', data: { value: '' } },
+    { cols:[ label_ViewedGroup_Name, { gravity:10 }, button_ViewedGroup_Back], css:{ 'border-bottom':'2px solid white;', 'background': '#F7F7F7;' } },
     { height:3 },
     { cols:[
       { rows: [
@@ -1467,19 +1451,19 @@ var frame_ViewedGroupProfile = {
         {  }
       ]},
       { width:10 },
-      scrollview_ViewedGroupProfile_Attributes
+      scrollview_ViewedGroup__Attributes
     ]}
   ]
 };
 
-var multiview_GroupProfile = {
-  view:'multiview', id:'multiview_GroupProfile', container:'multiview_GroupProfile',
+var multiview_Group = {
+  view:'multiview', id:'multiview_Group', container:'multiview_Group',
   borderless:false, animate:false,
-  cells:[ frame_GroupProfile, frame_ViewedGroupProfile ]
+  cells:[ frame_Group, frame_ViewedGroup ]
 };
 
-var frame_GroupAlbums = {
-  id:'frame_GroupAlbums',
+var frame_Group_Albums = {
+  id:'frame_Group_Albums',
   rows:[
     {},
     {
@@ -1493,8 +1477,8 @@ var frame_GroupAlbums = {
   ]
 };
 
-var frame_GroupAchievements = {
-  id:'frame_GroupAchievements',
+var frame_Group_Achievements = {
+  id:'frame_Group_Achievements',
   rows:[
     {},
     {
@@ -1508,62 +1492,24 @@ var frame_GroupAchievements = {
   ]
 };
 
-var frame_GroupEvents = {
-  id:'frame_GroupEvents',
-  rows:[
-    {},
-    {
-      cols:[
-      {},
-      { view:'template', template:'events', type:'header', align:'center' },
-      {}
-      ]
-    },
-    {}
-  ]
-};
-
-var frame_GroupMessage = {
-  id:'frame_GroupMessage',
-  rows:[
-    {},
-    {
-      cols:[
-      {},
-      { view:'template', template:'message', type:'header', align:'center' },
-      {}
-      ]
-    },
-    {}
-  ]
-};
-
-App.Frame.tabview_CentralGroup = {
-  view:'tabview', id:'tabview_CentralGroup',
+var tabview_Group = {
+  view:'tabview', id:'tabview_Group',
   autoheight:true, autowidth:true,
   animate:true,
-  tabbar : { optionWidth : 200 },
+  tabbar : { optionWidth:200, height:28 },
   cells:[
     {
       header: 'Профиль',
-      body: multiview_GroupProfile
+      body: multiview_Group
     },
     {
       header: 'Альбомы',
-      body: frame_GroupAlbums
+      body: frame_Group_Albums
     },
     {
       header: 'Достижения',
-      body: frame_GroupAchievements
-    },
-    {
-      header: 'События',
-      body: frame_GroupEvents
-    },
-    {
-      header: 'Сообщения',
-      body: frame_GroupMessage
-    },    
+      body: frame_Group_Achievements
+    }
   ]
 };
 //end section: GROUP frames
@@ -1942,8 +1888,8 @@ App.Frame.multiview_Central = {
     frame_Users,
     App.Frame.frameCentral_Register,
     App.Frame.frameCentral_Login,
-    App.Frame.tabview_CentralUser,
-    App.Frame.tabview_CentralGroup],
+    tabview_User,
+    tabview_Group],
   fitBiggest:true,
   animate:false
 };

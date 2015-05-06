@@ -326,8 +326,8 @@ var implementFunction = (function() {
 	
 	//Вывод данных пользовательского профиля во фрейм, после успешного получения с сервера (callback)
   var showUserData = function(model, response, options) {
-    $$('tabview_CentralUser').show();
-    $$('tabview_CentralUser').hideProgress();
+    $$('tabview_User').show();
+    $$('tabview_User').hideProgress();
     
     $$('scrollview_RightUserFilter').show();
     
@@ -340,10 +340,10 @@ var implementFunction = (function() {
 
     //если отображается пользователь, то выводятся поля ввода, в противном случае только информационные
     if(App.State.user.get('id') === App.State.viewedUser.get('id')) {
-      $$('frameProfile_user').show();
+      $$('frame_User').show();
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
-      $$('frameProfile_viewedUser').show();                                   //Показываем фрейм с данными чужого профиля
+      $$('frame_ViewedUser').show();                                   //Показываем фрейм с данными чужого профиля
       if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();     //Если панель настроек доступа видима, то скроем
       if($$('toggle_HeaderOptions').getValue()) $$('toggle_HeaderOptions').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
       $$('toggle_HeaderOptions').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
@@ -364,8 +364,8 @@ var implementFunction = (function() {
 	
   //Вывод данных профиля группы во фрейм, после успешного получения с сервера (callback)
   var showGroupData = function(model, response, options) {
-    $$('tabview_CentralGroup').show();
-    $$('tabview_CentralGroup').hideProgress();
+    $$('tabview_Group').show();
+    $$('tabview_Group').hideProgress();
     
     $$('scrollview_RightGroupFilter').show();
     
@@ -383,7 +383,7 @@ var implementFunction = (function() {
       $$('tree_SegmentsSelector').remove('SegmentsSelector_Groups');
     $$('tree_SegmentsSelector').refresh();    
 
-    $$('frame_GroupProfile').show();
+    $$('frame_Group').show();
 
     App.Func.loadGroupAttributes();
   };
@@ -553,7 +553,7 @@ var implementFunction = (function() {
   	  switch(App.State.getState('segment')) {
         case 'user':
           stateFilter = App.State.getState('filter');
-       	  $$('tabview_CentralUser').showProgress({
+       	  $$('tabview_User').showProgress({
             type:'icon',
             delay:200
           });
@@ -564,7 +564,7 @@ var implementFunction = (function() {
           break;
         case 'group':
        	  stateFilter = App.State.getState('filter');
-       	  $$('tabview_CentralGroup').showProgress({
+       	  $$('tabview_Group').showProgress({
             type:'icon',
             delay:200
           });
@@ -824,8 +824,8 @@ var implementFunction = (function() {
 
   //сделаем mixin для построенного webix элементов интерфейса, т.е. добавим возможность отрисовывать 
   //ProgressBar у вьюшек ниже (расширим их функционал)
-  webix.extend($$('tabview_CentralUser'), webix.ProgressBar);
-  webix.extend($$('tabview_CentralGroup'), webix.ProgressBar);
+  webix.extend($$('tabview_User'), webix.ProgressBar);
+  webix.extend($$('tabview_Group'), webix.ProgressBar);
 
   //скажем менеджеру интерфейсов какие нажатия необходимо обработать по своему
   webix.UIManager.addHotKey('enter', function() { 
