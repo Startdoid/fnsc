@@ -7,17 +7,9 @@ var groupModel = require('./models/group');
 var errors     = require('./errors');
 var passport   = require('passport');
 var global     = require('./global');
-var Upload     = require('upload-file');
 var lwip       = require('lwip');
 var fs         = require('fs');
 var moment     = require('moment');
-
-var routeExclude = ['/img/avatars/',
-  '/img/gravatars/',
-  '/js/jquery.min.map',
-  '/favicon.ico',
-  '/codebase/skins/fonts/PTS-webfont.ttf',
-  '/codebase/skins/fonts/PTS-webfont.woff'];
 
 var routes = [
   // Views
@@ -242,51 +234,83 @@ function sendFonts(req, res, next) {
 function uploader(req, res, next) {
   var loggedUser = userModel.getLoggedUser();
   
-  new Upload(req, {
-    dest: './client/tmp',
-    maxFileSize: 100 * 1024,
-    rename: function(filename) {
-      return filename;
-    },
-    done: function(err, files) {
-      //console.log(files);
+  if(global.done == true) {
+    global.done = false;
+
+    var formname = req.body.formname;
+    var filename = req.files['upload'].name;
+    var grprefix = '';
+    var imageid = 0;
+    
+    if(formname === 'form_User_Uploader_Avatar' || formname === 'form_Group_Uploader_Avatar') {
+      if(formname === 'form_Group_Uploader_Avatar') {
+        grprefix = 'gr';
+        imageid = global.state.groupId;
+      } else {
+        imageid = loggedUser.id;
+      }
+
       if (global.imgs.indexOf(path.extname(filename)) != -1) {
         lwip.open('./client/tmp/' + filename, function(err, image) {
           if(err) return res.send(errors.restMess_ImgErr);
           
-          image.resize(100, 100, function(err, image) {
+          image.resize(100, 100, 'moving-average', function(err, image) {
             if(err) return res.send(errors.restMess_ImgErr);
             
-            image.writeFile('./client/img/avatars/100/avtr'+loggedUser.id+'.png', function(err) {
+            image.writeFile('./client/img/'+grprefix+'avatars/100/avtr'+imageid+'.png', function(err) {
               if(err) return res.send(errors.restMess_ImgErr);
               
               step2();
             });
           });
         });
-
+  
         var step2 = function() {
           lwip.open('./client/tmp/' + filename, function(err, image) {
             if(err) return res.send(errors.restMess_ImgErr);
             
-            image.resize(200, 200, function(err, image) {
+            image.resize(200, 200, 'moving-average', function(err, image) {
               if(err) return res.send(errors.restMess_ImgErr);
               
-              image.writeFile('./client/img/avatars/200/avtr'+loggedUser.id+'.png', function(err) {
+              image.writeFile('./client/img/'+grprefix+'avatars/200/avtr'+imageid+'.png', function(err) {
                 if(err) return res.send(errors.restMess_ImgErr);
-
+                
+                step3();
+              });
+            });
+          });
+        };
+        
+        var step3 = function() {
+          lwip.open('./client/tmp/' + filename, function(err, image) {
+            if(err) return res.send(errors.restMess_ImgErr);
+            
+            image.resize(40, 40, 'moving-average', function(err, image) {
+              if(err) return res.send(errors.restMess_ImgErr);
+              
+              image.writeFile('./client/img/'+grprefix+'avatars/40/avtr'+imageid+'.png', function(err) {
+                if(err) return res.send(errors.restMess_ImgErr);
+  
                 fs.unlinkSync('./client/tmp/' + filename);
                 res.send(errors.restMess_ImgOk);
               });
             });
           });
-        };
-      } else {
-        res.send(errors.restMess_ImgErr);
+        };          
       }
+    } else {
+      res.send(errors.restMess_ImgErr);
     }
-  });
+  }
 }
+  
+//интерполяция для ресайза
+//"nearest-neighbor"
+//"moving-average"
+//"linear"
+//"grid"
+//"cubic"
+//"lanczos"
 
 function getState(req, res, next) {
   if(req.isAuthenticated()) {
@@ -353,7 +377,7 @@ function logout(req, res, next) {
 //bru: ловит URL и сохраняет в промежуточную переменную, что бы отдать клиенту, когда тот загрузит всё приложение
 //и продолжит роут переданный в URL
 function throwInRoot(req, res, next) {
-  if(routeExclude.indexOf(req.url) != -1) return next();
+  if(global.routeExclude.indexOf(req.url) != -1) return next();
   console.log(req.url);
   global.state.serverRoute = req.url;
   res.redirect('/');
@@ -452,11 +476,13 @@ function getGroup(req, res, next) {
       //нашли группу и проверяем её видимость
       if(tableGroups[i2].groupVisible === 3) {
         //группа видима всем, можно отдавать клиенту
+        global.state.groupId = tableGroups[i2].id;
         return res.status(errors.restStat_isOk).json(tableGroups[i2]);
       } else if(tableGroups[i2].groupVisible >= member.userType) {
         //простая проверка на видимость и тип пользователя, т.к. видимость распространяется от
         //владельца группы к простому члену группы, то сравнив тип пользователя и видимость мы 
         //учтем его право на просмотр
+        global.state.groupId = tableGroups[i2].id;
         return res.status(errors.restStat_isOk).json(tableGroups[i2]);
       } else {
         //осн. пользователю нельзя показывать эту группу, возвращаем наименование группы и id

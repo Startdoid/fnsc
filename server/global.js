@@ -10,14 +10,22 @@ module.exports = {
 	//url_pg : 'postgres://spmehfcwqqeixv:7yoBcix92QnkjG-Gena3yBneFg@ec2-54-163-255-191.compute-1.amazonaws.com:5432/ddbggkp3jlbmc4?ssl=true',
 	//url    : 'mongodb://admin:vfec@fns.club:27017/testio',
 	url_pg : 'postgres://intask:inmaus@fns.club:5432/intask?ssl=true',
+	done   : false,
 	imgs   : ['.png', '.jpg', '.jpeg', '.gif', '.bmp'], // only make thumbnail for these
 	state  : {
     id: 0,
     mainUserLogged: false,
     usrCRC: null,
     serverRoute: '',
-    userId : 0
+    userId : 0,
+    groupId: 0
   },
+  routeExclude : ['/img/avatars/',
+  '/img/gravatars/',
+  '/js/jquery.min.map',
+  '/favicon.ico',
+  '/codebase/skins/fonts/PTS-webfont.ttf',
+  '/codebase/skins/fonts/PTS-webfont.woff'],
   pg_query_getAllGroupsForUser: 'SELECT     \
     "TableGroups"."id",                     \
     "TableGroups"."parent_id",              \

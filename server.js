@@ -19,7 +19,7 @@ var autoIncrement   = require('mongoose-auto-increment');
 var user            = require('./server/models/user');
 var morgan          = require('morgan');
 var fs              = require('fs');
-//var multer          = require('multer');
+var multer          = require('multer');
 //var pg              = require('pg');
 
 //bru: создаем приложение на основе библиотеки ExpressJS 4
@@ -84,28 +84,22 @@ db.once('open', function callback () {
 	passport.serializeUser(user.serializeUser);
 	passport.deserializeUser(user.deserializeUser);
 	
-	//bru: если захотим заюзать мультер нужно ещё подключить файлик multer.js
-	// app.use(multer({ dest: './client/img/',
-	// 	onParseStart: function (req, res, next) {
-	// 	  //console.log(file.fieldname + ' is starting ...');
-	// 	  return true;
-	// 	},	
-	// 	onFileUploadComplete: function (file) {
-	//   	console.log(file.fieldname + ' uploaded to  ' + file.path);
-	// 	},
-	// 	onParseEnd: function (req, res, next) {
-	// 	  console.log('Form parsing completed at: ', new Date());
+	app.use(multer({ dest: './client/tmp/',
+		rename: function (fieldname, filename) {
+	    return filename;
+	  },
+		onFileUploadStart: function(file) {
+		  //console.log(file.originalname + ' is starting ...')
+		},
+		onFileUploadComplete: function(file, req, res) {
+		  //console.log(file.fieldname + ' uploaded to  ' + file.path)
+		  global.done = true;
+		},
+	}));
 
-	// 		//res.send({ status: 'server'});
-	// 	  // call the next middleware
-	// 	  next();
-	// 	}
-		
-	// }));
-	
 	// routes ======================================================================
 	require('./server/routes.js')(app);
 	
 	http.createServer(app).listen(process.env.PORT, process.env.IP);
-	console.log('App listening on port ' + port);
+	console.log('App listening on port ' + port + ' and starting on node ' + process.version);
 });

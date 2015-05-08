@@ -811,8 +811,8 @@ var implementFunction = (function() {
   App.State.init();
   
   //Создание dom приложения посредством загрузки конфигурации элементов интерфейса в менеджер окон webix
-  var frameBase = new webix.ui({
-    id:'frameBase',
+  var frame_Base = new webix.ui({
+    id:'frame_Base',
     rows:[App.Frame.multiviewToolbar, 
       { cols: [App.Frame.multiview_Left, App.Frame.multiview_Central, App.Frame.multiview_Right] }
     ]
@@ -856,10 +856,10 @@ var implementFunction = (function() {
     return false;
   });
 
-  $$('upl1').attachEvent('onUploadComplete', function(){
+  /*$$('uploader_User_Avatar').attachEvent('onUploadComplete', function(){
     $$('avatarProfile_user').refresh();
-    $$('avatarLoaderFrame').hide();
-  });
+    $$('img_User_Avatar').hide();
+  });*/
 
   $$('treetable_Groups').attachEvent('onAfterEditStart', function(id) {
     App.State.groupstable_ItemEdited = id;
@@ -970,7 +970,7 @@ var implementFunction = (function() {
   
   webix.i18n.setLocale('ru-RU');
   moment.locale('ru');
-  webix.event(window, 'resize', function() { frameBase.adjust(); });
+  webix.event(window, 'resize', function() { frame_Base.adjust(); });
   //Backbone.history.start({pushState: true, root: "/"});
   Backbone.history.start( { pushState: true } );
 });

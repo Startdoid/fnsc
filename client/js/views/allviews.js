@@ -31,7 +31,7 @@ webix.ui({
 					    html = "<img class='photo' src='img/globe40.png'";
 					    html +="' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					  } else {
-					    html = "<img class='photo' src='img/avatars/40/avtr"+obj.profile_id+".png";
+					    html = "<img class='photo' src='img/avatars/40/avtr"+obj.profile_id+".png?refresh="+Math.random();
 					    html +="' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					  }
 					  return html;
@@ -57,9 +57,9 @@ webix.ui({
 					height: 45,
 					template: function(obj) {
 					  if(obj.type === 'userprofile')
-					    return "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					    return "<img class='photo' src='img/avatars/40/avtr"+obj.id+".png?refresh="+Math.random()+"' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					   else if(obj.type === 'groupprofile')
-					    return "<img class='photo' src='img/gravatars/40/avtr"+obj.id+".png' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
+					    return "<img class='photo' src='img/gravatars/40/avtr"+obj.id+".png?refresh="+Math.random()+"' /><span class='text'>"+obj.name+"</span><span class='name'>"+obj.segment+"</span>";
 					}
 				},
 				on:{
@@ -195,10 +195,10 @@ var tree_SegmentsSelector = {
   		    html = "<span class='webix_icon fa-angle-down' onclick='$$(\"profilePopup\").show(this)' style='float:right;margin-top:10px'></span>";					
   		    if(App.State.SelectedProfile.type === 'community') {
 					  html += "<img class='photo' src='img/globe40.png' /><span class='name'> "+App.State.SelectedProfile.name+"</span>";
-  		    } else if(App.State.SelectedProfile.type === 'groupprofile') {
-  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedProfile.id+".png' /><span class='pop'> "+App.State.SelectedProfile.name+"</span>";
+  		    } else if(App.State.SelectedProfile.type === 'groupprofile'){
+  		      html += "<img class='photo' src='img/gravatars/40/avtr"+App.State.SelectedProfile.id+".png?refresh="+Math.random()+"' /><span class='pop'> "+App.State.SelectedProfile.name+"</span>";
   		    } else {
-					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedProfile.id+".png' /><span class='pop'> "+App.State.SelectedProfile.name+"</span>";
+					  html += "<img class='photo' src='img/avatars/40/avtr"+App.State.SelectedProfile.id+".png?refresh="+Math.random()+"' /><span class='pop'> "+App.State.SelectedProfile.name+"</span>";
   		    }
 					
 					return html;
@@ -746,7 +746,6 @@ var treetable_Tasks = {
 	}
 };
 
-
 var frame_Task_Description = {
   id:'frame_Task_Description',
   rows:[{
@@ -988,75 +987,37 @@ var frame_Tasks = {
 
 //**************************************************************************************************
 //section AVATAR user
-var avatarUploadFiles = function() {
-	$$('upl1').send();
-};
-
-var avatarUploadCancel = function() {
-	var id = $$('upl1').files.getFirstId();
+var click_User_AvatarUpload_Cancel = function() {
+	var id = $$('uploader_User_Avatar').files.getFirstId();
 	while (id) {
-		$$('upl1').stopUpload(id);
-		id = $$('upl1').files.getNextId(id);
+		$$('uploader_User_Avatar').stopUpload(id);
+		id = $$('uploader_User_Avatar').files.getNextId(id);
 	}
-	$$('avatarLoaderFrame').hide();
+	$$('window_User_Uploader_Avatar').hide();
 };
 
-webix.type(webix.ui.list, {
-	name:'myUploader',
-	template:function(f, type){
-		var html = "<div class='uploader_overall'><div class='uploader_name'>"+f.name+"</div>";
-		html += "<div class='uploader_remove_file'><span style='color:#AAA' class='uploader_cancel_icon'></span></div>";
-		html += "<div class='uploader_status'>";
-		html += "<div class='uploader_progress "+f.status+"' style='width:"+(f.status == 'transfer'||f.status=="server"?f.percent+"%": "0px")+"'></div>";
-		html += "<div class='uploader_message "+ f.status+"'>"+type.status(f)+"</div>";
-		html +=	 "</div>";
-		html += "<div class='uploader_size'>"+ f.sizetext+"</div></div>";
-		return html;
-	 },
-	status:function(f){
-		var messages = {
-			server: 'Done',
-			error: 'Error',
-			client: 'Ready',
-			transfer: f.percent+'%'
-		};
-		return messages[f.status];
-	},
-	on_click:{
-		'uploader_remove_file':function(ev, id){
-			$$(this.config.uploader).files.remove(id);
-		}
-	},
-	height: 35
-});
-
-var avatarLoaderForm = {
-	view:'form',
-	borderless:true,
+var form_User_Uploader_Avatar = {
+	view:'form', id:'form_User_Uploader_Avatar', borderless:true,
 	elements: [
 		{ view:'template', template:'<span>Было бы замечательно, если бы ваш профиль имел аватарку! Сейчас у вас замечательная возможность её выбрать!</span>' },
-		{ view:'uploader', 
-		  id:'upl1', 
+		{ view:'uploader', id:'uploader_User_Avatar', 
+		  value: 'Загрузить фото',
 		  height:37, align:'center', 
-		  type:'iconButton', icon:'plus-circle', 
-		  label:'Add files', autosend:false, 
-		  link:'mylist', 
+      miltiple:false, autosend:true, 
+		  formData:{ formname:'form_User_Uploader_Avatar' },
 		  upload:'api/v1/upload',
-		  accept:'image/png' },
-		  //accept:'image/png, image/gif, image/jpg' },
-		{
-			borderless:true,
-			view:'list', id:'mylist', type:'myUploader',
-			autoheight:true, minHeight:50
-  	},
-		{
-			id:'uploadButtons',
-			cols:[
-				{ view:'button', label:'Upload', type:'iconButton', icon:'upload', click:'avatarUploadFiles()', align:'center' },
-				{ width:5 },
-				{ view:'button', label:'Cancel', type:'iconButton', icon:'cancel-circle', click:'avatarUploadCancel()', align:'center' }
-			]
-		}
+		  accept:'image/png, image/gif, image/jpg',
+		  on:{
+		    onUploadComplete:function() {
+          $$('window_User_Uploader_Avatar').hide();
+          $$('img_User_Avatar').refresh();
+          $$('list_InnerProfile').refresh();
+          $$('list_lastProfile').refresh();
+          $$('tree_SegmentsSelector').refresh();
+        }
+		  }
+		},
+		{ view:'button', type:'iconButton', label:'Отмена', icon:'cancel-circle', click:'click_User_AvatarUpload_Cancel()', align:'center', labelAlign:'center' }
 	],
 	elementsConfig:{
 		labelPosition:'top',
@@ -1065,19 +1026,19 @@ var avatarLoaderForm = {
 
 webix.ui({
   view:'window',
-  id:'avatarLoaderFrame',
+  id:'window_User_Uploader_Avatar',
   width:450,
-  height:300,
+  height:250,
   position:'center',
   modal:true,
   head:'Загрузка новой фотографии',
-  body:webix.copy(avatarLoaderForm)
+  body:webix.copy(form_User_Uploader_Avatar)
 });
 
-var changeAvatar = function() {
-  $$('avatarLoaderFrame').getBody().clear();
-  $$('avatarLoaderFrame').show();
-  $$('avatarLoaderFrame').getBody().focus();
+var click_User_ChangeAvatar = function() {
+  $$('window_User_Uploader_Avatar').getBody().clear();
+  $$('window_User_Uploader_Avatar').show();
+  $$('window_User_Uploader_Avatar').getBody().focus();
 };
 //end section: AVATAR user
 //**************************************************************************************************
@@ -1092,7 +1053,7 @@ App.Func.loadUserAttributes = function() {
     mydate = strIsoToDate(App.State.user.get('dateofbirth'));
     $$('label_User_Name').setValue(App.State.viewedUser.get('username'));
 
-    $$('avatarProfile_user').setValues({src:'avtr'+App.State.user.get('id')+'.png'}, true);
+    $$('img_User_Avatar').setValues({src:'avtr'+App.State.user.get('id')+'.png'}, true);
     
     _ignoreSaveUserAttributes = true;
     $$('text_User_Attributes_Name').setValue(App.State.user.get('username'));
@@ -1205,7 +1166,7 @@ var scrollview_ViewedUser_Attributes = {
 };
 
 var label_User_Name = {
-  view:'label', id:'label_User_Name'
+  view:'label', id:'label_User_Name', css:{ 'padding-left':'5px;' }
 };
 
 var button_User_Back = {
@@ -1220,11 +1181,11 @@ var frame_User = {
     { height:3 },
     { cols:[
       { rows: [
-        { view:'template', id:'avatarProfile_user', width:200, height:200, borderless:true, template:function(obj) {
+        { view:'template', id:'img_User_Avatar', width:200, height:200, borderless:true, template:function(obj) {
           return '<div class="frAv"> \
-            <a href="javascript:changeAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
-            <img src="img/avatars/200/'+obj.src+'"></div>';
-        }, //onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false; } } //blocks default onclick event 
+            <a href="javascript:click_User_ChangeAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
+            <img src="img/avatars/200/'+obj.src+'?refresh='+Math.random()+'"></div>';
+          }, //onClick: { frAv: function(e, id) { webix.message('Заглушка для выбора аватарки'); return false; } } //blocks default onclick event 
         },
         {  }
       ]},
@@ -1235,7 +1196,7 @@ var frame_User = {
 };
 
 var label_ViewedUser_Name = {
-  view:'label', id:'label_ViewedUser_Name'
+  view:'label', id:'label_ViewedUser_Name', css:{ 'padding-left':'5px;' }
 };
 
 var button_ViewedUser_Back = {
@@ -1317,6 +1278,66 @@ var tabview_User = {
     }
   ]
 };
+//end section: USER frames
+//**************************************************************************************************
+
+//**************************************************************************************************
+//section GROUP avatar
+var click_Group_AvatarUpload_Cancel = function() {
+	var id = $$('uploader_Group_Avatar').files.getFirstId();
+	while (id) {
+		$$('uploader_Group_Avatar').stopUpload(id);
+		id = $$('uploader_Group_Avatar').files.getNextId(id);
+	}
+	$$('window_Group_Uploader_Avatar').hide();
+};
+
+var form_Group_Uploader_Avatar = {
+	view:'form', id:'form_Group_Uploader_Avatar', borderless:true,
+	elements: [
+		{ view:'template', template:'<span>Было бы замечательно, если бы профиль вашей группы имел аватарку! Сейчас у вас замечательная возможность её выбрать!</span>' },
+		{ view:'uploader', id:'uploader_Group_Avatar', 
+		  value: 'Загрузить фото',
+		  height:37, align:'center', 
+      miltiple:false, autosend:true, 
+		  formData:{ formname:'form_Group_Uploader_Avatar' },
+		  upload:'api/v1/upload',
+		  accept:'image/png, image/gif, image/jpg',
+		  on:{
+		    onUploadComplete:function() {
+          $$('window_Group_Uploader_Avatar').hide();
+          $$('img_Group_Avatar').refresh();
+          $$('list_InnerProfile').refresh();
+          $$('list_lastProfile').refresh();
+          $$('tree_SegmentsSelector').refresh();
+        }
+		  }
+		},
+		{ view:'button', type:'iconButton', label:'Отмена', icon:'cancel-circle', click:'click_Group_AvatarUpload_Cancel()', align:'center', labelAlign:'center' }
+	],
+	elementsConfig:{
+		labelPosition:'top',
+	}
+};
+
+webix.ui({
+  view:'window',
+  id:'window_Group_Uploader_Avatar',
+  width:450,
+  height:250,
+  position:'center',
+  modal:true,
+  head:'Загрузка новой фотографии',
+  body:webix.copy(form_Group_Uploader_Avatar)
+});
+
+var click_Group_ChangeAvatar = function() {
+  $$('window_Group_Uploader_Avatar').getBody().clear();
+  $$('window_Group_Uploader_Avatar').show();
+  $$('window_Group_Uploader_Avatar').getBody().focus();
+};
+//end section: AVATAR user
+//**************************************************************************************************
 
 //**************************************************************************************************
 //section: GROUP frames
@@ -1324,7 +1345,7 @@ var _ignoreSaveGroupAttributes;
 App.Func.loadGroupAttributes = function() {
   //if($$('frame_Group').isVisible()) {
     $$('label_Group_Name').setValue(App.State.viewedGroup.get('name'));
-    $$('avatar_GroupProfile').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
+    $$('img_Group_Avatar').setValues({src:'avtr'+App.State.viewedGroup.get('id')+'.png'}, true);
     
     _ignoreSaveGroupAttributes = true;
     $$('text_Group_Attributes_Name').setValue(App.State.viewedGroup.get('name'));
@@ -1401,7 +1422,7 @@ var scrollview_ViewedGroup__Attributes = {
 };
 
 var label_Group_Name = {
-  view:'label', id:'label_Group_Name'
+  view:'label', id:'label_Group_Name', css:{ 'padding-left':'5px;' }
 };
 
 var button_Group_Back = {
@@ -1416,11 +1437,12 @@ var frame_Group = {
     { height:3 },
     { cols:[
       { rows: [
-        { view:'template', id:'avatar_GroupProfile', width:200, height:200, borderless:true, template:function(obj) {
-          return '<div class="frGrAv"> \
-            <a href="javascript:changeGroupAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
-            <img src="img/gravatars/200/'+obj.src+'"></div>';
-        }},
+        { view:'template', id:'img_Group_Avatar', width:200, height:200, borderless:true, template:function(obj) {
+          return '<div class="frAv"> \
+            <a href="javascript:click_Group_ChangeAvatar()" class="ChangePicture"><span>Изменить аватарку</span></a> \
+            <img src="img/gravatars/200/'+obj.src+'?refresh='+Math.random()+'"></div>';
+          }
+        },
         {  }
       ]},
       { width:10 },
@@ -1430,7 +1452,7 @@ var frame_Group = {
 };
 
 var label_ViewedGroup_Name = {
-  view:'label', id:'label_ViewedGroup_Name'
+  view:'label', id:'label_ViewedGroup_Name', css:{ 'padding-left':'5px;' }
 };
 
 var button_ViewedGroup_Back = {

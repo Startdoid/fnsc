@@ -1,6 +1,6 @@
 {
   "name"         : "InTask.me",
-  "version"      : "0.5.9",
+  "version"      : "0.6.0",
   "description"  : "InTask.me prototype",
   "main"         : "server.js",
   "author"       : "bruian, iceflash",
@@ -16,6 +16,7 @@
     "connect-fonts" : "*",
     "connect-fonts-opensans" : "*",
     "mongoose"   : "*",
+    "multer"     : "~0.1.8",
     "underscore" : "~1.5.2",
     "validator"  : "~1.1.1",
     "passport"   : "*",
@@ -23,7 +24,6 @@
     "passport-facebook": "*",
     "passport-google": "*",
     "mongoose-auto-increment": "*",
-    "upload-file": "*",
     "moment":"*",
     "lwip": "*",
     "morgan": "*",
