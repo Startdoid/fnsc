@@ -1,14 +1,14 @@
-/**
-* Модуль серверной модели работы с пользователями
-* @module users
-* @author iceflash
-*/
-
 var http          = require("http");
 var mongoose      = require('mongoose');
 var autoIncrement = require('mongoose-auto-increment');
 var pg            = require('pg');
 var global       = require('../global'); //Чтение настроек подключения к ИБ 
+
+/**
+* Модуль серверной модели работы с пользователями
+* @module users
+* @author iceflash
+*/
 
 var userFields = {
   id: Number,

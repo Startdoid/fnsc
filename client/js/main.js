@@ -277,7 +277,7 @@ var implementFunction = (function() {
     $$('toggle_HeaderMenu').setValue(0);
     $$('toggle_HeaderOptions').setValue(0);
     
-    $$('toolbarAutorisation').show();
+    $$('toolbar_Autorisation').show();
     $$('buttonAutorisationLogin').enable();
 	  $$('buttonAutorisationRegister').enable();
 	  
@@ -538,7 +538,7 @@ var implementFunction = (function() {
     
     //если пользователь залогинился (получаем при опросе состояния сервера)
   	if(user.get('mainUserLogged')) {
-  	  if(!$$('toolbarHeader').isVisible()) $$('toolbarHeader').show();
+  	  if(!$$('toolbar_Header').isVisible()) $$('toolbar_Header').show();
   	  if(!$$('toggle_HeaderOptions').isEnabled()) $$('toggle_HeaderOptions').enable();
   	  
   	  //*Установим видимость пункта меню "Группы"

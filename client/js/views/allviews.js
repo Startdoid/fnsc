@@ -81,7 +81,7 @@ webix.ui({
 var toggle_HeaderMenu = {
 	view:'toggle', id:'toggle_HeaderMenu',
 	type:'icon', icon:'bars', 
-	width:30,	//height:30,
+	width:35,	height:35,
 	on:{
 		'onItemClick': function() {
 		  if($$('multiview_Left').isVisible()) {
@@ -95,21 +95,10 @@ var toggle_HeaderMenu = {
 	}
 };
 
-var label_HeaderInTask = {
-	view: 'label', id: 'label_HeaderInTask',
-	width: 175, align: 'center',
-	label: "<span class='headerLabel'>InTask.me</span>",
-	on:{
-		'onItemClick': function() { 
-		  App.Router.navigate('home', {trigger:true} ); 
-		}
-	}
-};
-
 var toggle_HeaderOptions = {
 	view: 'toggle',  id: 'toggle_HeaderOptions',
 	type: 'icon', icon: 'tasks',
-	width: 30,	//height: 30,
+	width: 35,	height: 35,
 	on:{
 		'onItemClick': function() { 
 		  if($$('multiview_Right').isVisible()) {
@@ -121,21 +110,16 @@ var toggle_HeaderOptions = {
 	}	
 };
 
-// var search_HeaderMaster = {
-// 	view:'search', id: 'search_HeaderMaster',
-// 	placeholder:'Найти тут всё...'
-// };
-
-App.Frame.toolbarHeader = {
-	view:'toolbar', id: 'toolbarHeader',
-	//height:32, //maxWidth:App.WinSize.windowWidth / 100 * 80,
+var toolbar_Header = {
+	view:'toolbar', id: 'toolbar_Header',
+	//height: 49, 
 	elements:[toggle_HeaderMenu,
-	          label_HeaderInTask,
+	          { view: 'label', label: "<img style='width:26px; height:26px;' src='/img/logo.png' /><span class='headerLabel'>InTask.me</span>", width:140, on:{
+              'onItemClick': function() { 
+		            App.Router.navigate('home', {trigger:true} ); 
+		        } } },
 	          {},
-	          //popup_HeaderProfile,
-	          //search_HeaderMaster,
-	          toggle_HeaderOptions
-	         ]
+	          toggle_HeaderOptions]
 };
 
 // icon button with count marker
@@ -1873,11 +1857,11 @@ App.Frame.frameBlank = {
   id:'frameBlank'
 };
 
-App.Frame.toolbarAutorisation = {
-	view:'toolbar', id: 'toolbarAutorisation',
+var toolbar_Autorisation = {
+	view:'toolbar', id: 'toolbar_Autorisation',
 	//height: 49, 
-	elements:[{ view:'toggle', type:'icon', icon:'bars', width:30, height:30, disabled:true },
-	          { view: 'label', label: "<span class='headerLabel'>InTask.me</span>", width:175, align: 'center' },
+	elements:[{ view:'toggle', type:'icon', icon:'bars', width:35, height:35, disabled:true },
+	          { view: 'label', label: "<img style='width:26px; height:26px;' src='/img/logo.png' /><span class='headerLabel'>InTask.me</span>", width:140 },
 	          {},
 	          { view:'button', id:'buttonAutorisationLogin', label:'Войти', type:'icon', icon:'sign-in', width: 100, 
 	            on:{ 'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); } } },
@@ -1885,12 +1869,12 @@ App.Frame.toolbarAutorisation = {
 	            on:{ 'onItemClick': function() { App.Router.navigate('register', {trigger:true} ); } } },
 	          {},
 	          { width: 100 },
-	          { view:'toggle', type:'icon', icon:'tasks',	width:30,	height:30, disabled:true }]
+	          { view:'toggle', type:'icon', icon:'tasks',	width:35,	height:35, disabled:true }]
 };
 
 App.Frame.multiviewToolbar = {
   view:'multiview', id:'multiviewToolbar', container:'multiviewToolbar',
-  cells:[App.Frame.toolbarAutorisation, App.Frame.toolbarHeader],
+  cells:[toolbar_Autorisation, toolbar_Header],
   animate:false
 };
 
