@@ -369,14 +369,14 @@ var scrollviewRight_GroupsFilter = {
   }
 };
 
-App.Frame.multiview_Right = {
-  view:'multiview', id:'multiview_Right',
-	width:250, animate: false,
-  cells:[scrollview_UsersFilter,
-  scrollview_RightUserFilter,
-  scrollview_RightGroupFilter,
-  scrollviewRight_GroupsFilter ]
-};
+// App.Frame.multiview_Right = {
+//   view:'multiview', id:'multiview_Right',
+// 	width:250, animate: false,
+//   cells:[scrollview_UsersFilter,
+//   scrollview_RightUserFilter,
+//   scrollview_RightGroupFilter,
+//   scrollviewRight_GroupsFilter ]
+// };
 
 //webix.protoUI({ name:"edittree"}, webix.EditAbility, webix.ui.tree);
 
@@ -1754,77 +1754,36 @@ App.Func.Login = function() {
     check(email, 'Ваш email не корректен, попробуйте ввести повторно').len(4,64).isEmail();
     check(swd, 'Пароль должен быть не короче 5 и не длиннее 60 символов').len(5, 60);
   } catch (e) {
-    $$('frameCentralLogin_authenticateError').setValues({src:e.message});
+    $$('frameLogin_authenticateError').setValues({src:e.message});
     return;
   }
   
   var promise = webix.ajax().post('api/v1/login', { email: email, password: swd }, reglogResponse);
   promise.then(function(realdata){}).fail(function(err) {
-    $$('frameCentralLogin_authenticateError').setValues({src:err.responseText});
+    $$('frameLogin_authenticateError').setValues({src:err.responseText});
   });
-};
-
-var formRegistration = {
-  view:'form', id:'formRegistration',
-  width:350,
-  elements:[
-    { view:'template', template:'Регистрация', type:'header', align:'center' },
-    { view:'text', id:'textRegistration_Email', label:'Email' },
-    { view:'text', id:'textRegistration_Username', label:'Имя' },
-    { view:'text', id:'textRegistration_Password', type:'password', label:'Пароль' },
-    { margin:5, cols:[
-      { view:'button', id:'buttonRegistration_Enter', value:'Зарегистрировать', type:'form', click: App.Func.Register },
-      { view:'button', id:'buttonRegistration_Cancel', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
-    ]}          
-  ]
 };
 
 var formLogin = {
   view:'form', id:'formLogin',
   width:350,
   elements:[
-    { view:'template', template:'Вход', type:'header', align:'center' },
-    { view:'text', id:'textLogin_Email', label:'Email', placeholder:'email@email.me' },
+    { view:'template', template:'Авторизация', type:'header', align:'center' },
+    { view:'text', id:'textLogin_Email', label:'Пользователь', placeholder:'email@email.me' },
     { view:'text', id:'textLogin_Password', type:'password', label:'Пароль' },
     { margin:5, cols:[
       { view:'button', id:'buttonLogin_Enter', value:'Войти', type:'form', click: App.Func.Login },
-      { view:'button', id:'buttonLogin_Cancel', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
+      //{ view:'button', id:'buttonLogin_Cancel', value:'Отменить', click: function() { App.Router.navigate('', {trigger: true} ); } }
     ]}          
   ]
 };
 
-App.Frame.frameCentral_Register = {
-  id:'frameCentral_Register',
+var frame_Login = {
+  id:'frame_Login',
   autoheight:true, autowidth:true,
   rows:[
     {},
-    {
-      cols:[
-      {},
-      formRegistration,
-      {}
-      ]
-    },
-    { height:5 },
-    { cols:[
-      {},
-      { view:'template', id:'frameCentralRegister_authenticateError', borderless:true, autoheight: true, width:350, 
-        data:{ src:'' }, css:'authenticateError', template:function(obj) {
-          return '<span>'+obj.src+'</span>'; 
-        } 
-      },
-      {}
-      ]
-    },
-    {}
-  ]
-};
-
-App.Frame.frameCentral_Login = {
-  id:'frameCentral_Login',
-  autoheight:true, autowidth:true,
-  rows:[
-    {},
+    //{ view:'template', template:"<img style='width:26px; height:26px;' src='/img/logo.png' />", align:'center' },
     {
       cols:[
       {},
@@ -1835,7 +1794,7 @@ App.Frame.frameCentral_Login = {
     { height:5 },
     { cols:[
       {},
-      { view:'template', id:'frameCentralLogin_authenticateError', borderless:true, autoheight:true, width:350, 
+      { view:'template', id:'frameLogin_authenticateError', borderless:true, autoheight:true, width:350, 
         data:{ src:'' }, css:'authenticateError', template:function(obj) {
           return '<span>'+obj.src+'</span>'; 
         } 
@@ -1847,12 +1806,6 @@ App.Frame.frameCentral_Login = {
   ]
 };
 
-App.Frame.frameCentral_Greeting = {
-  id:'frameCentral_Greeting', container:'frameCentral_Greeting',
-  view:'htmlform',
-  template: 'http->greeting.html'
-};
-
 App.Frame.frameBlank = {
   id:'frameBlank'
 };
@@ -1860,16 +1813,11 @@ App.Frame.frameBlank = {
 var toolbar_Autorisation = {
 	view:'toolbar', id: 'toolbar_Autorisation',
 	//height: 49, 
-	elements:[{ view:'toggle', type:'icon', icon:'bars', width:35, height:35, disabled:true },
-	          { view: 'label', label: "<img style='width:26px; height:26px;' src='/img/logo.png' /><span class='headerLabel'>InTask.me</span>", width:140 },
-	          {},
-	          { view:'button', id:'buttonAutorisationLogin', label:'Войти', type:'icon', icon:'sign-in', width: 100, 
-	            on:{ 'onItemClick': function(){ App.Router.navigate('login', {trigger:true} ); } } },
-	          { view:'button', id:'buttonAutorisationRegister', label:'Регистрация', type:'icon', icon:'user', width: 120,
-	            on:{ 'onItemClick': function() { App.Router.navigate('register', {trigger:true} ); } } },
-	          {},
-	          { width: 100 },
-	          { view:'toggle', type:'icon', icon:'tasks',	width:35,	height:35, disabled:true }]
+	elements:[//{ view:'toggle', type:'icon', icon:'bars', width:35, height:35, disabled:true },
+	          { view: 'label', label: "<img style='width:26px; height:26px;' src='/img/logo.png' /><span class='headerLabel'>fns.club</span>", width:140 },
+	          //{},
+	          //{ view:'toggle', type:'icon', icon:'tasks',	width:35,	height:35, disabled:true }
+	          ]
 };
 
 App.Frame.multiviewToolbar = {
@@ -1883,19 +1831,18 @@ App.Frame.multiviewToolbar = {
 //   width:70,
 //   rows:[{ view:'label', label:'Назад' }, {}],
 //   visible:false
-// };
+// }; 
 
 App.Frame.multiview_Central = {
   view:'multiview', id:'multiview_Central', container:'multiview_Central',
   cells:[App.Frame.frameBlank,
-    App.Frame.frameCentral_Greeting,
     frame_Groups,
     frame_Tasks,
     frame_Users,
-    App.Frame.frameCentral_Register,
-    App.Frame.frameCentral_Login,
+    frame_Login,
     tabview_User,
     tabview_Group],
-  fitBiggest:true,
+  fitBiggest:false,
+  //fitBiggest:true,
   animate:false
 };

@@ -268,20 +268,21 @@ var implementFunction = (function() {
   };
 
   var offState = function() {
-    $$('multiview_Left').hide();
-    $$('multiview_Right').hide();
+    //$$('multiview_Left').hide();
+    //$$('multiview_Right').hide();
 
     $$('treetable_Tasks').clearAll();
     $$('treetable_Groups').clearAll();
     
-    $$('toggle_HeaderMenu').setValue(0);
-    $$('toggle_HeaderOptions').setValue(0);
+    //$$('toggle_HeaderMenu').setValue(0);
+    //$$('toggle_HeaderOptions').setValue(0);
     
-    $$('toolbar_Autorisation').show();
-    $$('buttonAutorisationLogin').enable();
-	  $$('buttonAutorisationRegister').enable();
-	  
-	  $$('tree_SegmentsSelector').unselectAll();
+    //$$('toolbar_Autorisation').show();
+
+    $$('frame_Login').show();
+    $$('frameLogin_authenticateError').setValues({src:''});
+
+	  //$$('tree_SegmentsSelector').unselectAll();
   };
 
   /**
@@ -344,7 +345,7 @@ var implementFunction = (function() {
       App.Func.loadUserPermission();        //Загрузим настройки в панель настроек доступа своего профиля
     } else {
       $$('frame_ViewedUser').show();                                   //Показываем фрейм с данными чужого профиля
-      if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();     //Если панель настроек доступа видима, то скроем
+      //if($$('multiview_Right').isVisible()) $$('multiview_Right').hide();     //Если панель настроек доступа видима, то скроем
       if($$('toggle_HeaderOptions').getValue()) $$('toggle_HeaderOptions').setValue(0); //Если кнопка настроке доступа нажата, то отожмем
       $$('toggle_HeaderOptions').disable();                                   //Заблокируем возможность нажимать кнопку открытия окна настроек доступа
     }
@@ -658,7 +659,8 @@ var implementFunction = (function() {
   	  console.log('segmentSelector: user not logged');
 	    App.State.init();
 	    offState();
-  	  $$('frameCentral_Greeting').show();
+  	  //$$('frameCentral_Greeting').show(); 
+  	  
   	} //if(App.State.user.mainUserLogged)    
   };
   
@@ -712,7 +714,7 @@ var implementFunction = (function() {
 		routes:{
 			'login(/)':'login',
 			'logout(/)':'logout',
-			'register(/)':'register',
+		// 	'register(/)':'register',
 			'groups(/)':'groups',
 			'tasks(/)':'tasks',
 			'id:id(/)':'user',
@@ -773,11 +775,8 @@ var implementFunction = (function() {
 		login:function() {
 		  //App.State.clientRoute = '/login';
 		  if(!App.State.user.get('mainUserLogged')) {
-		    $$('frameCentral_Login').show();
-        $$('frameCentralLogin_authenticateError').setValues({src:''});
-
-		    $$('buttonAutorisationLogin').disable();
-		    $$('buttonAutorisationRegister').enable();
+		    $$('frame_Login').show();
+        $$('frameLogin_authenticateError').setValues({src:''});
 		  } else {
 		    App.Router.navigate('id' + App.State.user.get('id'), {trigger: true});
 		  }
@@ -792,18 +791,6 @@ var implementFunction = (function() {
       }).fail(function(err){
         connectionErrorShow(err);
       });
-		},
-		register:function() {
-		  //App.State.clientRoute = '/register';
-		  if(!App.State.user.get('mainUserLogged')) {
-		    $$('frameCentral_Register').show();
-		    $$('frameCentralRegister_authenticateError').setValues({src:''});
-		    
-		    $$('buttonAutorisationLogin').enable();
-		    $$('buttonAutorisationRegister').disable();
-		  } else {
-		    App.Router.navigate('id' + App.State.user.get('id'), {trigger: true});
-		  }
 		}
 	}))();
 
@@ -814,7 +801,9 @@ var implementFunction = (function() {
   var frame_Base = new webix.ui({
     id:'frame_Base',
     rows:[App.Frame.multiviewToolbar, 
-      { cols: [App.Frame.multiview_Left, App.Frame.multiview_Central, App.Frame.multiview_Right] }
+      { cols: [//App.Frame.multiview_Left, 
+      App.Frame.multiview_Central//, App.Frame.multiview_Right
+      ] }
     ]
   });
 
@@ -829,9 +818,7 @@ var implementFunction = (function() {
 
   //скажем менеджеру интерфейсов какие нажатия необходимо обработать по своему
   webix.UIManager.addHotKey('enter', function() { 
-    if($$('frameCentral_Register').isVisible()) {
-      App.Func.Register();
-    } else if($$('frameCentral_Login').isVisible()) {
+    if($$('frame_Login').isVisible()) {
       App.Func.Login();
     }
   });
@@ -973,4 +960,4 @@ var implementFunction = (function() {
   webix.event(window, 'resize', function() { frame_Base.adjust(); });
   //Backbone.history.start({pushState: true, root: "/"});
   Backbone.history.start( { pushState: true } );
-});
+}); 
